@@ -1,0 +1,32 @@
+# ~/.config/yazi/keymap.toml (Atajos estilo Vim - Versión Corregida)
+
+[manager]
+# Reemplazamos todos los atajos por defecto con nuestra propia lista.
+# Esto asegura que j y k funcionen sin conflictos.
+keymap = [
+    # --- Movimiento Básico (Vim y flechas) ---
+    { on = [ "j" ], run = "down" },
+    { on = [ "k" ], run = "up" },
+    { on = [ "h" ], run = "leave" },
+    { on = [ "l" ], run = "enter" },
+    { on = [ "Down" ], run = "down" },
+    { on = [ "Up" ], run = "up" },
+    { on = [ "Left" ], run = "leave" },
+    { on = [ "Right" ], run = "enter" },
+
+    # --- Movimiento Rápido ---
+    { on = [ "g", "g" ], run = "top" },
+    { on = [ "G" ], run = "bottom" },
+
+    # --- Acciones Esenciales ---
+    { on = [ "Enter" ], run = "enter" },
+    { on = [ "q" ], run = "quit" },
+    { on = [ "/" ], run = "search" },
+    { on = [ ":" ], run = "shell --interactive" },
+
+    # --- Pestañas ---
+    { on = [ "L" ], run = "tab_next" },
+    { on = [ "H" ], run = "tab_prev" },
+    { on = [ "c", "t" ], run = "tab_create" }, # ct = create tab
+    { on = [ "x" ], run = "tab_close" },
+]

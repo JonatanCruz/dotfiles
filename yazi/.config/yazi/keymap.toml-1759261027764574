@@ -1,0 +1,23 @@
+# ~/.config/yazi/keymap.toml (Atajos estilo Vim)
+
+[manager]
+# --- Movimiento Básico ---
+prepend_keymap = [
+    { on = [ "j" ], run = "down" },
+    { on = [ "k" ], run = "up" },
+    { on = [ "h" ], run = "leave" }, # Salir de la carpeta actual (como cd ..)
+    { on = [ "l" ], run = "enter" }, # Entrar en la carpeta o abrir archivo
+
+    # --- Movimiento Rápido ---
+    { on = [ "g", "g" ], run = "top" }, # Ir al inicio de la lista
+    { on = [ "G" ], run = "bottom" },  # Ir al final
+
+    # --- Acciones ---
+    { on = [ "/" ], run = "search" },  # Búsqueda normal
+    { on = [ "q" ], run = "quit" },
+    { on = [ ":" ], run = "shell --interactive" }, # Abrir un shell en la ruta actual
+    
+    # --- Pestañas ---
+    { on = [ "L" ], run = "tab_next" },
+    { on = [ "H" ], run = "tab_prev" },
+]

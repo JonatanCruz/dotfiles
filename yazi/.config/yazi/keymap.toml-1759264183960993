@@ -1,0 +1,26 @@
+[manager]
+keymap = [
+    # --- Movimiento Básico (Vim y flechas) ---
+    { on = [ "j" ], run = "down", desc = "Moverse hacia abajo" },
+    { on = [ "k" ], run = "up", desc = "Moverse hacia arriba" },
+    { on = [ "h" ], run = "leave", desc = "Salir de la carpeta actual" },
+    { on = [ "l" ], run = "enter", desc = "Entrar / Abrir archivo" },
+    { on = [ "Down" ], run = "down" },
+    { on = [ "Up" ], run = "up" },
+    { on = [ "Left" ], run = "leave" },
+    { on = [ "Right" ], run = "enter" },
+
+    # --- Acciones Esenciales ---
+    { on = [ "Enter" ], run = "enter" },
+    { on = [ "q" ], run = "quit" },
+    { on = [ "/" ], run = "search" },
+    { on = [ ":" ], run = "shell", desc = "Ejecutar comando de shell" },
+
+    # --- Movimiento Rápido ---
+    { on = [ "g", "g" ], run = "top" },
+    { on = [ "G" ], run = "bottom" },
+
+    # --- Pestañas ---
+    { on = [ "L" ], run = "tab_next" },
+    { on = [ "H" ], run = "tab_prev" },
+]

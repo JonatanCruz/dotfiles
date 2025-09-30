@@ -1,0 +1,34 @@
+# ~/.config/yazi/theme.toml (Dracula Transparente)
+
+[manager]
+cwd          = { fg = "#ff79c6", bold = true } # Rosa para la ruta actual
+
+# Bordes de la ventana
+border       = { fg = "#6272a4" } # Gris
+border_hover = { fg = "#bd93f9", bold = true } # Púrpura cuando el panel está activo
+
+# Resaltado de la selección
+hovered      = { fg = "#f8f8f2", bg = "#44475a", bold = true } # Fondo gris oscuro para la selección
+preview_hovered = { bg = "#44475a" }
+
+# Fondo general (transparente)
+background   = { bg = "none" }
+
+# --- Barra de estado ---
+[status]
+separator_fg = "#6272a4"
+background   = { bg = "#282a36" } # Fondo sólido para la barra, para legibilidad
+
+# Modos (normal, select, etc.)
+mode_normal  = { fg = "#282a36", bg = "#50fa7b", bold = true } # Verde
+mode_select  = { fg = "#282a36", bg = "#ffb86c", bold = true } # Naranja
+mode_unset   = { fg = "#282a36", bg = "#ff79c6", bold = true } # Rosa
+
+# Información de progreso
+progress_normal = { fg = "#50fa7b" }
+progress_error  = { fg = "#ff5555" }
+
+# --- Pestañas (Tabs) ---
+[tab]
+active   = { fg = "#f8f8f2", bg = "#44475a", bold = true }
+inactive = { fg = "#6272a4" }

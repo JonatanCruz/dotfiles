@@ -1,0 +1,66 @@
+# ~/.config/starship.toml (Tema Dracula Minimalista)
+
+# Esquema para autocompletado en editores.
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Mantiene la línea en blanco entre prompts para que no se sienta apretado.
+add_newline = true
+
+# Define un prompt de una sola línea, conciso y elegante.
+format = """\
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$cmd_duration\
+$line_break$character"""
+
+# --- MÓDULOS ESENCIALES ---
+
+# Directorio actual: Color rosa, truncado para no ocupar espacio.
+[directory]
+style = "#ff79c6" # Rosa Dracula
+format = "[$path]($style)[$read_only]($read_only_style) "
+truncation_length = 4
+truncation_symbol = "…/"
+read_only = " 🔒"
+read_only_style = "#ffb86c" # Naranja Dracula
+
+# Rama de Git: Color púrpura y un ícono simple.
+[git_branch]
+symbol = ""
+style = "#bd93f9" # Púrpura Dracula
+format = "[$symbol $branch]($style) "
+
+# Estado de Git: Muestra cambios de forma compacta.
+[git_status]
+style = "#bd93f9" # Púrpura Dracula
+format = '([$all_status$ahead_behind]($style)) '
+conflicted = "🏳"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕"
+untracked = "U"
+stashed = "S"
+modified = "M"
+staged = "+"
+renamed = "R"
+deleted = "D"
+
+# Versión de Node.js: Se muestra solo en proyectos de Node. Color verde.
+[nodejs]
+symbol = ""
+style = "#50fa7b" # Verde Dracula
+format = '[ $symbol ($version) ]($style)'
+
+# Duración del comando: Útil y discreto. Color naranja.
+[cmd_duration]
+min_time = 1000 # Muestra solo si tarda más de 1 segundo
+format = "took [$duration]($style) "
+style = "#ffb86c" # Naranja Dracula
+
+# Símbolo del prompt: El clásico ➜ con los colores de Dracula.
+[character]
+success_symbol = "[➜](#50fa7b)" # Verde Dracula
+error_symbol = "[➜](#ff5555)" # Rojo Dracula
+vimcmd_symbol = "[❮](#bd93f9)" # Púrpura Dracula
