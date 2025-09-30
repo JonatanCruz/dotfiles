@@ -1,6 +1,6 @@
 # 🐧 Mi Entorno de Desarrollo (`dotfiles`)
 
-![Dracula Theme Banner](https://raw.githubusercontent.com/dracula/dracula-theme/master/screenshot.png)
+![Dracula Theme Banner](https://draculatheme.com/images/dracula.gif)
 
 Este repositorio contiene mi configuración personal para un entorno de desarrollo en Linux, gestionado con **GNU Stow** y **Git**. La filosofía detrás de esta configuración es crear un ambiente **rápido, coherente, minimalista y estéticamente agradable**, centrado en la navegación con el teclado al estilo Vim.
 
