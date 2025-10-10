@@ -19,8 +19,14 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
+# Añade bin al path
+export PATH="$HOME/.local/bin:$PATH"
+
 # Aumenta el límite de anidamiento de funciones para evitar errores con Starship/ZLE.
 export FUNCNEST=1000
+
+# Configuración de Claude Code - Límite de tokens de salida
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
 
 # ==============================================================================
 # 2. ALIASES PARA HERRAMIENTAS MODERNAS
@@ -36,7 +42,7 @@ alias cat='bat --paging=never' # Reemplaza cat con bat (sin paginador por defect
 
 # --- Gestión de Tmux ---
 alias tn='tmux new -s'      # Crear una nueva sesión con nombre. Uso: tn <nombre>
-alias ta='tmux attach -t'   # Conectarse a una sesión existente. Uso: ta <nombre>
+alias ta='tmux a'   # Conectarse a una sesión existente. Uso: ta <nombre>
 alias tl='tmux ls'          # Listar todas las sesiones activas.
 alias tk='tmux kill-session -t' # Matar una sesión específica. Uso: tk <nombre>
 alias tks='tmux kill-server'    # Matar todas las sesiones.
