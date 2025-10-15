@@ -28,6 +28,13 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
+# Configuración de pyenv (Python Version Manager).
+export PYENV_ROOT="$HOME/.pyenv"
+if [ -d "$PYENV_ROOT/bin" ]; then
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)"
+fi
+
 # Añade bin al path
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -116,6 +123,21 @@ alias ducks='du -sh * | sort -rh | head -n 10'
 # Obtener tu IP pública
 alias myip='curl ifconfig.me'
 
+# --- Monitor de Sistema ---
+alias top='btop'        # Usar btop en lugar de top
+alias monitor='btop'    # Alias alternativo
+
+# --- Ayuda Rápida ---
+alias help='tldr'       # Usar tldr en lugar de man para ayuda rápida
+
+# --- GitHub CLI ---
+alias ghpr='gh pr create'           # Crear PR
+alias ghprl='gh pr list'            # Listar PRs
+alias ghprv='gh pr view'            # Ver PR
+alias ghis='gh issue list'          # Listar issues
+alias ghrc='gh repo clone'          # Clonar repositorio
+alias ghrv='gh repo view --web'     # Ver repo en web
+
 # ==============================================================================
 # 3. CONFIGURACIÓN DEL HISTORIAL
 # ==============================================================================
@@ -184,6 +206,9 @@ source <(fzf --zsh)
 
 # Inicializa zoxide (cd inteligente).
 eval "$(zoxide init zsh)"
+
+# Inicializa direnv (variables de entorno por directorio).
+eval "$(direnv hook zsh)"
 
 # Inicializa Starship (prompt). DEBE SER LA ÚLTIMA LÍNEA.
 eval "$(starship init zsh)"

@@ -1,0 +1,229 @@
+# ============================================================================
+# CONFIGURACIÓN DE GIT
+# ============================================================================
+# Configuración optimizada para desarrollo con git-delta integrado
+
+[user]
+	name = Jonatan Tlilayatzi Cruz
+	email = tlilayatzi.jonatan@outlook.com
+
+[init]
+	defaultBranch = main
+
+[core]
+	editor = nvim
+	pager = delta
+	# Ignorar cambios de permisos
+	filemode = false
+	# Mejor compresión
+	compression = 9
+
+[interactive]
+	diffFilter = delta --color-only
+
+[add.interactive]
+	useBuiltin = false
+
+# ============================================================================
+# DELTA (Diff Viewer Mejorado)
+# ============================================================================
+
+[delta]
+	# Usar syntax highlighting
+	features = catppuccin-frappe
+	navigate = true
+	light = false
+	side-by-side = true
+	line-numbers = true
+
+	# Colores personalizados
+	syntax-theme = Catppuccin Frappe
+
+	# Ancho de línea
+	max-line-length = 512
+
+	# Mostrar cambios intra-línea
+	hyperlinks = true
+
+	# File headers
+	file-style = bold yellow
+	file-decoration-style = yellow ul
+
+	# Line numbers
+	line-numbers-left-format = "{nm:>4}┊"
+	line-numbers-right-format = "{np:>4}│"
+	line-numbers-left-style = blue
+	line-numbers-right-style = blue
+
+	# Hunks
+	hunk-header-style = file line-number syntax
+	hunk-header-decoration-style = blue box
+
+[delta "catppuccin-frappe"]
+	# Colores base de Catppuccin Frappe
+	minus-style = syntax "#51576d"
+	minus-emph-style = syntax "#626880"
+	plus-style = syntax "#414559"
+	plus-emph-style = syntax "#51576d"
+	map-styles = "bold purple => syntax #51576d, bold cyan => syntax #414559"
+
+# ============================================================================
+# MERGE Y DIFF
+# ============================================================================
+
+[merge]
+	tool = nvimdiff
+	conflictstyle = diff3
+
+[mergetool]
+	prompt = false
+	keepBackup = false
+
+[mergetool "nvimdiff"]
+	cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+
+[diff]
+	tool = nvimdiff
+	colorMoved = default
+
+[difftool]
+	prompt = false
+
+[difftool "nvimdiff"]
+	cmd = nvim -d $LOCAL $REMOTE
+
+# ============================================================================
+# PULL Y PUSH
+# ============================================================================
+
+[pull]
+	rebase = false
+	ff = only
+
+[push]
+	default = current
+	followTags = true
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+	pruneTagas = true
+
+# ============================================================================
+# ALIASES ÚTILES
+# ============================================================================
+
+[alias]
+	# Status
+	s = status -sb
+	st = status
+
+	# Add
+	a = add
+	aa = add --all
+	ap = add --patch
+
+	# Commit
+	c = commit
+	cm = commit -m
+	ca = commit --amend
+	can = commit --amend --no-edit
+
+	# Branch
+	b = branch
+	ba = branch -a
+	bd = branch -d
+	bD = branch -D
+
+	# Checkout
+	co = checkout
+	cob = checkout -b
+
+	# Log
+	l = log --oneline --graph --decorate
+	lg = log --oneline --graph --decorate --all
+	lgg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	last = log -1 HEAD --stat
+
+	# Diff
+	d = diff
+	ds = diff --staged
+	dw = diff --word-diff
+
+	# Stash
+	sl = stash list
+	ss = stash save
+	sp = stash pop
+	sa = stash apply
+
+	# Reset
+	unstage = reset HEAD --
+	undo = reset --soft HEAD^
+
+	# Remote
+	r = remote -v
+
+	# Push/Pull
+	p = push
+	pl = pull
+	pf = push --force-with-lease
+
+	# Otros
+	tags = tag -l
+	branches = branch -a
+	remotes = remote -v
+
+	# Limpieza
+	cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master\\|develop' | xargs -n 1 git branch -d"
+
+	# Visualización mejorada
+	tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all
+
+	# Contribuidores
+	contributors = shortlog -sn
+
+# ============================================================================
+# COLORES
+# ============================================================================
+
+[color]
+	ui = auto
+	branch = auto
+	diff = auto
+	status = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+
+[color "status"]
+	added = green
+	changed = yellow
+	untracked = red
+
+# ============================================================================
+# GITHUB CLI
+# ============================================================================
+
+[credential]
+	helper = osxkeychain
+
+# ============================================================================
+# OPTIMIZACIONES
+# ============================================================================
+
+[rerere]
+	enabled = true
+
+[help]
+	autocorrect = 1
+
+[protocol]
+	version = 2
