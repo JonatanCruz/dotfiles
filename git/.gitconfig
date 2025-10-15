@@ -30,14 +30,14 @@
 
 [delta]
 	# Usar syntax highlighting
-	features = dracula
+	features = catppuccin-mocha
 	navigate = true
 	light = false
 	side-by-side = true
 	line-numbers = true
 
 	# Colores personalizados
-	syntax-theme = Dracula
+	syntax-theme = Catppuccin-mocha
 
 	# Ancho de línea
 	max-line-length = 512
@@ -46,39 +46,42 @@
 	hyperlinks = true
 
 	# File headers
-	file-style = bold "#ffb86c"
-	file-decoration-style = "#ffb86c" ul
+	file-style = bold "#fab387"
+	file-decoration-style = "#fab387" ul
 
 	# Line numbers
 	line-numbers-left-format = "{nm:>4}┊"
 	line-numbers-right-format = "{np:>4}│"
-	line-numbers-left-style = "#6272a4"
-	line-numbers-right-style = "#6272a4"
+	line-numbers-left-style = "#6c7086"
+	line-numbers-right-style = "#6c7086"
 
 	# Hunks
 	hunk-header-style = file line-number syntax
-	hunk-header-decoration-style = "#bd93f9" box
+	hunk-header-decoration-style = "#cba6f7" box
 
-[delta "dracula"]
-	# Colores base de Dracula
-	minus-style = syntax "#3e2a2a"
-	minus-emph-style = syntax "#6a3a3a"
-	plus-style = syntax "#2a3e2a"
-	plus-emph-style = syntax "#3a6a3a"
-	map-styles = "bold purple => syntax #bd93f9, bold cyan => syntax #8be9fd"
+[delta "catppuccin-mocha"]
+	# Colores base de Catppuccin Mocha
+	minus-style = syntax "#442d30"
+	minus-emph-style = syntax "#6e3f44"
+	plus-style = syntax "#2e3d32"
+	plus-emph-style = syntax "#3e5a3e"
+	map-styles = "bold purple => syntax #cba6f7, bold cyan => syntax #89dceb"
 
-	# Colores Dracula
-	# Background: #282a36
-	# Current Line: #44475a
-	# Foreground: #f8f8f2
-	# Comment: #6272a4
-	# Cyan: #8be9fd
-	# Green: #50fa7b
-	# Orange: #ffb86c
-	# Pink: #ff79c6
-	# Purple: #bd93f9
-	# Red: #ff5555
-	# Yellow: #f1fa8c
+	# Paleta de Colores Catppuccin Mocha
+	# Base: #1e1e2e
+	# Mantle: #181825
+	# Crust: #11111b
+	# Text: #cdd6f4
+	# Subtext0: #a6adc8
+	# Overlay0: #6c7086
+	# Surface0: #313244
+	# Mauve (Purple): #cba6f7
+	# Sky (Cyan): #89dceb
+	# Green: #a6e3a1
+	# Peach (Orange): #fab387
+	# Pink: #f5c2e7
+	# Red: #f38ba8
+	# Yellow: #f9e2af
 
 # ============================================================================
 # MERGE Y DIFF

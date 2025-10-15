@@ -5,7 +5,7 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 ## 🎨 Características Principales
 
 ### Apariencia
-- **Tema:** Dracula (Official) - esquema de colores unificado
+- **Tema:** Catppuccin Mocha - esquema de colores unificado
 - **Transparencia:** Fondo semi-transparente (60% opacidad)
 - **Blur:** Efecto de desenfoque en el fondo (macOS)
 - **Cursor:** Barra parpadeante (500ms)
@@ -151,9 +151,14 @@ WezTerm incluye muchos esquemas de color integrados. Para cambiar el tema:
 
 ```lua
 -- En wezterm.lua, cambia:
-config.color_scheme = "Catppuccin Frappe"
+config.color_scheme = "Catppuccin Mocha"
 
--- Por otro tema, por ejemplo:
+-- Por otros temas de Catppuccin:
+config.color_scheme = "Catppuccin Latte"   -- Claro
+config.color_scheme = "Catppuccin Frappe"  -- Oscuro suave
+config.color_scheme = "Catppuccin Macchiato" -- Oscuro medio
+
+-- O por otros temas populares:
 config.color_scheme = "Dracula (Official)"
 config.color_scheme = "Tokyo Night"
 config.color_scheme = "Gruvbox Dark"
@@ -307,7 +312,7 @@ Usa `Prefix + número` para saltar entre ventanas de tmux.
 - [Documentación Oficial de WezTerm](https://wezfurlong.org/wezterm/)
 - [Galería de Esquemas de Color](https://wezfurlong.org/wezterm/colorschemes/index.html)
 - [Nerd Fonts](https://www.nerdfonts.com/)
-- [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
+- [Catppuccin Theme for WezTerm](https://github.com/catppuccin/wezterm)
 
 ## 🎨 Alternativas de Configuración
 

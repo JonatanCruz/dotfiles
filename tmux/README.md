@@ -1,11 +1,11 @@
 # Configuración de Tmux para Desarrollo
 
-Configuración completa de tmux optimizada para desarrollo con múltiples plugins, gestor de sesiones, y tema Dracula unificado.
+Configuración completa de tmux optimizada para desarrollo con múltiples plugins, gestor de sesiones, y tema Catppuccin Mocha unificado.
 
 ## 🎨 Características
 
 - **Prefix key:** `Ctrl+s` (más ergonómico que `Ctrl+b`)
-- **Tema:** Dracula con fondo transparente (armonía visual con todo el setup)
+- **Tema:** Catppuccin Mocha con fondo transparente (armonía visual con todo el setup)
 - **Navegación:** Estilo Vim (hjkl) integrada con Neovim
 - **Historial:** 30,000 líneas (amplio historial de comandos)
 - **Persistencia:** Sesiones guardadas automáticamente
@@ -30,7 +30,7 @@ Configuración completa de tmux optimizada para desarrollo con múltiples plugin
 - **tmux-sessionx** - Gestor de sesiones con FZF + Zoxide
 
 ### Tema
-- **dracula/tmux** - Tema Dracula oficial para tmux
+- **catppuccin/tmux** - Tema Catppuccin oficial para tmux (mocha flavor)
 
 ## 🚀 Instalación
 
@@ -237,25 +237,26 @@ Modo de navegación y copia estilo Vim:
 # Pega con Prefix + ] o Cmd+V
 ```
 
-## 🎨 Tema Dracula
+## 🎨 Tema Catppuccin Mocha
 
-Configuración del tema oficial de Dracula:
+Configuración del tema oficial de Catppuccin:
 
-- **Powerline:** Activado para una apariencia más pulida
+- **Flavor:** Mocha (oscuro con colores cálidos y suaves)
 - **Status bar:** En la parte superior, fondo transparente
-- **Plugins en status bar:** CPU usage, RAM usage, y hora
-- **Left icon:** Muestra el nombre de la sesión
-- **Hora:** Formato militar (24h)
-- **Colores:** Esquema Dracula oficial
-  - Background: `#282a36`
-  - Foreground: `#f8f8f2`
-  - Purple: `#bd93f9`
-  - Pink: `#ff79c6`
-  - Cyan: `#8be9fd`
-  - Green: `#50fa7b`
-  - Orange: `#ffb86c`
-  - Red: `#ff5555`
-  - Yellow: `#f1fa8c`
+- **Módulos en status bar:** Directorio actual, sesión, CPU, y hora
+- **Separadores:** Estilo personalizado con iconos
+- **Hora:** Formato 24h
+- **Colores:** Esquema Catppuccin Mocha oficial
+  - Base: `#1e1e2e`
+  - Mantle: `#181825`
+  - Text: `#cdd6f4`
+  - Mauve: `#cba6f7`
+  - Pink: `#f5c2e7`
+  - Sky: `#89dceb`
+  - Green: `#a6e3a1`
+  - Peach: `#fab387`
+  - Red: `#f38ba8`
+  - Yellow: `#f9e2af`
 
 ## 🔧 Configuraciones Importantes
 
@@ -542,7 +543,7 @@ Prefix + q
 - [TPM - Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
 - [SessionX](https://github.com/omerxx/tmux-sessionx)
 - [Tmux Thumbs](https://github.com/fcsonline/tmux-thumbs)
-- [Tokyo Night Tmux](https://github.com/nikolovlazar/tokyo-night-tmux)
+- [Catppuccin for Tmux](https://github.com/catppuccin/tmux)
 - [Vim-Tmux-Navigator](https://github.com/christoomey/vim-tmux-navigator)
 - [Tmux Resurrect](https://github.com/tmux-plugins/tmux-resurrect)
 - [Tmux Continuum](https://github.com/tmux-plugins/tmux-continuum)

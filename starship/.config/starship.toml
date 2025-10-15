@@ -1,4 +1,4 @@
-# ~/.config/starship.toml (Tema Dracula Minimalista)
+# ~/.config/starship.toml (Tema Catppuccin Mocha Minimalista)
 
 # Esquema para autocompletado en editores.
 "$schema" = 'https://starship.rs/config-schema.json'
@@ -19,22 +19,22 @@ $line_break$character"""
 
 # Directorio actual: Color rosa, truncado para no ocupar espacio.
 [directory]
-style = "#ff79c6" # Rosa Dracula
+style = "#f5c2e7" # Rosa Catppuccin Mocha
 format = "[$path]($style)[$read_only]($read_only_style) "
 truncation_length = 4
 truncation_symbol = "…/"
 read_only = " 🔒"
-read_only_style = "#ffb86c" # Naranja Dracula
+read_only_style = "#fab387" # Peach Catppuccin Mocha
 
 # Rama de Git: Color púrpura y un ícono simple.
 [git_branch]
 symbol = ""
-style = "#bd93f9" # Púrpura Dracula
+style = "#cba6f7" # Mauve Catppuccin Mocha
 format = "[$symbol $branch]($style) "
 
 # Estado de Git: Muestra cambios de forma compacta.
 [git_status]
-style = "#bd93f9" # Púrpura Dracula
+style = "#cba6f7" # Mauve Catppuccin Mocha
 format = '([$all_status$ahead_behind]($style)) '
 conflicted = "🏳"
 ahead = "⇡${count}"
@@ -50,17 +50,17 @@ deleted = "D"
 # Versión de Node.js: Se muestra solo en proyectos de Node. Color verde.
 [nodejs]
 symbol = ""
-style = "#50fa7b" # Verde Dracula
+style = "#a6e3a1" # Green Catppuccin Mocha
 format = '[ $symbol ($version) ]($style)'
 
 # Duración del comando: Útil y discreto. Color naranja.
 [cmd_duration]
 min_time = 1000 # Muestra solo si tarda más de 1 segundo
 format = "took [$duration]($style) "
-style = "#ffb86c" # Naranja Dracula
+style = "#fab387" # Peach Catppuccin Mocha
 
-# Símbolo del prompt: El clásico ➜ con los colores de Dracula.
+# Símbolo del prompt: El clásico ➜ con los colores de Catppuccin Mocha.
 [character]
-success_symbol = "[➜](#50fa7b)" # Verde Dracula
-error_symbol = "[➜](#ff5555)" # Rojo Dracula
-vimcmd_symbol = "[❮](#bd93f9)" # Púrpura Dracula
+success_symbol = "[➜](#a6e3a1)" # Green Catppuccin Mocha
+error_symbol = "[➜](#f38ba8)" # Red Catppuccin Mocha
+vimcmd_symbol = "[❮](#cba6f7)" # Mauve Catppuccin Mocha

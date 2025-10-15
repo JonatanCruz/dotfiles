@@ -1,10 +1,10 @@
 # 💻 Mi Entorno de Desarrollo (`dotfiles`)
 
-![Dracula Theme Banner](https://draculatheme.com/images/dracula.gif)
+![Catppuccin Theme Banner](https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/macchiato.png)
 
 Este repositorio contiene mi configuración personal para un entorno de desarrollo en **Linux y macOS**, gestionado con **GNU Stow** y **Git**. La filosofía detrás de esta configuración es crear un ambiente **rápido, coherente, minimalista y estéticamente agradable**, centrado en la navegación con el teclado al estilo Vim.
 
-Toda la configuración sigue una paleta de colores unificada **Dracula** y está diseñada para tener un fondo **transparente**.
+Toda la configuración sigue una paleta de colores unificada **Catppuccin Mocha** y está diseñada para tener un fondo **transparente**.
 
 ---
 
@@ -251,36 +251,47 @@ stow nvim
 
 ## 🎨 Personalización
 
-### Tema Unificado: Dracula
+### Tema Unificado: Catppuccin Mocha
 
-Todas las herramientas están configuradas con el tema **[Dracula](https://draculatheme.com/)** para una armonía visual completa:
+Todas las herramientas están configuradas con el tema **[Catppuccin Mocha](https://github.com/catppuccin/catppuccin)** para una armonía visual completa:
 
 **Terminal y Shell:**
-- **WezTerm:** `Dracula (Official)` - Transparencia al 60%
-- **Tmux:** Plugin `dracula/tmux` con powerline
-- **Starship:** Colores Dracula personalizados
+- **WezTerm:** `Catppuccin Mocha` - Transparencia al 60%
+- **Tmux:** Plugin `catppuccin/tmux` con mocha flavor
+- **Starship:** Colores Catppuccin Mocha personalizados
 
 **Editor y Herramientas:**
-- **Neovim:** Plugin `Mofiqul/dracula.nvim`
-- **Git Delta:** Syntax theme Dracula con colores oficiales
-- **Yazi:** Compatible con tema Dracula
+- **Neovim:** Plugin `catppuccin/nvim` (mocha flavor)
+- **Git Delta:** Syntax theme Catppuccin Mocha con colores oficiales
+- **Yazi:** Compatible con tema Catppuccin
 
-**Paleta de Colores Dracula:**
-- Background: `#282a36`
-- Foreground: `#f8f8f2`
-- Purple: `#bd93f9`
-- Pink: `#ff79c6`
-- Cyan: `#8be9fd`
-- Green: `#50fa7b`
-- Orange: `#ffb86c`
-- Red: `#ff5555`
-- Yellow: `#f1fa8c`
-- Comment: `#6272a4`
+**Paleta de Colores Catppuccin Mocha:**
+- Base: `#1e1e2e`
+- Mantle: `#181825`
+- Crust: `#11111b`
+- Text: `#cdd6f4`
+- Subtext0: `#a6adc8`
+- Overlay0: `#6c7086`
+- Surface0: `#313244`
+- Mauve (Purple): `#cba6f7`
+- Pink: `#f5c2e7`
+- Sky (Cyan): `#89dceb`
+- Green: `#a6e3a1`
+- Peach (Orange): `#fab387`
+- Red: `#f38ba8`
+- Yellow: `#f9e2af`
+
+**¿Por qué Catppuccin Mocha?**
+- Menos fatiga visual durante largas sesiones de programación
+- Paleta de colores suaves y bien balanceados
+- Excelente contraste sin ser agresivo
+- Más de 200 integraciones con herramientas de desarrollo
+- Comunidad activa y bien documentado
 
 ### Transparencia
 
 El fondo transparente está configurado en:
-- Neovim (`nvim/.config/nvim/`)
+- Neovim (`nvim/.config/nvim/lua/plugins/colorscheme.lua`)
 - Tmux (`.tmux.conf`)
 - WezTerm (`wezterm/.config/wezterm/wezterm.lua`) - 60% opacidad con blur
 
