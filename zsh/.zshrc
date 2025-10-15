@@ -11,8 +11,17 @@
 export EDITOR='nvim'
 export PAGER='less'
 
-# Añade Homebrew al PATH.
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# Añade Homebrew al PATH (detecta macOS o Linux automáticamente).
+if [ -x "/opt/homebrew/bin/brew" ]; then
+  # macOS Apple Silicon (M1/M2/M3)
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x "/usr/local/bin/brew" ]; then
+  # macOS Intel
+  eval "$(/usr/local/bin/brew shellenv)"
+elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+  # Linux
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
 
 # Configuración de NVM (Node Version Manager).
 export NVM_DIR="$HOME/.nvm"

@@ -15,5 +15,5 @@ text = [
 # Regla por defecto para cualquier otro tipo de archivo
 # Puedes añadir más reglas aquí para imágenes, videos, etc.
 default = [
-    { run = 'xdg-open "$@"', orphan = true },
+    { run = 'open "$@"', orphan = true },  # macOS usa 'open' en lugar de 'xdg-open'
 ]
