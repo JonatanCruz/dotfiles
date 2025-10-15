@@ -1,8 +1,8 @@
-# 🐧 Mi Entorno de Desarrollo (`dotfiles`)
+# 💻 Mi Entorno de Desarrollo (`dotfiles`)
 
 ![Dracula Theme Banner](https://draculatheme.com/images/dracula.gif)
 
-Este repositorio contiene mi configuración personal para un entorno de desarrollo en Linux, gestionado con **GNU Stow** y **Git**. La filosofía detrás de esta configuración es crear un ambiente **rápido, coherente, minimalista y estéticamente agradable**, centrado en la navegación con el teclado al estilo Vim.
+Este repositorio contiene mi configuración personal para un entorno de desarrollo en **Linux y macOS**, gestionado con **GNU Stow** y **Git**. La filosofía detrás de esta configuración es crear un ambiente **rápido, coherente, minimalista y estéticamente agradable**, centrado en la navegación con el teclado al estilo Vim.
 
 Toda la configuración sigue una paleta de colores unificada **Dracula** y está diseñada para tener un fondo **transparente**.
 
@@ -13,6 +13,7 @@ Toda la configuración sigue una paleta de colores unificada **Dracula** y está
 | Herramienta              | Propósito                               |
 | ------------------------ | --------------------------------------- |
 | **Gestor de Dotfiles** | [GNU Stow](https://www.gnu.org/software/stow/)      |
+| **Terminal Emulator** | [WezTerm](https://wezfurlong.org/wezterm/) (macOS)  |
 | **Terminal Multiplexer** | [Tmux](https://github.com/tmux/tmux)                |
 | **Shell** | [Zsh](https://www.zsh.org/)                         |
 | **Prompt** | [Starship](https://starship.rs/)                    |
@@ -31,7 +32,7 @@ Toda la configuración sigue una paleta de colores unificada **Dracula** y está
 
 ## 🚀 Instalación Rápida
 
-Para replicar este entorno en una nueva máquina Linux:
+Para replicar este entorno en una nueva máquina:
 
 **1. Clona este repositorio:**
 ```bash
@@ -40,6 +41,10 @@ cd ~/dotfiles
 ```
 
 **2. Instala GNU Stow:**
+
+<details>
+<summary><b>Linux</b></summary>
+
 ```bash
 # Ubuntu/Debian
 sudo apt install stow
@@ -50,8 +55,25 @@ sudo pacman -S stow
 # Fedora
 sudo dnf install stow
 ```
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+# Instala Homebrew si no lo tienes
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Instala Stow
+brew install stow
+```
+</details>
 
 **3. Instala las dependencias principales:**
+
+<details>
+<summary><b>Linux (Ubuntu/Debian)</b></summary>
+
 ```bash
 # Tmux
 sudo apt install tmux
@@ -82,6 +104,23 @@ curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/lates
 tar xf lazygit.tar.gz lazygit
 sudo install lazygit /usr/local/bin
 ```
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+# Instala todas las dependencias con Homebrew
+brew install tmux zsh neovim starship yazi zoxide eza bat fd ripgrep lazygit
+
+# Instala WezTerm (terminal recomendado para macOS)
+brew install --cask wezterm
+
+# Instala las Nerd Fonts (recomendado para iconos)
+brew tap homebrew/cask-fonts
+brew install --cask font-jetbrains-mono-nerd-font
+```
+</details>
 
 **4. Aplica las configuraciones con Stow:**
 
@@ -98,6 +137,9 @@ stow zsh
 stow zsh-plugins
 stow starship
 stow yazi
+
+# Solo en macOS:
+stow wezterm
 ```
 
 **5. Cambia el shell a Zsh (opcional):**
@@ -123,9 +165,16 @@ dotfiles/
 │   └── .zsh/                  # Plugins adicionales de ZSH
 ├── starship/
 │   └── .config/starship.toml  # Configuración del prompt Starship
-└── yazi/
-    └── .config/yazi/          # Configuración de Yazi
+├── yazi/
+│   └── .config/yazi/          # Configuración de Yazi
+└── wezterm/
+    └── .config/wezterm/       # Configuración de WezTerm (macOS)
 ```
+
+### Notas sobre la estructura
+
+- **Branch `main`:** Configuración optimizada para Linux
+- **Branch `mac`:** Incluye adaptaciones y herramientas específicas para macOS (como WezTerm)
 
 ---
 
@@ -184,18 +233,26 @@ stow nvim
 
 ## 🎨 Personalización
 
-### Tema Dracula
+### Temas
 
-Todas las herramientas están configuradas con el tema [Dracula](https://draculatheme.com/) para una apariencia coherente:
+Las herramientas están configuradas con temas cohesivos para una apariencia unificada:
+
+**Linux (Dracula):**
 - Neovim: Plugin `Mofiqul/dracula.nvim`
 - Tmux: Colores personalizados Dracula
-- Terminal: Configura tu emulador de terminal con Dracula
+- Terminal: Configura tu emulador de terminal con [Dracula](https://draculatheme.com/)
+
+**macOS (Catppuccin):**
+- WezTerm: Tema Catppuccin Frappe
+- Neovim: Compatible con múltiples temas
+- Tmux: Colores personalizados
 
 ### Transparencia
 
 El fondo transparente está configurado en:
 - Neovim (`nvim/.config/nvim/`)
 - Tmux (`.tmux.conf`)
+- WezTerm (`wezterm/.config/wezterm/wezterm.lua`) - 60% opacidad con blur
 
 Asegúrate de que tu emulador de terminal soporte transparencia.
 
@@ -238,6 +295,12 @@ stow -R */  # Re-aplicar todos los paquetes
 
 ## 📝 Atajos de Teclado Principales
 
+### WezTerm (macOS)
+- Pantalla completa: `Ctrl+F`
+- Abrir enlaces: `Ctrl+Click`
+- Nueva pestaña: `Cmd+T`
+- Cerrar pestaña: `Cmd+W`
+
 ### Tmux
 - **Prefix:** `Ctrl+a`
 - Split horizontal: `Prefix + |`
@@ -248,6 +311,7 @@ stow -R */  # Re-aplicar todos los paquetes
 - **Leader:** `<space>`
 - Explorador de archivos: `Leader + e`
 - Búsqueda de archivos: `Leader + f`
+- Abrir LazyGit: `Leader + gg`
 - Navegación estilo Vim: `h/j/k/l`
 
 ### Yazi
