@@ -9,7 +9,7 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 - **Transparencia:** Fondo semi-transparente (60% opacidad)
 - **Blur:** Efecto de desenfoque en el fondo (macOS)
 - **Cursor:** Barra parpadeante (500ms)
-- **Tab Bar:** Personalizada con colores Catppuccin, se oculta con una sola tab
+- **Tab Bar:** Oculta (se usa tmux para gestión de ventanas/tabs)
 - **Decoraciones:** Solo redimensionable (sin barra de título)
 - **Padding:** 8px en los lados y arriba para mejor aspecto
 
@@ -36,9 +36,11 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 | `Cmd + Shift + Flechas` | Redimensionar panes |
 
 ### Gestión de Tabs
+**Nota:** Los tabs están disponibles pero ocultos visualmente. Se recomienda usar **tmux** para gestión de ventanas.
+
 | Atajo | Acción |
 |-------|--------|
-| `Cmd + T` | Nueva tab |
+| `Cmd + T` | Nueva tab (WezTerm) |
 | `Cmd + Shift + W` | Cerrar tab (con confirmación) |
 | `Cmd + [` / `Cmd + ]` | Navegar entre tabs |
 | `Cmd + Shift + [` / `Cmd + Shift + ]` | Mover tab |
@@ -88,19 +90,19 @@ Con `Cmd + Shift + Space` puedes seleccionar rápidamente:
 - **Colores hex** (#ff5733)
 - **Container IDs de Docker** (12 caracteres hex)
 
-## 💼 Workspaces y Status Bar
+## 💼 Filosofía de Uso: WezTerm + Tmux
 
-### Status Bar Derecho
-Muestra información útil en la esquina superior derecha:
-- Nombre del workspace actual
-- Directorio actual (solo el nombre de la carpeta)
-- Hora actual (HH:MM)
+Esta configuración oculta la tab bar de WezTerm y delega la gestión de ventanas/paneles a **tmux** para:
 
-### Formato de Tabs
-Las tabs muestran:
-- Índice numérico (1, 2, 3...)
-- Nombre del directorio actual o título personalizado
-- Máximo 16 caracteres (truncado con `...` si es más largo)
+- **Evitar confusión:** No hay tabs duplicados entre WezTerm y tmux
+- **Consistencia:** Todos los atajos de navegación son de tmux
+- **Sesiones persistentes:** tmux permite recuperar sesiones después de reiniciar
+- **Mejor integración:** Navegación uniforme entre panes con `Ctrl+h/j/k/l` (tmux-navigator)
+
+### Workflow recomendado
+1. **WezTerm:** Úsalo como el emulador de terminal base (transparencia, fuente, rendimiento)
+2. **Tmux:** Úsalo para splits, ventanas y sesiones
+3. **Panes de WezTerm:** Disponibles pero opcionales (si necesitas splits sin tmux)
 
 ## Instalación
 
@@ -182,10 +184,13 @@ Ver fuentes disponibles:
 wezterm ls-fonts
 ```
 
-### Habilitar Barra de Pestañas
+### Habilitar Barra de Pestañas (opcional)
+
+Si prefieres no usar tmux y quieres ver las tabs de WezTerm:
 
 ```lua
 config.enable_tab_bar = true  -- Mostrar pestañas
+config.hide_tab_bar_if_only_one_tab = true  -- Ocultar si solo hay una
 ```
 
 ### Agregar Imagen de Fondo
@@ -229,7 +234,7 @@ Para usar esta característica, necesitas un plugin de Neovim como [zen-mode.nvi
 
 ## 💡 Casos de Uso para Desarrollo
 
-### Workflow con Múltiples Panes
+### Workflow con Tmux (Recomendado)
 ```
 ┌─────────────┬─────────────┐
 │             │             │
@@ -242,18 +247,19 @@ Para usar esta característica, necesitas un plugin de Neovim como [zen-mode.nvi
 │                           │
 └───────────────────────────┘
 ```
-1. `Cmd + Shift + _`: Crea un split vertical para el editor
-2. `Cmd + Shift + |`: Crea un split horizontal para terminal
-3. `Cmd + H/J/K/L`: Navega entre panes
-4. `Cmd + Shift + Flechas`: Ajusta tamaños
+1. Abre WezTerm
+2. Inicia tmux: `tmux`
+3. `Prefix + |`: Crea un split vertical
+4. `Prefix + -`: Crea un split horizontal
+5. `Ctrl + H/J/K/L`: Navega entre panes (tmux-navigator)
 
-### Organización por Proyectos con Tabs
-- **Tab 1:** Proyecto Frontend (React)
-- **Tab 2:** Proyecto Backend (Node.js)
-- **Tab 3:** Base de datos (MongoDB/PostgreSQL)
-- **Tab 4:** Monitoreo (logs, docker-compose)
+### Organización por Proyectos con Tmux
+- **Ventana 1:** Proyecto Frontend (Neovim + servidor)
+- **Ventana 2:** Proyecto Backend (API + logs)
+- **Ventana 3:** Base de datos (cliente DB)
+- **Ventana 4:** Monitoreo (docker-compose, htop)
 
-Usa `Cmd + 1-9` para saltar rápidamente entre proyectos.
+Usa `Prefix + número` para saltar entre ventanas de tmux.
 
 ### Quick Select en Acción
 1. Aparece un hash de commit en el log: `7a3f2e1`
@@ -346,21 +352,27 @@ Esta configuración tiene splits nativos, pero puedes usar Tmux dentro de WezTer
 - Trabajar en servidores remotos
 - Sincronización de panes
 
-### 5. Workflow Recomendado
+### 5. Workflow Recomendado con Tmux
 ```bash
-# Tab 1: Desarrollo principal
+# Inicia tmux
+tmux
+
+# Ventana 0 (tmux): Desarrollo principal
 nvim .
 
-# Tab 2: Servidor de desarrollo (split vertical)
-Cmd+Shift+|
+# Crea nueva ventana (Prefix + c)
+# Ventana 1: Servidor de desarrollo
+Prefix + |  # Split vertical
 # Izquierda: npm run dev
 # Derecha: logs del servidor
 
-# Tab 3: Git y testing
+# Crea nueva ventana
+# Ventana 2: Git y testing
 git status
-# Split horizontal para tests watch mode
+Prefix + -  # Split horizontal para tests watch mode
 
-# Tab 4: Docker/Infra
+# Crea nueva ventana
+# Ventana 3: Docker/Infra
 docker-compose logs -f
 ```
 

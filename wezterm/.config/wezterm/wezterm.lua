@@ -33,38 +33,11 @@ config.default_cursor_style = "BlinkingBar"
 config.cursor_blink_rate = 500
 
 -- ============================================================================
--- TAB BAR PERSONALIZADO
+-- TAB BAR
 -- ============================================================================
 
-config.enable_tab_bar = true
-config.use_fancy_tab_bar = false
-config.hide_tab_bar_if_only_one_tab = true
-config.tab_bar_at_bottom = false
-config.tab_max_width = 32
-
--- Colores personalizados para la tab bar
-config.colors = {
-  tab_bar = {
-    background = "#303446",
-    active_tab = {
-      bg_color = "#8caaee",
-      fg_color = "#232634",
-      intensity = "Bold",
-    },
-    inactive_tab = {
-      bg_color = "#414559",
-      fg_color = "#c6d0f5",
-    },
-    inactive_tab_hover = {
-      bg_color = "#51576d",
-      fg_color = "#c6d0f5",
-    },
-    new_tab = {
-      bg_color = "#303446",
-      fg_color = "#c6d0f5",
-    },
-  },
-}
+-- Tab bar oculto (se usa tmux para gestión de tabs/ventanas)
+config.enable_tab_bar = false
 
 -- ============================================================================
 -- RENDIMIENTO Y OPTIMIZACIÓN
@@ -401,28 +374,6 @@ config.quick_select_patterns = {
 }
 
 -- ============================================================================
--- WORKSPACES (Proyectos de desarrollo)
--- ============================================================================
-
--- Workspace switcher
-wezterm.on("update-right-status", function(window, pane)
-  local workspace = window:active_workspace()
-  local time = wezterm.strftime("%H:%M")
-
-  -- Obtener el directorio actual
-  local cwd = pane:get_current_working_dir()
-  local cwd_display = ""
-  if cwd then
-    cwd_display = " " .. cwd.file_path:match("([^/]+)/?$")
-  end
-
-  window:set_right_status(wezterm.format({
-    { Foreground = { Color = "#8caaee" } },
-    { Text = " " .. workspace .. cwd_display .. " | " .. time .. " " },
-  }))
-end)
-
--- ============================================================================
 -- ZEN MODE (Integración con Neovim)
 -- ============================================================================
 
@@ -447,41 +398,6 @@ wezterm.on("user-var-changed", function(window, pane, name, value)
     end
   end
   window:set_config_overrides(overrides)
-end)
-
--- ============================================================================
--- FORMATO DE TABS (Mostrar índice y título)
--- ============================================================================
-
-wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
-  local title = tab.tab_title
-
-  -- Si no hay título personalizado, usar el título del pane
-  if title and #title > 0 then
-    title = title
-  else
-    title = tab.active_pane.title
-  end
-
-  -- Obtener el directorio del pane
-  local cwd = tab.active_pane.current_working_dir
-  if cwd then
-    local dir = cwd.file_path:match("([^/]+)/?$")
-    if dir then
-      title = dir
-    end
-  end
-
-  -- Limitar longitud del título
-  if #title > 16 then
-    title = title:sub(1, 13) .. "..."
-  end
-
-  local index = tab.tab_index + 1
-
-  return {
-    { Text = " " .. index .. ": " .. title .. " " },
-  }
 end)
 
 -- ============================================================================
