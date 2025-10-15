@@ -5,7 +5,7 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 ## 🎨 Características Principales
 
 ### Apariencia
-- **Tema:** Catppuccin Frappe (esquema de colores suave y moderno)
+- **Tema:** Dracula (Official) - esquema de colores unificado
 - **Transparencia:** Fondo semi-transparente (60% opacidad)
 - **Blur:** Efecto de desenfoque en el fondo (macOS)
 - **Cursor:** Barra parpadeante (500ms)

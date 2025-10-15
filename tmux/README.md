@@ -1,11 +1,11 @@
 # Configuración de Tmux para Desarrollo
 
-Configuración completa de tmux optimizada para desarrollo con múltiples plugins, gestor de sesiones, y tema Tokyo Night.
+Configuración completa de tmux optimizada para desarrollo con múltiples plugins, gestor de sesiones, y tema Dracula unificado.
 
 ## 🎨 Características
 
 - **Prefix key:** `Ctrl+s` (más ergonómico que `Ctrl+b`)
-- **Tema:** Tokyo Night con fondo transparente
+- **Tema:** Dracula con fondo transparente (armonía visual con todo el setup)
 - **Navegación:** Estilo Vim (hjkl) integrada con Neovim
 - **Historial:** 30,000 líneas (amplio historial de comandos)
 - **Persistencia:** Sesiones guardadas automáticamente
@@ -30,7 +30,7 @@ Configuración completa de tmux optimizada para desarrollo con múltiples plugin
 - **tmux-sessionx** - Gestor de sesiones con FZF + Zoxide
 
 ### Tema
-- **tokyo-night-tmux** - Tema Tokyo Night moderno
+- **dracula/tmux** - Tema Dracula oficial para tmux
 
 ## 🚀 Instalación
 
@@ -237,15 +237,25 @@ Modo de navegación y copia estilo Vim:
 # Pega con Prefix + ] o Cmd+V
 ```
 
-## 🎨 Tema Tokyo Night
+## 🎨 Tema Dracula
 
-Configuración del tema:
+Configuración del tema oficial de Dracula:
 
-- **Window ID style:** `fsquare` (cuadrado relleno)
-- **Pane ID style:** `fsquare`
-- **Zoom ID style:** `dsquare` (cuadrado vacío)
-- **Colores:** Esquema Tokyo Night (azules oscuros, morados, cianes)
+- **Powerline:** Activado para una apariencia más pulida
 - **Status bar:** En la parte superior, fondo transparente
+- **Plugins en status bar:** CPU usage, RAM usage, y hora
+- **Left icon:** Muestra el nombre de la sesión
+- **Hora:** Formato militar (24h)
+- **Colores:** Esquema Dracula oficial
+  - Background: `#282a36`
+  - Foreground: `#f8f8f2`
+  - Purple: `#bd93f9`
+  - Pink: `#ff79c6`
+  - Cyan: `#8be9fd`
+  - Green: `#50fa7b`
+  - Orange: `#ffb86c`
+  - Red: `#ff5555`
+  - Yellow: `#f1fa8c`
 
 ## 🔧 Configuraciones Importantes
 

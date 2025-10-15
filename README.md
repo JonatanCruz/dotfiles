@@ -251,19 +251,31 @@ stow nvim
 
 ## 🎨 Personalización
 
-### Temas
+### Tema Unificado: Dracula
 
-Las herramientas están configuradas con temas cohesivos para una apariencia unificada:
+Todas las herramientas están configuradas con el tema **[Dracula](https://draculatheme.com/)** para una armonía visual completa:
 
-**Linux (Dracula):**
-- Neovim: Plugin `Mofiqul/dracula.nvim`
-- Tmux: Colores personalizados Dracula
-- Terminal: Configura tu emulador de terminal con [Dracula](https://draculatheme.com/)
+**Terminal y Shell:**
+- **WezTerm:** `Dracula (Official)` - Transparencia al 60%
+- **Tmux:** Plugin `dracula/tmux` con powerline
+- **Starship:** Colores Dracula personalizados
 
-**macOS (Catppuccin):**
-- WezTerm: Tema Catppuccin Frappe
-- Neovim: Compatible con múltiples temas
-- Tmux: Colores personalizados
+**Editor y Herramientas:**
+- **Neovim:** Plugin `Mofiqul/dracula.nvim`
+- **Git Delta:** Syntax theme Dracula con colores oficiales
+- **Yazi:** Compatible con tema Dracula
+
+**Paleta de Colores Dracula:**
+- Background: `#282a36`
+- Foreground: `#f8f8f2`
+- Purple: `#bd93f9`
+- Pink: `#ff79c6`
+- Cyan: `#8be9fd`
+- Green: `#50fa7b`
+- Orange: `#ffb86c`
+- Red: `#ff5555`
+- Yellow: `#f1fa8c`
+- Comment: `#6272a4`
 
 ### Transparencia
 

@@ -30,14 +30,14 @@
 
 [delta]
 	# Usar syntax highlighting
-	features = catppuccin-frappe
+	features = dracula
 	navigate = true
 	light = false
 	side-by-side = true
 	line-numbers = true
 
 	# Colores personalizados
-	syntax-theme = Catppuccin Frappe
+	syntax-theme = Dracula
 
 	# Ancho de línea
 	max-line-length = 512
@@ -46,26 +46,39 @@
 	hyperlinks = true
 
 	# File headers
-	file-style = bold yellow
-	file-decoration-style = yellow ul
+	file-style = bold "#ffb86c"
+	file-decoration-style = "#ffb86c" ul
 
 	# Line numbers
 	line-numbers-left-format = "{nm:>4}┊"
 	line-numbers-right-format = "{np:>4}│"
-	line-numbers-left-style = blue
-	line-numbers-right-style = blue
+	line-numbers-left-style = "#6272a4"
+	line-numbers-right-style = "#6272a4"
 
 	# Hunks
 	hunk-header-style = file line-number syntax
-	hunk-header-decoration-style = blue box
+	hunk-header-decoration-style = "#bd93f9" box
 
-[delta "catppuccin-frappe"]
-	# Colores base de Catppuccin Frappe
-	minus-style = syntax "#51576d"
-	minus-emph-style = syntax "#626880"
-	plus-style = syntax "#414559"
-	plus-emph-style = syntax "#51576d"
-	map-styles = "bold purple => syntax #51576d, bold cyan => syntax #414559"
+[delta "dracula"]
+	# Colores base de Dracula
+	minus-style = syntax "#3e2a2a"
+	minus-emph-style = syntax "#6a3a3a"
+	plus-style = syntax "#2a3e2a"
+	plus-emph-style = syntax "#3a6a3a"
+	map-styles = "bold purple => syntax #bd93f9, bold cyan => syntax #8be9fd"
+
+	# Colores Dracula
+	# Background: #282a36
+	# Current Line: #44475a
+	# Foreground: #f8f8f2
+	# Comment: #6272a4
+	# Cyan: #8be9fd
+	# Green: #50fa7b
+	# Orange: #ffb86c
+	# Pink: #ff79c6
+	# Purple: #bd93f9
+	# Red: #ff5555
+	# Yellow: #f1fa8c
 
 # ============================================================================
 # MERGE Y DIFF

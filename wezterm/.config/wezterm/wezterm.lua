@@ -11,7 +11,7 @@ local act = wezterm.action
 -- APARIENCIA Y TEMA
 -- ============================================================================
 
-config.color_scheme = "Catppuccin Frappe"
+config.color_scheme = "Dracula (Official)"
 config.font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Bold", style = "Italic" })
 config.font_size = 14.5
 
