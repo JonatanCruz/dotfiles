@@ -26,7 +26,16 @@ Toda la configuración sigue una paleta de colores unificada **Dracula** y está
 - **`cat` Alternativa:** [Bat](https://github.com/sharkdp/bat)
 - **`find` Alternativa:** [fd](https://github.com/sharkdp/fd)
 - **`grep` Alternativa:** [ripgrep (rg)](https://github.com/BurntSushi/ripgrep)
-- **Interfaz para Git:** [LazyGit](https://github.com/jesseduffield/lazygit)
+- **Git UI:** [LazyGit](https://github.com/jesseduffield/lazygit)
+- **Git Diff:** [Delta](https://github.com/dandavison/delta)
+- **GitHub CLI:** [gh](https://cli.github.com/)
+
+### Herramientas de Desarrollo
+- **Monitor de Sistema:** [btop](https://github.com/aristocratos/btop)
+- **Ayuda Rápida:** [tldr](https://github.com/tldr-pages/tldr)
+- **Variables de Entorno:** [direnv](https://direnv.net/)
+- **Python Version Manager:** [pyenv](https://github.com/pyenv/pyenv)
+- **Node Version Manager:** [nvm](https://github.com/nvm-sh/nvm)
 
 ---
 
@@ -110,8 +119,14 @@ sudo install lazygit /usr/local/bin
 <summary><b>macOS</b></summary>
 
 ```bash
-# Instala todas las dependencias con Homebrew
+# Dependencias principales
 brew install tmux zsh neovim starship yazi zoxide eza bat fd ripgrep lazygit
+
+# Herramientas de Git
+brew install git-delta gh
+
+# Herramientas de desarrollo
+brew install btop tlrc direnv pyenv
 
 # Instala WezTerm (terminal recomendado para macOS)
 brew install --cask wezterm
@@ -131,6 +146,7 @@ brew install --cask font-jetbrains-mono-nerd-font
 stow */
 
 # O aplicar configuraciones específicas:
+stow git
 stow nvim
 stow tmux
 stow zsh
@@ -155,6 +171,8 @@ Cierra sesión y vuelve a entrar para aplicar los cambios.
 
 ```
 dotfiles/
+├── git/
+│   └── .gitconfig             # Configuración de Git con delta
 ├── nvim/
 │   └── .config/nvim/          # Configuración de Neovim
 ├── tmux/
@@ -290,6 +308,66 @@ stow -R */  # Re-aplicar todos los paquetes
    git commit -m "Add nueva-app configuration"
    git push
    ```
+
+---
+
+## 🛠️ Nuevas Herramientas y Aliases
+
+### Git Delta
+Visualizador de diffs mejorado con syntax highlighting. Se activa automáticamente con:
+```bash
+git diff
+git log -p
+git show <commit>
+```
+
+### GitHub CLI (gh)
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `ghpr` | `gh pr create` | Crear Pull Request |
+| `ghprl` | `gh pr list` | Listar PRs |
+| `ghprv` | `gh pr view` | Ver PR |
+| `ghis` | `gh issue list` | Listar issues |
+| `ghrc` | `gh repo clone` | Clonar repositorio |
+| `ghrv` | `gh repo view --web` | Ver repo en navegador |
+
+### Monitor de Sistema
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `top` | `btop` | Monitor visual de sistema |
+| `monitor` | `btop` | Monitor visual de sistema |
+
+### Ayuda Rápida
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `help` | `tldr` | Ayuda rápida con ejemplos |
+
+**Ejemplo:**
+```bash
+help tar     # Ver ejemplos de uso de tar
+help docker  # Ver ejemplos de uso de docker
+help git-rebase  # Ver ejemplos de git rebase
+```
+
+### Direnv
+Carga automáticamente variables de entorno al entrar a un directorio:
+```bash
+# En tu proyecto, crea un archivo .envrc
+echo 'export DATABASE_URL="postgres://localhost/mydb"' > .envrc
+direnv allow .
+
+# Al entrar al directorio, las variables se cargan automáticamente
+# Al salir, se descargan
+```
+
+### Pyenv
+Gestiona múltiples versiones de Python:
+```bash
+pyenv install 3.11.0    # Instalar Python 3.11
+pyenv global 3.11.0     # Usar 3.11 globalmente
+pyenv local 3.9.0       # Usar 3.9 en el proyecto actual
+pyenv versions          # Ver versiones instaladas
+```
 
 ---
 
