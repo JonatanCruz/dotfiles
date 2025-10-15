@@ -1,53 +1,106 @@
-# Configuración de WezTerm
+# Configuración de WezTerm para Desarrollo
 
-WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en Rust. Esta configuración ofrece un terminal moderno con transparencia, blur y funcionalidades avanzadas.
+WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en Rust. Esta configuración está optimizada para **desarrollo de software** con funcionalidades avanzadas, keybindings intuitivos y herramientas para mejorar la productividad.
 
-## Características Principales
+## 🎨 Características Principales
 
 ### Apariencia
 - **Tema:** Catppuccin Frappe (esquema de colores suave y moderno)
 - **Transparencia:** Fondo semi-transparente (60% opacidad)
 - **Blur:** Efecto de desenfoque en el fondo (macOS)
-- **Cursor:** Barra parpadeante
-- **Sin barra de pestañas:** Interfaz minimalista
+- **Cursor:** Barra parpadeante (500ms)
+- **Tab Bar:** Personalizada con colores Catppuccin, se oculta con una sola tab
 - **Decoraciones:** Solo redimensionable (sin barra de título)
+- **Padding:** 8px en los lados y arriba para mejor aspecto
 
 ### Tipografía
 - **Fuente:** JetBrainsMono Nerd Font (Bold Italic)
 - **Tamaño:** 14.5pt
 - Incluye soporte para iconos y símbolos especiales
 
-### Funcionalidades Avanzadas
+### Rendimiento
+- **FPS máximos:** 120 FPS
+- **Front-end:** WebGPU con alto rendimiento
+- **Scrollback:** 10,000 líneas de historial
+- **Animaciones:** 60 FPS
 
-#### Atajos de Teclado
+## ⌨️ Atajos de Teclado
+
+### Gestión de Panes (Splits)
 | Atajo | Acción |
 |-------|--------|
-| `Ctrl + F` | Alternar pantalla completa |
+| `Cmd + Shift + \|` | Split horizontal |
+| `Cmd + Shift + _` | Split vertical |
+| `Cmd + W` | Cerrar pane actual (con confirmación) |
+| `Cmd + H/J/K/L` | Navegar entre panes (estilo Vim) |
+| `Cmd + Shift + Flechas` | Redimensionar panes |
 
-#### Bindings del Mouse
+### Gestión de Tabs
+| Atajo | Acción |
+|-------|--------|
+| `Cmd + T` | Nueva tab |
+| `Cmd + Shift + W` | Cerrar tab (con confirmación) |
+| `Cmd + [` / `Cmd + ]` | Navegar entre tabs |
+| `Cmd + Shift + [` / `Cmd + Shift + ]` | Mover tab |
+| `Cmd + 1-9` | Ir a tab específica (1-8), 9 = última |
+| `Cmd + Shift + R` | Renombrar tab actual |
+
+### Utilidades de Desarrollo
+| Atajo | Acción |
+|-------|--------|
+| `Cmd + K` | Limpiar terminal y scrollback |
+| `Cmd + F` | Buscar en terminal |
+| `Cmd + Shift + Space` | Quick Select (copiar hashes, URLs, IPs, etc.) |
+| `Cmd + C` / `Cmd + V` | Copiar/Pegar |
+| `Cmd + Shift + P` | Command Palette |
+| `Cmd + Enter` | Modo de copia |
+| `Ctrl + F` | Toggle pantalla completa |
+
+### Zoom
+| Atajo | Acción |
+|-------|--------|
+| `Cmd + =` | Aumentar tamaño de fuente |
+| `Cmd + -` | Disminuir tamaño de fuente |
+| `Cmd + 0` | Restablecer tamaño de fuente |
+
+## 🖱️ Bindings del Mouse
 | Acción | Efecto |
 |--------|--------|
 | `Ctrl + Click` | Abrir enlace bajo el cursor |
+| `Click Derecho` | Pegar desde clipboard |
 
-#### Modo Zen (Integración con Neovim)
-- Soporte para el modo Zen de Neovim
-- Ajusta automáticamente el tamaño de fuente
-- Oculta/muestra la barra de pestañas
-- Se activa mediante la variable de usuario `ZEN_MODE`
+## 🔗 Hyperlink Rules (Detección Automática)
 
-### Características Opcionales (Comentadas)
+La configuración detecta automáticamente y hace clickeables:
+- URLs estándar (http, https)
+- Referencias de GitHub/GitLab (`usuario/repo#123`)
+- Paths de archivos absolutos (`/ruta/al/archivo`)
+- URLs de localhost (`localhost:3000`, `localhost:8080`, etc.)
 
-```lua
--- Imagen de fondo personalizada
-config.window_background_image = "/ruta/a/tu/imagen.jpg"
+## 🎯 Quick Select Patterns
 
--- Ajustes de brillo/saturación para la imagen
-config.window_background_image_hsb = {
-    brightness = 0.09,
-    hue = 1.0,
-    saturation = 1.5,
-}
-```
+Con `Cmd + Shift + Space` puedes seleccionar rápidamente:
+- **Git commit hashes** (7-40 caracteres hex)
+- **UUIDs** (formato estándar)
+- **IPs** (formato xxx.xxx.xxx.xxx)
+- **Pods de Kubernetes** (formato nombre-hash-hash)
+- **Versiones semánticas** (v1.2.3 o 1.2.3)
+- **Colores hex** (#ff5733)
+- **Container IDs de Docker** (12 caracteres hex)
+
+## 💼 Workspaces y Status Bar
+
+### Status Bar Derecho
+Muestra información útil en la esquina superior derecha:
+- Nombre del workspace actual
+- Directorio actual (solo el nombre de la carpeta)
+- Hora actual (HH:MM)
+
+### Formato de Tabs
+Las tabs muestran:
+- Índice numérico (1, 2, 3...)
+- Nombre del directorio actual o título personalizado
+- Máximo 16 caracteres (truncado con `...` si es más largo)
 
 ## Instalación
 
@@ -163,15 +216,58 @@ wezterm ls-fonts --list-color-schemes
 # No hay comando específico, reinicia la aplicación
 ```
 
-## Integración con Neovim
+## 🧘 Integración con Neovim
 
 ### Modo Zen
 Esta configuración incluye soporte para el modo Zen de Neovim mediante la variable de usuario `ZEN_MODE`. Cuando activas el modo Zen en Neovim, WezTerm ajusta automáticamente:
 
-- Tamaño de fuente
+- Tamaño de fuente (incrementa o resetea)
 - Visibilidad de la barra de pestañas
+- Se activa/desactiva automáticamente
 
 Para usar esta característica, necesitas un plugin de Neovim como [zen-mode.nvim](https://github.com/folke/zen-mode.nvim) configurado para enviar la variable `ZEN_MODE`.
+
+## 💡 Casos de Uso para Desarrollo
+
+### Workflow con Múltiples Panes
+```
+┌─────────────┬─────────────┐
+│             │             │
+│   Neovim    │   Servidor  │
+│   Editor    │   (npm run) │
+│             │             │
+├─────────────┴─────────────┤
+│                           │
+│   Terminal / Git          │
+│                           │
+└───────────────────────────┘
+```
+1. `Cmd + Shift + _`: Crea un split vertical para el editor
+2. `Cmd + Shift + |`: Crea un split horizontal para terminal
+3. `Cmd + H/J/K/L`: Navega entre panes
+4. `Cmd + Shift + Flechas`: Ajusta tamaños
+
+### Organización por Proyectos con Tabs
+- **Tab 1:** Proyecto Frontend (React)
+- **Tab 2:** Proyecto Backend (Node.js)
+- **Tab 3:** Base de datos (MongoDB/PostgreSQL)
+- **Tab 4:** Monitoreo (logs, docker-compose)
+
+Usa `Cmd + 1-9` para saltar rápidamente entre proyectos.
+
+### Quick Select en Acción
+1. Aparece un hash de commit en el log: `7a3f2e1`
+2. Presiona `Cmd + Shift + Space`
+3. El hash se resalta automáticamente
+4. Enter para copiar al clipboard
+5. Úsalo donde lo necesites
+
+### Buscar en Terminal
+1. Ejecutas un comando que genera mucha salida
+2. `Cmd + F` para buscar
+3. Escribe el término (ej: "ERROR", "localhost", etc.)
+4. Navega entre resultados
+5. `Esc` para salir
 
 ## Solución de Problemas
 
@@ -207,7 +303,7 @@ Para usar esta característica, necesitas un plugin de Neovim como [zen-mode.nvi
 - [Nerd Fonts](https://www.nerdfonts.com/)
 - [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
 
-## Alternativas de Configuración
+## 🎨 Alternativas de Configuración
 
 Si prefieres otros esquemas visuales:
 
@@ -221,3 +317,111 @@ config.default_cursor_style = "SteadyBlock"  -- Bloque sólido
 config.default_cursor_style = "BlinkingBlock" -- Bloque parpadeante
 config.default_cursor_style = "SteadyBar"     -- Barra sólida
 ```
+
+## 🚀 Tips y Mejores Prácticas
+
+### 1. Usar Tabs para Contextos Diferentes
+Renombra tus tabs con `Cmd + Shift + R` para identificarlas fácilmente:
+- "Frontend" para tu proyecto React/Vue
+- "API" para el backend
+- "DB" para gestión de base de datos
+- "Monitoring" para logs y monitoreo
+
+### 2. Aprovechar Quick Select
+Cuando trabajas con:
+- **Docker:** Copia rápidamente container IDs
+- **Git:** Copia commit hashes para cherry-pick o revert
+- **Debugging:** Copia UUIDs o IPs de logs
+- **URLs:** Copia localhost URLs para compartir
+
+### 3. Command Palette para Descubrir Funciones
+Presiona `Cmd + Shift + P` para ver todas las acciones disponibles. Es útil para:
+- Descubrir nuevos comandos
+- Ejecutar acciones menos frecuentes
+- Explorar configuraciones
+
+### 4. Combinación con Tmux
+Esta configuración tiene splits nativos, pero puedes usar Tmux dentro de WezTerm para:
+- Sesiones persistentes
+- Trabajar en servidores remotos
+- Sincronización de panes
+
+### 5. Workflow Recomendado
+```bash
+# Tab 1: Desarrollo principal
+nvim .
+
+# Tab 2: Servidor de desarrollo (split vertical)
+Cmd+Shift+|
+# Izquierda: npm run dev
+# Derecha: logs del servidor
+
+# Tab 3: Git y testing
+git status
+# Split horizontal para tests watch mode
+
+# Tab 4: Docker/Infra
+docker-compose logs -f
+```
+
+## 🔧 Personalización Avanzada
+
+### Agregar Más Patterns a Quick Select
+Edita `wezterm.lua` y agrega patrones personalizados:
+
+```lua
+config.quick_select_patterns = {
+  -- Tus patterns existentes...
+
+  -- Ticket IDs (ej: JIRA-1234)
+  "[A-Z]+-\\d+",
+
+  -- Branches de Git
+  "feature/[a-z0-9-]+",
+  "bugfix/[a-z0-9-]+",
+}
+```
+
+### Crear Hyperlinks Personalizados
+Para proyectos específicos o herramientas internas:
+
+```lua
+-- Ejemplo: Links a tickets de Jira
+table.insert(config.hyperlink_rules, {
+  regex = [[\bJIRA-\d+\b]],
+  format = "https://your-company.atlassian.net/browse/$0",
+})
+```
+
+### Configurar Workspaces Predefinidos
+Puedes crear keybindings para cambiar entre workspaces:
+
+```lua
+{
+  key = "1",
+  mods = "CTRL|SHIFT",
+  action = act.SwitchToWorkspace({
+    name = "frontend",
+    spawn = { cwd = "~/projects/my-app/frontend" },
+  }),
+},
+```
+
+## 📊 Comparación: WezTerm vs Alternativas
+
+| Característica | WezTerm | iTerm2 | Alacritty | Kitty |
+|----------------|---------|--------|-----------|-------|
+| GPU Acelerado | ✅ | ✅ | ✅ | ✅ |
+| Multiplexing Nativo | ✅ | ✅ | ❌ | ✅ |
+| Ligands/Hyperlinks | ✅ | ✅ | ✅ | ✅ |
+| Lua Config | ✅ | ❌ | ❌ | ❌ |
+| Cross-platform | ✅ | ❌ | ✅ | ✅ |
+| Splits/Panes | ✅ | ✅ | ❌ | ✅ |
+| Transparencia/Blur | ✅ | ✅ | ✅ | ✅ |
+
+### Por qué WezTerm para Desarrollo
+- **Configuración como código:** Todo en Lua, versionable
+- **Multiplexing integrado:** No necesitas tmux para splits básicos
+- **Quick Select:** Copia patterns comunes sin seleccionar con el mouse
+- **Rendimiento:** GPU-acelerado, rápido incluso con mucha salida
+- **Cross-platform:** Misma config en macOS, Linux y Windows
