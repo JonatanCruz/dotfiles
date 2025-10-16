@@ -1,22 +1,43 @@
 # Configuración de Zsh
 
-Configuración completa de Zsh con aliases modernos, plugins y optimizaciones de rendimiento.
+Configuración modular de Zsh organizada en archivos por categoría para mejor mantenibilidad y escalabilidad.
 
-## Características
-
-- **Editor predeterminado:** Neovim
-- **Modo de edición:** Vi/Vim
-- **Historial:** 10,000 comandos persistentes
-- **Autocompletado:** Menú interactivo con colores
-- **Plugins:** Autosuggestions, syntax highlighting, substring search
-- **Integración:** Starship, Zoxide, FZF, NVM
-
-## Estructura
+## Estructura del Proyecto
 
 ```
 zsh/
-└── .zshrc    # Configuración principal
+├── .zshrc                        # Punto de entrada (40 líneas)
+├── .zshrc.backup                 # Backup del archivo monolítico original
+└── .config/zsh/
+    ├── config/                   # Configuración base
+    │   ├── environment.zsh       # Variables de entorno, PATH, NVM, pyenv
+    │   ├── history.zsh           # Configuración del historial
+    │   ├── options.zsh           # Opciones de la shell (setopt)
+    │   ├── completion.zsh        # Sistema de autocompletado
+    │   └── keybindings.zsh       # Atajos de teclado
+    │
+    ├── aliases/                  # Aliases organizados por categoría
+    │   ├── tools.zsh             # eza, bat, btop, tldr, fd, ripgrep
+    │   ├── tmux.zsh              # Gestión de tmux
+    │   ├── git.zsh               # Git y GitHub CLI
+    │   ├── navigation.zsh        # cd, zoxide, operaciones de archivos
+    │   ├── editor.zsh            # Neovim y edición de configuración
+    │   └── utils.zsh             # Utilidades varias
+    │
+    └── plugins.zsh               # Carga de plugins y herramientas
 ```
+
+## Características
+
+- **Modular**: Cada categoría en su propio archivo
+- **Escalable**: Fácil agregar nuevos aliases o configuraciones
+- **Documentado**: Comentarios claros en cada archivo
+- **Limpio**: .zshrc de solo ~40 líneas vs ~220 original
+- **Organizado**: Estructura lógica por funcionalidad
+- **Modo Vi**: Edición de línea de comandos estilo Vim
+- **Historial**: 10,000 comandos persistentes compartidos entre sesiones
+- **Autocompletado**: Menú interactivo con colores
+- **Plugins**: Autosuggestions, syntax highlighting, substring search
 
 ## Instalación
 
@@ -24,7 +45,7 @@ zsh/
 
 ```bash
 cd ~/dotfiles
-stow zsh
+stow -R zsh
 ```
 
 ### 2. Cambiar Shell a Zsh (si no está configurado)
@@ -37,13 +58,13 @@ Cierra sesión y vuelve a entrar.
 
 ### 3. Instalar Dependencias
 
-**Herramientas CLI modernas (recomendadas):**
+**Herramientas CLI modernas:**
 ```bash
+# Homebrew (macOS)
+brew install eza bat fd ripgrep fzf btop tldr yazi
+
 # Ubuntu/Debian
 sudo apt install eza bat fd-find ripgrep fzf
-
-# Homebrew (Linux/macOS)
-brew install eza bat fd ripgrep fzf
 ```
 
 **Zoxide (navegación inteligente):**
@@ -54,6 +75,13 @@ curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | 
 **NVM (Node Version Manager):**
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+```
+
+**Starship (prompt):**
+```bash
+brew install starship
+# o
+curl -sS https://starship.rs/install.sh | sh
 ```
 
 ## Aliases Principales
@@ -98,6 +126,14 @@ gb          # git branch
 
 # Historial
 gl          # git log (formato gráfico)
+
+# GitHub CLI
+ghpr        # gh pr create
+ghprl       # gh pr list
+ghprv       # gh pr view
+ghis        # gh issue list
+ghrc        # gh repo clone
+ghrv        # gh repo view --web
 ```
 
 ### Tmux
@@ -120,7 +156,7 @@ tks          # Matar todas las sesiones
 
 # Zoxide (cd inteligente)
 z <carpeta> # Saltar a carpeta frecuente
-zi          # Búsqueda interactiva
+za / zi     # Búsqueda interactiva
 zq          # Ver base de datos de carpetas
 zrm         # Eliminar carpeta de base de datos
 ```
@@ -145,6 +181,8 @@ cat         # bat (syntax highlighting)
 ff          # fd (buscar archivos, incluye ocultos)
 rg          # ripgrep (case-insensitive)
 yz          # yazi (file manager)
+top         # btop (monitor de sistema)
+help        # tldr (ayuda rápida)
 
 c           # clear
 e           # exit
@@ -154,28 +192,84 @@ ducks       # Mostrar carpetas más pesadas
 myip        # Obtener IP pública
 ```
 
+## Agregar Nuevos Aliases
+
+### En Categoría Existente
+
+1. Edita el archivo apropiado:
+   ```bash
+   nvim ~/.config/zsh/aliases/git.zsh
+   ```
+
+2. Agrega tu alias:
+   ```bash
+   alias gundo='git reset --soft HEAD~1'  # Deshacer último commit
+   ```
+
+3. Recarga:
+   ```bash
+   source ~/.zshrc
+   ```
+
+### Nueva Categoría
+
+1. Crea nuevo archivo:
+   ```bash
+   nvim ~/.config/zsh/aliases/docker.zsh
+   ```
+
+2. Agrega aliases:
+   ```bash
+   # Docker aliases
+   alias d='docker'
+   alias dc='docker-compose'
+   alias dps='docker ps'
+   ```
+
+3. Carga en `.zshrc`:
+   ```bash
+   source "${ZDOTDIR}/aliases/docker.zsh"
+   ```
+
+## Modificar Configuración Base
+
+Los archivos de configuración están en `~/.config/zsh/config/`:
+
+- **environment.zsh**: Variables de entorno, PATH, version managers
+- **history.zsh**: Tamaño y comportamiento del historial
+- **options.zsh**: Opciones de la shell (setopt)
+- **completion.zsh**: Sistema de autocompletado
+- **keybindings.zsh**: Atajos de teclado
+
+Ejemplo - cambiar tamaño del historial:
+
+```bash
+nvim ~/.config/zsh/config/history.zsh
+# Cambia HISTSIZE y SAVEHIST
+source ~/.zshrc
+```
+
 ## Características Avanzadas
 
 ### Historial Inteligente
 
-```bash
-# Buscar en historial mientras escribes
-# Usa ↑/↓ para buscar comandos que empiecen con lo que escribiste
-```
-
-Configurado con:
 - Compartido entre sesiones
 - Ignora duplicados
 - Ignora comandos que empiezan con espacio
-- Persistencia de 10,000 comandos
+- Búsqueda con `↑/↓` filtrando por lo que escribiste
 
 ### Modo Vi
 
-El shell usa modo Vi para edición de línea:
 - `ESC` - Modo normal
 - `i` - Modo inserción
 - `hjkl` - Navegación en modo normal
 - `/` - Buscar en historial
+
+Para cambiar a modo Emacs:
+```bash
+nvim ~/.config/zsh/config/keybindings.zsh
+# Cambia 'bindkey -v' por 'bindkey -e'
+```
 
 ### Autocompletado Mejorado
 
@@ -184,71 +278,21 @@ El shell usa modo Vi para edición de línea:
 - Colores para distinguir tipos de archivos
 - Descripciones de comandos
 
-## Plugins Cargados
+### Plugins
 
-### zsh-autosuggestions
-Sugiere comandos basados en tu historial.
-- Usa `→` para aceptar sugerencia completa
-- Usa `Ctrl+→` para aceptar palabra por palabra
+- **zsh-autosuggestions**: Sugiere comandos basados en historial
+  - `→` para aceptar sugerencia completa
+  - `Ctrl+→` para aceptar palabra por palabra
 
-### zsh-syntax-highlighting
-Resalta comandos mientras escribes:
-- Verde: comando válido
-- Rojo: comando inválido
-- Azul: path existente
+- **zsh-syntax-highlighting**: Resalta comandos mientras escribes
+  - Verde: comando válido
+  - Rojo: comando inválido
+  - Azul: path existente
 
-### zsh-history-substring-search
-Busca en historial con `↑/↓` filtrando por lo que escribiste.
+- **zsh-history-substring-search**: Busca en historial con `↑/↓`
 
-## Variables de Entorno
+### Integración FZF
 
-```bash
-EDITOR=nvim          # Editor predeterminado
-PAGER=less           # Paginador
-FUNCNEST=1000        # Límite de anidamiento (para Starship)
-```
-
-## Opciones de Shell Configuradas
-
-```bash
-autocd                 # cd solo con el nombre del directorio
-extendedglob          # Patrones avanzados de glob
-AUTO_PUSHD            # cd automático añade a stack
-PUSHD_IGNORE_DUPS     # No duplica entradas en stack
-SHARE_HISTORY         # Comparte historial entre sesiones
-HIST_IGNORE_DUPS      # Ignora comandos duplicados
-```
-
-## Personalización
-
-### Añadir Aliases Personalizados
-
-Edita `.zshrc` en la sección 2:
-```bash
-alias mi_alias='mi comando'
-```
-
-Recarga la configuración:
-```bash
-source ~/.zshrc
-```
-
-### Cambiar a Modo Emacs
-
-Si prefieres atajos de Emacs en lugar de Vi:
-```bash
-# En .zshrc, cambia:
-bindkey -v    # por:
-bindkey -e
-```
-
-### Modificar Prompt
-
-El prompt es manejado por Starship. Ver `starship/README.md` para personalización.
-
-## Integración con Otras Herramientas
-
-### FZF (Fuzzy Finder)
 ```bash
 Ctrl+R    # Buscar en historial
 Ctrl+T    # Buscar archivos
@@ -256,22 +300,38 @@ Alt+C     # Cambiar directorio
 ```
 
 ### Zoxide
+
 Aprende los directorios que más usas:
 ```bash
 z dotfiles     # Salta a ~/dotfiles
 z conf nv      # Salta a ~/.config/nvim (fuzzy)
 ```
 
-### NVM
+## Comparación con Configuración Anterior
+
+| Aspecto | Anterior | Actual |
+|---------|----------|--------|
+| Archivos | 1 monolítico | 13 modulares |
+| Líneas .zshrc | 220 | 40 |
+| Organización | Secciones | Archivos por categoría |
+| Mantenibilidad | Media | Alta |
+| Escalabilidad | Limitada | Excelente |
+| Documentación | Comentarios inline | README + headers |
+
+## Restaurar Configuración Anterior
+
+Si necesitas volver a la configuración monolítica:
+
 ```bash
-nvm install --lts    # Instalar última versión LTS de Node
-nvm use 18           # Usar Node v18
-nvm ls               # Listar versiones instaladas
+mv ~/.zshrc ~/.zshrc.modular
+mv ~/.zshrc.backup ~/.zshrc
+source ~/.zshrc
 ```
 
 ## Solución de Problemas
 
 ### Los aliases no funcionan
+
 ```bash
 # Verifica que .zshrc está siendo cargado
 echo $SHELL
@@ -282,47 +342,37 @@ source ~/.zshrc
 ```
 
 ### Autocompletado no funciona
+
 ```bash
-# Limpia la caché de completado
+# Limpia la caché
 rm ~/.zcompdump*
 exec zsh
 ```
 
 ### Plugins no se cargan
-Verifica que los plugins estén instalados:
+
 ```bash
+# Verifica que estén instalados
 ls ~/.zsh/
 # Deberías ver:
 # zsh-autosuggestions/
 # zsh-syntax-highlighting/
 # zsh-history-substring-search/
-```
 
-Si faltan, aplica stow de zsh-plugins:
-```bash
+# Si faltan:
 cd ~/dotfiles
 stow zsh-plugins
 ```
 
-### Eza/bat no funcionan
+### Error al cargar módulos
+
 ```bash
-# Verifica que estén instalados
-which eza
-which bat
+# Verifica que ZDOTDIR esté configurado
+echo $ZDOTDIR
+# Debería mostrar: /Users/tu-usuario/.config/zsh
 
-# Si no están instalados:
-sudo apt install eza bat
-# o
-brew install eza bat
-```
-
-### Historial no se guarda
-```bash
-# Verifica permisos del archivo
-ls -la ~/.zsh_history
-
-# Si no existe, créalo
-touch ~/.zsh_history
+# Verifica que los archivos existan
+ls -la ~/.config/zsh/
 ```
 
 ## Performance
@@ -330,14 +380,16 @@ touch ~/.zsh_history
 La configuración está optimizada para carga rápida:
 - Caché de autocompletado con check de 24 horas
 - Plugins cargados al final
-- Compinit con opción `-i` para evitar checks inseguros
+- Starship inicializado al último
+- Compinit con opción `-i` para evitar checks
 
-## Referencias
+## Recursos
 
 - [Zsh Documentation](https://zsh.sourceforge.io/Doc/)
-- [Eza](https://github.com/eza-community/eza)
-- [Bat](https://github.com/sharkdp/bat)
-- [Ripgrep](https://github.com/BurntSushi/ripgrep)
-- [FZF](https://github.com/junegunn/fzf)
-- [Zoxide](https://github.com/ajeetdsouza/zoxide)
 - [Starship](https://starship.rs/)
+- [eza](https://github.com/eza-community/eza)
+- [bat](https://github.com/sharkdp/bat)
+- [fzf](https://github.com/junegunn/fzf)
+- [zoxide](https://github.com/ajeetdsouza/zoxide)
+- [ripgrep](https://github.com/BurntSushi/ripgrep)
+- [fd](https://github.com/sharkdp/fd)
