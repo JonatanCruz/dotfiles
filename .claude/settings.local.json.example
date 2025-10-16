@@ -1,0 +1,15 @@
+{
+  "$schema": "https://storage.googleapis.com/osprey-cli-public/settings-schema.json",
+  "_comment": "Este es un archivo de ejemplo. Copia este archivo a settings.local.json y personalízalo según tus necesidades.",
+  "_note": "settings.local.json es ignorado por git y tiene prioridad sobre settings.json",
+  "model": "claude-sonnet-4-5",
+  "env": {
+    "CUSTOM_VAR": "valor personalizado"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(custom-command*)"
+    ]
+  },
+  "includeCoAuthoredBy": false
+}

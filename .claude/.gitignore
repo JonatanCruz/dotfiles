@@ -1,0 +1,12 @@
+# Ignorar configuraciones locales personales
+settings.local.json
+
+# Ignorar archivos de memoria local
+memory.local.md
+
+# Ignorar transcripciones de chat
+transcripts/
+
+# Ignorar archivos temporales
+*.tmp
+*.log

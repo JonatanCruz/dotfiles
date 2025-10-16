@@ -1,0 +1,33 @@
+{
+  "$schema": "https://storage.googleapis.com/osprey-cli-public/settings-schema.json",
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/statusline.sh",
+    "padding": 0
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.key)",
+      "Read(./**/*.pem)",
+      "Read(./**/*credentials*)",
+      "Read(./**/*password*)",
+      "Read(./.aws/**)",
+      "Read(./.ssh/**)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(./secrets/**)"
+    ],
+    "ask": [
+      "Bash(rm *)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(npm publish*)",
+      "Bash(brew uninstall*)"
+    ]
+  },
+  "includeCoAuthoredBy": true,
+  "cleanupPeriodDays": 30
+}
