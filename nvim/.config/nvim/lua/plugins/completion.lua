@@ -1,4 +1,27 @@
 return {
+  -- Supermaven: Autocompletado AI (gratuito)
+  {
+    'supermaven-inc/supermaven-nvim',
+    event = 'InsertEnter',
+    config = function()
+      require('supermaven-nvim').setup({
+        keymaps = {
+          accept_suggestion = '<Tab>',
+          clear_suggestion = '<C-]>',
+          accept_word = '<C-j>',
+        },
+        ignore_filetypes = { 'TelescopePrompt', 'NvimTree', 'lazy' },
+        color = {
+          suggestion_color = '#6c7086',  -- Overlay0 de Catppuccin Mocha
+          cterm = 244,
+        },
+        log_level = 'info',
+        disable_inline_completion = false,
+        disable_keymaps = false,
+      })
+    end,
+  },
+
   -- Motor de autocompletado
   {
     'hrsh7th/nvim-cmp',
@@ -28,6 +51,8 @@ return {
           end,
         },
         -- Atajos de teclado para el menú de autocompletado
+        -- Nota: Tab no se usa aquí para evitar conflicto con Supermaven
+        -- Tab está reservado para aceptar sugerencias AI de Supermaven
         mapping = cmp.mapping.preset.insert({
           ['<C-b>'] = cmp.mapping.scroll_docs(-4),
           ['<C-f>'] = cmp.mapping.scroll_docs(4),

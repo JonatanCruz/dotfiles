@@ -19,9 +19,10 @@ nvim/
     │   │   └── lsp_servers.lua     # Lista de servidores LSP
     │   └── plugins/                # Plugins organizados por categoría
     │       ├── colorscheme.lua     # Tema Catppuccin Mocha
-    │       ├── completion.lua      # Autocompletado (nvim-cmp) + snippets
+    │       ├── completion.lua      # Autocompletado (nvim-cmp + Supermaven AI)
     │       ├── editing.lua         # Herramientas de edición
     │       ├── git.lua             # Gitsigns + LazyGit
+    │       ├── linting.lua         # Linting con nvim-lint
     │       ├── lsp.lua             # Configuración LSP + Trouble
     │       ├── telescope.lua       # Búsqueda difusa
     │       └── ui.lua              # Interfaz (lualine, nvim-tree, which-key)
@@ -42,12 +43,15 @@ nvim/
 - **Git integrado:**
   - Gitsigns - Cambios git en el gutter, blame, navegación de hunks
   - LazyGit - Interfaz TUI completa para git
-- **Autocompletado:** nvim-cmp con múltiples fuentes
+- **Autocompletado:**
+  - nvim-cmp - Autocompletado LSP, snippets, buffer, path
+  - **Supermaven AI** - Autocompletado AI en tiempo real (gratis, 1M token context)
 - **Snippets:** friendly-snippets - Biblioteca de templates para múltiples lenguajes
 - **Formateo automático:** conform.nvim
 
 ### 🔧 LSP y Análisis de Código
 - **LSP Manager:** Mason + mason-lspconfig
+- **Linting:** nvim-lint - Linting asíncrono para ESLint, Stylelint, Pylint, etc.
 - **UI de Diagnósticos:** Trouble.nvim - Vista mejorada de errores y warnings
 - **Resaltado de sintaxis:** Treesitter
 - **Servidores LSP configurados:**
@@ -89,6 +93,16 @@ nvim/
 ### Diagnósticos
 - `:Trouble` - Abrir lista de diagnósticos
 - `:TroubleToggle` - Toggle vista de diagnósticos
+
+### Linting
+- `:Lint` - Ejecutar linting manualmente en el buffer actual
+
+### AI (Supermaven)
+- `:SupermavenStart` - Iniciar Supermaven
+- `:SupermavenStop` - Detener Supermaven
+- `:SupermavenToggle` - Toggle Supermaven
+- `:SupermavenUseFree` - Usar tier gratuito (al iniciar primera vez)
+- `:SupermavenShowLog` - Ver logs de Supermaven
 
 ### Otros
 - `:checkhealth` - Diagnóstico del sistema
@@ -142,6 +156,15 @@ nvim/
 - `<leader>xq` - Quickfix list
 - `<leader>xl` - Location list
 
+### Linting
+- `<leader>ll` - Ejecutar linting manualmente
+
+### AI (Supermaven)
+- `<Tab>` - Aceptar sugerencia completa de Supermaven
+- `<C-j>` - Aceptar palabra de sugerencia
+- `<C-]>` - Descartar sugerencia
+- **Nota:** Las sugerencias aparecen automáticamente mientras escribes
+
 ### Edición
 - `gcc` - Comentar/descomentar línea
 - `gc` (visual) - Comentar selección
@@ -188,6 +211,65 @@ La configuración incluye integración automática con tmux:
 - La barra de estado de tmux se oculta al entrar a Neovim
 - Se restaura al salir de Neovim
 - Navegación compartida entre splits de Neovim y paneles de tmux
+
+## Configuración de AI y Linting
+
+### Supermaven (Autocompletado AI)
+
+**Primera vez:**
+1. Abre Neovim - Supermaven se instalará automáticamente
+2. Ejecuta `:SupermavenUseFree` para activar el tier gratuito
+3. Las sugerencias aparecerán automáticamente mientras escribes
+
+**Uso:**
+- Las sugerencias AI aparecen en gris mientras escribes
+- Presiona `Tab` para aceptar la sugerencia completa
+- Presiona `C-j` para aceptar solo una palabra
+- Presiona `C-]` para descartar
+
+**Tier gratuito incluye:**
+- Autocompletado ilimitado
+- Context window de 1 millón de tokens
+- Soporte para todos los lenguajes
+
+### Linting con nvim-lint
+
+**Linters soportados (instalar por separado):**
+
+```bash
+# JavaScript/TypeScript - ESLint
+npm install -g eslint
+
+# CSS/SCSS - Stylelint
+npm install -g stylelint
+
+# Python - Pylint
+pip install pylint
+
+# Lua - Luacheck
+brew install luacheck  # macOS
+# o sudo apt install lua-check  # Linux
+
+# Markdown - markdownlint
+npm install -g markdownlint-cli
+
+# YAML - yamllint
+pip install yamllint
+
+# Shell - shellcheck
+brew install shellcheck  # macOS
+# o sudo apt install shellcheck  # Linux
+
+# Docker - hadolint
+brew install hadolint  # macOS
+```
+
+**Configuración:**
+- El linting se ejecuta automáticamente al guardar, entrar al buffer o salir de insert mode
+- Si no tienes un linter instalado, simplemente se omitirá sin errores
+- Ejecuta `:Lint` manualmente cuando quieras
+
+**Nota:** Solo instala los linters que necesites para tus proyectos.
 
 ## Solución de Problemas
 
@@ -244,3 +326,7 @@ La configuración está optimizada para carga rápida:
 ### Completion & Snippets
 - [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 - [friendly-snippets](https://github.com/rafamadriz/friendly-snippets)
+
+### AI & Linting
+- [Supermaven](https://github.com/supermaven-inc/supermaven-nvim) - Autocompletado AI gratuito
+- [nvim-lint](https://github.com/mfussenegger/nvim-lint) - Linting asíncrono

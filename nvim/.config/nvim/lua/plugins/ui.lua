@@ -87,6 +87,7 @@ return {
         ['<leader>t'] = { name = 'Toggle' },
         ['<leader>g'] = { name = 'Git' },
         ['<leader>x'] = { name = 'Trouble/Diagnósticos' },
+        ['<leader>l'] = { name = 'Linting' },
       })
     end,
   },
