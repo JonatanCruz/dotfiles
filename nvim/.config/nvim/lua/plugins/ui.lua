@@ -78,6 +78,10 @@ return {
       local wk = require('which-key')
       wk.setup(opts)
 
+      -- Transparencia para which-key (debe ir después de setup)
+      vim.api.nvim_set_hl(0, 'WhichKeyFloat', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'WhichKeyBorder', { fg = '#89b4fa', bg = 'none' }) -- Azul Catppuccin
+
       -- Registrar grupos de keybindings con descripciones (ordenados alfabéticamente)
       -- Sintaxis actualizada para which-key v3
       wk.add({
@@ -86,9 +90,11 @@ return {
         { '<leader>g', group = 'Git' },
         { '<leader>h', group = 'Git Hunk' },
         { '<leader>l', group = 'Linting' },
+        { '<leader>n', group = 'No-highlight' },
         { '<leader>p', group = 'Paquetes (Lazy/Mason)' },
+        { '<leader>r', group = 'Reload/Rename' },
         { '<leader>s', group = 'Splits' },
-        { '<leader>t', group = 'Toggle' },
+        { '<leader>t', group = 'Toggle/Terminal' },
         { '<leader>x', group = 'Trouble/Diagnósticos' },
       })
     end,
