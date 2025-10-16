@@ -82,20 +82,20 @@ return {
       vim.api.nvim_set_hl(0, 'WhichKeyFloat', { bg = 'none' })
       vim.api.nvim_set_hl(0, 'WhichKeyBorder', { fg = '#89b4fa', bg = 'none' }) -- Azul Catppuccin
 
-      -- Registrar grupos de keybindings con descripciones (ordenados alfabéticamente)
+      -- Registrar grupos de keybindings con descripciones e iconos
       -- Sintaxis actualizada para which-key v3
       wk.add({
-        { '<leader>b', group = 'Buffer' },
-        { '<leader>f', group = 'Buscar (Telescope)' },
-        { '<leader>g', group = 'Git' },
-        { '<leader>h', group = 'Git Hunk' },
-        { '<leader>l', group = 'Linting' },
-        { '<leader>n', group = 'No-highlight' },
-        { '<leader>p', group = 'Paquetes (Lazy/Mason)' },
-        { '<leader>r', group = 'Reload/Rename' },
-        { '<leader>s', group = 'Splits' },
-        { '<leader>t', group = 'Toggle/Terminal' },
-        { '<leader>x', group = 'Trouble/Diagnósticos' },
+        { '<leader>b', group = '󰓩 Buffer' },
+        { '<leader>f', group = '󰍉 Buscar (Telescope)' },
+        { '<leader>g', group = '󰊢 Git' },
+        { '<leader>h', group = ' Git Hunk' },
+        { '<leader>l', group = '󰁨 Linting' },
+        { '<leader>n', group = '󰹾 No-highlight' },
+        { '<leader>p', group = '󰏖 Paquetes (Lazy/Mason)' },
+        { '<leader>r', group = '󰑓 Reload/Rename' },
+        { '<leader>s', group = '󰯌 Splits' },
+        { '<leader>t', group = '󰔡 Toggle/Terminal' },
+        { '<leader>x', group = '󰙅 Trouble/Diagnósticos' },
       })
     end,
   },
