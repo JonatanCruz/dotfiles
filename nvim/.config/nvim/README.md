@@ -581,6 +581,27 @@ brew install hadolint  # macOS
 
 **Nota:** Solo instala los linters que necesites para tus proyectos.
 
+### Spell Checking (Corrección Ortográfica)
+
+**Configuración actual:**
+- Spell checking habilitado automáticamente en archivos Markdown y texto
+- Idioma: Inglés (en)
+
+**Agregar español:**
+```vim
+" Dentro de Neovim, en un archivo .md o .txt:
+:set spelllang=es,en
+```
+
+Neovim descargará automáticamente los diccionarios de español la primera vez.
+
+**Comandos útiles:**
+- `]s` - Ir a la siguiente palabra mal escrita
+- `[s` - Ir a la palabra mal escrita anterior
+- `z=` - Ver sugerencias de corrección
+- `zg` - Agregar palabra al diccionario personal
+- `zw` - Marcar palabra como mal escrita
+
 ## Migración y Limpieza
 
 ### Archivos Antiguos (Si existen)

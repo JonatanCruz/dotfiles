@@ -108,7 +108,9 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.opt_local.wrap = true
     vim.opt_local.spell = true
-    vim.opt_local.spelllang = "es,en"
+    vim.opt_local.spelllang = "en"
+    -- Para agregar español: descargar archivos de spell con :set spelllang=es
+    -- Neovim descargará automáticamente los diccionarios necesarios
   end,
   desc = "Configuración para archivos de texto"
 })
