@@ -44,6 +44,8 @@ return {
           border = constants.borders.style,
         }),
       },
+      -- Nota: La transparencia se gestiona globalmente en utils/transparency.lua
+      -- Los grupos CmpNormal, CmpBorder, etc. se configuran automáticamente
       mapping = cmp.mapping.preset.insert({
         -- Scroll en documentación
         ["<C-b>"] = cmp.mapping.scroll_docs(-4),

@@ -56,6 +56,11 @@ return {
       { '<leader>xl', '<cmd>TroubleToggle loclist<cr>', desc = 'Location List' },
       { 'gR', '<cmd>TroubleToggle lsp_references<cr>', desc = 'LSP References' },
     },
+    config = function(_, opts)
+      require("trouble").setup(opts)
+      -- La transparencia se gestiona globalmente en utils/transparency.lua
+      -- TroubleNormal se configura automáticamente
+    end,
   },
 
   -- Mason: Gestor de LSPs, linters, formatters

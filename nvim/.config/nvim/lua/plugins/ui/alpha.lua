@@ -52,10 +52,12 @@ return {
     dashboard.section.buttons.opts.hl = "Function"
     dashboard.section.footer.opts.hl = "Type"
 
-    -- Transparencia
-    vim.api.nvim_set_hl(0, "AlphaHeader", { fg = colors.primary, bg = "none" })
-    vim.api.nvim_set_hl(0, "AlphaFooter", { fg = colors.secondary, bg = "none" })
-
     alpha.setup(dashboard.opts)
+
+    -- Transparencia con colores personalizados
+    -- La transparencia base la maneja utils/transparency.lua
+    local transparency = require("utils.transparency")
+    transparency.set_transparent("AlphaHeader", { fg = colors.primary })
+    transparency.set_transparent("AlphaFooter", { fg = colors.secondary })
   end,
 }

@@ -73,16 +73,22 @@ return {
 
       vim.cmd.colorscheme 'catppuccin'
 
-      -- Iguala el color del separador de Neovim con el del borde de Tmux (Catppuccin Overlay0)
-      vim.api.nvim_set_hl(0, 'VertSplit', { fg = '#6c7086' })
-      -- Asegura que las ventanas flotantes (como las de Telescope) también sean transparentes
-      vim.api.nvim_set_hl(0, "NormalFloat", { link = "Normal" })
-      -- Hacemos que la línea del cursor no tenga fondo, solo subrayado
-      vim.api.nvim_set_hl(0, "CursorLine", { bg = "none" })
-      vim.api.nvim_set_hl(0, "CursorLineNr", { bg = "none" }) -- Para el número de línea también
-      -- Transparencia para el menú contextual (click derecho)
-      vim.api.nvim_set_hl(0, "Pmenu", { link = "Normal" })    -- Fondo del menú
-      vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#313244" })  -- Fondo de la selección (Surface0)
+      -- Aplicar transparencia completa usando la utilidad centralizada
+      local transparency = require("utils.transparency")
+      transparency.apply_transparency()
+
+      -- Configuraciones adicionales de color específicas
+      local colors = require("utils.colors")
+
+      -- Separador igual al borde de Tmux (Catppuccin Overlay0)
+      vim.api.nvim_set_hl(0, "VertSplit", { fg = colors.catppuccin.overlay0 })
+      vim.api.nvim_set_hl(0, "WinSeparator", { fg = colors.catppuccin.overlay0 })
+
+      -- Selección en Pmenu con color pero visible
+      vim.api.nvim_set_hl(0, "PmenuSel", { bg = colors.catppuccin.surface0, bold = true })
+
+      -- Configurar autocomando para re-aplicar transparencia al cambiar theme
+      transparency.setup_autocmd()
     end,
   },
 }

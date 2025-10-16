@@ -38,11 +38,16 @@ return {
         }
       })
 
-      vim.api.nvim_set_hl(0, "TelescopeNormal", { link = "Normal" })
-      vim.api.nvim_set_hl(0, "TelescopeBorder", { link = "Normal" })
-      vim.api.nvim_set_hl(0, "TelescopeSelection", { link = "CursorLine" })
+      -- Transparencia (gestionada por utils/transparency.lua)
+      -- Los highlights TelescopeNormal, TelescopeBorder, etc. se configuran automáticamente
+      -- Solo configuramos la selección con un color específico
+      local colors = require("utils.colors")
+      vim.api.nvim_set_hl(0, "TelescopeSelection", {
+        bg = colors.catppuccin.surface0,
+        bold = true,
+      })
 
-      -- Tus atajos para abrir Telescope se mantienen igual
+      -- Atajos de teclado
       local builtin = require('telescope.builtin')
       local keymap = vim.keymap.set
 

@@ -48,14 +48,17 @@ return {
     local wk = require("which-key")
     wk.setup(opts)
 
-    -- Transparencia completa para which-key
-    vim.api.nvim_set_hl(0, "WhichKeyFloat", { bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyBorder", { fg = colors.primary, bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyNormal", { bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyTitle", { fg = colors.primary, bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyGroup", { fg = colors.secondary })
-    vim.api.nvim_set_hl(0, "WhichKeyDesc", { fg = colors.fg })
-    vim.api.nvim_set_hl(0, "WhichKeyIcon", { fg = colors.primary })
+    -- Transparencia y colores personalizados
+    -- La transparencia base la maneja utils/transparency.lua
+    -- Aquí solo configuramos los colores específicos
+    local transparency = require("utils.transparency")
+    transparency.set_transparent("WhichKeyFloat")
+    transparency.set_transparent("WhichKeyBorder", { fg = colors.primary })
+    transparency.set_transparent("WhichKeyNormal")
+    transparency.set_transparent("WhichKeyTitle", { fg = colors.primary })
+    vim.api.nvim_set_hl(0, "WhichKeyGroup", { fg = colors.secondary, bg = "none" })
+    vim.api.nvim_set_hl(0, "WhichKeyDesc", { fg = colors.fg, bg = "none" })
+    vim.api.nvim_set_hl(0, "WhichKeyIcon", { fg = colors.primary, bg = "none" })
 
     -- Registrar grupos de keybindings con descripciones e íconos
     wk.add({

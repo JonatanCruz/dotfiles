@@ -94,9 +94,7 @@ return {
       },
     })
 
-    -- Transparencia
-    vim.api.nvim_set_hl(0, "NvimTreeNormal", { link = "Normal" })
-    vim.api.nvim_set_hl(0, "NvimTreeNormalFloat", { link = "Normal" })
-    vim.api.nvim_set_hl(0, "NvimTreeCursorLine", { bg = "none" })
+    -- Transparencia (gestionada por utils/transparency.lua en colorscheme)
+    -- Los highlights se configuran automáticamente
   end,
 }
