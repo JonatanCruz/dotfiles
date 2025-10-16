@@ -94,6 +94,7 @@ M.whichkey = {
   split = "󰯌",
   toggle = "󰔡",
   diagnostics = "󰙅",
+  system = "󰍉",  -- Para búsqueda de mensajes y sistema
 }
 
 -- Iconos para todo-comments

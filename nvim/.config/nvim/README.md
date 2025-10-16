@@ -50,13 +50,14 @@ nvim/
     │   └── plugins/                # ⭐ Plugins organizados en subcategorías
     │       ├── colorscheme.lua     # Tema Catppuccin Mocha
     │       │
-    │       ├── ui/                 # Interfaz de usuario (10 archivos)
+    │       ├── ui/                 # Interfaz de usuario (11 archivos)
     │       │   ├── statusline.lua  # Lualine
     │       │   ├── bufferline.lua  # Bufferline con pestañas
     │       │   ├── tree.lua        # Nvim-tree con navegación l/h
     │       │   ├── whichkey.lua    # Which-key con iconos
     │       │   ├── alpha.lua       # Dashboard de inicio
     │       │   ├── notify.lua      # Notificaciones
+    │       │   ├── noice.lua       # UI mejorada de mensajes y cmdline
     │       │   ├── indent.lua      # Guías de indentación
     │       │   ├── colorizer.lua   # Preview de colores
     │       │   ├── dressing.lua    # UI mejorada
@@ -223,6 +224,7 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - **Explorador de archivos:** nvim-tree - Navegación con `l` (abrir) y `h` (cerrar), auto-apertura con `nvim .`
 - **Pantalla de inicio:** alpha-nvim - Dashboard con ASCII art y accesos rápidos
 - **Notificaciones:** nvim-notify - Notificaciones modernas y elegantes
+- **UI mejorada de mensajes:** noice.nvim - Cmdline, mensajes y LSP progress con interfaz moderna
 - **Keybinding Discovery:** which-key.nvim v3 - Muestra atajos disponibles con iconos Nerd Font personalizados
 - **Guías de indentación:** indent-blankline.nvim - Líneas verticales para visualizar estructura
 - **Preview de colores:** nvim-colorizer.lua - Muestra colores hex/RGB en tiempo real
@@ -308,6 +310,13 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - `:BufferLinePick` - Elegir buffer
 - `:BufferLinePickClose` - Cerrar buffer (elegir)
 
+### Noice (UI de Mensajes)
+- `:Noice` - Ver historial de mensajes
+- `:Noice last` - Ver último mensaje
+- `:Noice dismiss` - Cerrar todas las notificaciones
+- `:Noice stats` - Ver estadísticas de rendimiento
+- `:Noice telescope` - Buscar mensajes con Telescope
+
 ### Otros
 - `:checkhealth` - Diagnóstico del sistema
 - `:Telescope` - Abrir selector de Telescope
@@ -386,6 +395,11 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 
 ### Linting
 - `<leader>ll` - Ejecutar linting manualmente
+
+### System/Mensajes (Noice)
+- `<leader>sn` - Ver historial de mensajes
+- `<leader>sl` - Ver último mensaje
+- `<leader>sd` - Cerrar todas las notificaciones
 
 ### AI (Supermaven)
 - `<Tab>` - Aceptar sugerencia completa de Supermaven (solo en modo Insert)
@@ -633,6 +647,7 @@ La configuración está optimizada para carga rápida:
 - [Catppuccin](https://github.com/catppuccin/nvim)
 - [Which-key](https://github.com/folke/which-key.nvim)
 - [Trouble](https://github.com/folke/trouble.nvim)
+- [Noice](https://github.com/folke/noice.nvim)
 
 ### Git
 - [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)

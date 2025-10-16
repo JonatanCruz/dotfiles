@@ -105,9 +105,17 @@ M.transparent_groups = {
   -- LSP
   "LspInfoBorder",
 
-  -- Noice (si se usa en el futuro)
+  -- Noice
   "NoicePopup",
   "NoicePopupBorder",
+  "NoiceCmdline",
+  "NoiceCmdlinePopup",
+  "NoiceCmdlinePopupBorder",
+  "NoiceCmdlineIcon",
+  "NoiceConfirm",
+  "NoiceConfirmBorder",
+  "NoiceSplit",
+  "NoiceSplitBorder",
 }
 
 -- Aplicar transparencia a todos los grupos

@@ -70,7 +70,7 @@ return {
       { "<leader>n", group = "No-highlight", icon = icons.whichkey.no_highlight },
       { "<leader>p", group = "Paquetes (Lazy/Mason)", icon = icons.whichkey.packages },
       { "<leader>r", group = "Reload/Rename", icon = icons.whichkey.reload },
-      { "<leader>s", group = "Splits", icon = icons.whichkey.split },
+      { "<leader>s", group = "System/Mensajes (Noice)", icon = icons.whichkey.system },
       { "<leader>t", group = "Toggle/Terminal", icon = icons.whichkey.toggle },
       { "<leader>x", group = "Trouble/Diagnósticos", icon = icons.whichkey.diagnostics },
     })
