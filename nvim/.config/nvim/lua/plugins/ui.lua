@@ -61,17 +61,10 @@ return {
           g = true,            -- Bindings que empiezan con g
         },
       },
-      window = {
+      win = {
         border = 'rounded',
         position = 'bottom',
-        margin = { 1, 0, 1, 0 },
         padding = { 2, 2, 2, 2 },
-      },
-      layout = {
-        height = { min = 4, max = 25 },
-        width = { min = 20, max = 50 },
-        spacing = 3,
-        align = 'left',
       },
       -- Ordenar alfabéticamente
       sort_by_description = false,
@@ -87,16 +80,17 @@ return {
       wk.setup(opts)
 
       -- Registrar grupos de keybindings con descripciones (ordenados alfabéticamente)
-      wk.register({
-        ['<leader>b'] = { name = '+Buffer' },
-        ['<leader>f'] = { name = '+Buscar (Telescope)' },
-        ['<leader>g'] = { name = '+Git' },
-        ['<leader>h'] = { name = '+Git Hunk' },
-        ['<leader>l'] = { name = '+Linting' },
-        ['<leader>p'] = { name = '+Paquetes (Lazy/Mason)' },
-        ['<leader>s'] = { name = '+Splits' },
-        ['<leader>t'] = { name = '+Toggle' },
-        ['<leader>x'] = { name = '+Trouble/Diagnósticos' },
+      -- Sintaxis actualizada para which-key v3
+      wk.add({
+        { '<leader>b', group = 'Buffer' },
+        { '<leader>f', group = 'Buscar (Telescope)' },
+        { '<leader>g', group = 'Git' },
+        { '<leader>h', group = 'Git Hunk' },
+        { '<leader>l', group = 'Linting' },
+        { '<leader>p', group = 'Paquetes (Lazy/Mason)' },
+        { '<leader>s', group = 'Splits' },
+        { '<leader>t', group = 'Toggle' },
+        { '<leader>x', group = 'Trouble/Diagnósticos' },
       })
     end,
   },
