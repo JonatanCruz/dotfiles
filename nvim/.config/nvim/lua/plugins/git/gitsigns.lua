@@ -82,23 +82,4 @@ return {
       end
     },
   },
-
-  -- LazyGit: Interfaz TUI para git
-  {
-    'kdheepak/lazygit.nvim',
-    cmd = {
-      'LazyGit',
-      'LazyGitConfig',
-      'LazyGitCurrentFile',
-      'LazyGitFilter',
-      'LazyGitFilterCurrentFile',
-    },
-    keys = {
-      { '<leader>gg', ':LazyGit<CR>', desc = 'Abrir LazyGit' }
-    },
-    dependencies = {
-      'nvim-telescope/telescope.nvim',
-      'nvim-lua/plenary.nvim',
-    },
-  }
 }
