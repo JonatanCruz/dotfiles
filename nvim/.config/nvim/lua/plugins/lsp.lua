@@ -58,6 +58,18 @@ return {
     },
   },
 
+  -- Mason: Gestor de LSPs, linters, formatters
+  {
+    "williamboman/mason.nvim",
+    cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
+    keys = {
+      { "<leader>pm", "<cmd>Mason<cr>", desc = "Abrir Mason" },
+    },
+    config = function()
+      require("mason").setup()
+    end,
+  },
+
   -- LSP Configuration
   {
     "neovim/nvim-lspconfig",
@@ -69,7 +81,6 @@ return {
     },
     config = function()
       local lspconfig = require("lspconfig")
-      local mason = require("mason")
       local mason_lspconfig = require("mason-lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
@@ -89,8 +100,7 @@ return {
         keymap("n", "]d", vim.diagnostic.goto_next, opts)
       end
 
-      -- Inicializa Mason
-      mason.setup()
+      -- Mason ya está inicializado en su plugin separado arriba
 
       -- Esta es la parte corregida.
       -- La configuración de los handlers va DENTRO de la llamada a setup.

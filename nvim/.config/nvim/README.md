@@ -33,10 +33,16 @@ nvim/
 
 ### 🎨 Interfaz
 - **Tema:** Catppuccin Mocha con fondo transparente
-- **Statusline:** lualine.nvim
-- **Explorador de archivos:** nvim-tree
-- **Notificaciones:** nvim-notify
-- **Keybinding Discovery:** which-key.nvim v3 - Muestra atajos disponibles con iconos Nerd Font personalizados y colores según tipo
+- **Statusline:** lualine.nvim - Barra de estado elegante
+- **Bufferline:** bufferline.nvim - Pestañas de buffers en la parte superior con integración Catppuccin
+- **Explorador de archivos:** nvim-tree - Navegación con `l` (abrir) y `h` (cerrar), auto-apertura con `nvim .`
+- **Pantalla de inicio:** alpha-nvim - Dashboard con ASCII art y accesos rápidos
+- **Notificaciones:** nvim-notify - Notificaciones modernas y elegantes
+- **Keybinding Discovery:** which-key.nvim v3 - Muestra atajos disponibles con iconos Nerd Font personalizados
+- **Guías de indentación:** indent-blankline.nvim - Líneas verticales para visualizar estructura
+- **Preview de colores:** nvim-colorizer.lua - Muestra colores hex/RGB en tiempo real
+- **UI mejorada:** dressing.nvim - Inputs y selects más bonitos
+- **TODOs destacados:** todo-comments.nvim - Resalta TODO, HACK, FIX, NOTE, WARN, PERF
 
 ### ⚡ Productividad
 - **Búsqueda difusa:** Telescope
@@ -45,6 +51,7 @@ nvim/
   - LazyGit - Interfaz TUI completa para git
 - **Autocompletado:**
   - nvim-cmp - Autocompletado LSP, snippets, buffer, path
+  - **Autocompletado en cmdline** - Sugerencias al escribir `:` (comandos) y `/` (búsqueda)
   - **Supermaven AI** - Autocompletado AI en tiempo real (gratis, 1M token context)
 - **Snippets:** friendly-snippets - Biblioteca de templates para múltiples lenguajes
 - **Formateo automático:** conform.nvim
@@ -104,11 +111,24 @@ nvim/
 - `:SupermavenUseFree` - Usar tier gratuito (al iniciar primera vez)
 - `:SupermavenShowLog` - Ver logs de Supermaven
 
+### Explorador de Archivos (nvim-tree)
+- `:NvimTreeToggle` - Abrir/cerrar nvim-tree
+- `:NvimTreeFocus` - Enfocar nvim-tree
+- `:NvimTreeFindFile` - Ubicar archivo actual en el árbol
+- `:NvimTreeCollapse` - Colapsar todo el árbol
+
+### Buffers (bufferline)
+- `:BufferLineCycleNext` - Siguiente buffer
+- `:BufferLineCyclePrev` - Buffer anterior
+- `:BufferLinePick` - Elegir buffer
+- `:BufferLinePickClose` - Cerrar buffer (elegir)
+
 ### Otros
 - `:checkhealth` - Diagnóstico del sistema
 - `:Telescope` - Abrir selector de Telescope
 - `:ConformInfo` - Ver configuración de formateo
 - `:WhichKey` - Ver todos los keybindings disponibles
+- `:TodoTelescope` - Buscar TODOs en el proyecto
 
 ## Atajos de Teclado Principales
 
@@ -133,15 +153,27 @@ nvim/
 - `<C-h/j/k/l>` - Navegar entre splits
 - `<S-h/l>` - Cambiar entre buffers
 - `<leader>bd` - Cerrar buffer actual
+- `<Tab>` - Siguiente buffer (bufferline)
+- `<S-Tab>` - Buffer anterior (bufferline)
+- `<leader>bp` - Elegir buffer interactivamente
+- `<leader>bc` - Cerrar buffer (elegir cual)
 
 ### Búsqueda (Telescope)
 - `<leader>ff` - Buscar archivos
 - `<leader>fg` - Buscar texto en proyecto
 - `<leader>fb` - Buscar en buffers
 - `<leader>fh` - Buscar en ayuda
+- `<leader>ft` - Buscar TODOs en el proyecto
 
-### Explorador de Archivos
+### Explorador de Archivos (nvim-tree)
 - `<leader>e` - Toggle nvim-tree
+- `l` - Abrir carpeta o archivo
+- `h` - Cerrar carpeta (volver al padre)
+- `j` / `k` - Navegar arriba/abajo
+- `v` - Abrir en split vertical
+- `s` - Abrir en split horizontal
+- `q` - Cerrar nvim-tree
+- **Nota:** `nvim .` abre automáticamente nvim-tree
 
 ### Git
 - `<leader>gg` - Abrir LazyGit
@@ -171,10 +203,18 @@ nvim/
 - `<leader>ll` - Ejecutar linting manualmente
 
 ### AI (Supermaven)
-- `<Tab>` - Aceptar sugerencia completa de Supermaven
+- `<Tab>` - Aceptar sugerencia completa de Supermaven (solo en modo Insert)
 - `<C-j>` - Aceptar palabra de sugerencia
 - `<C-]>` - Descartar sugerencia
 - **Nota:** Las sugerencias aparecen automáticamente mientras escribes
+
+### Autocompletado en Cmdline
+- `:` + escribir - Muestra comandos disponibles
+- `/` + escribir - Muestra sugerencias del buffer
+- `<Tab>` / `<S-Tab>` - Navegar sugerencias en cmdline
+- `<C-n>` / `<C-p>` - Navegar sugerencias en cmdline
+- `<Enter>` - Aceptar sugerencia
+- **Nota:** Comandos de plugins (Supermaven, Mason, Telescope, etc.) están disponibles
 
 ### Edición
 - `gcc` - Comentar/descomentar línea
@@ -257,7 +297,7 @@ npm install -g stylelint
 # Python - Pylint
 pip install pylint
 
-# Lua - Luacheck
+# Lua - Luacheck (ya instalado)
 brew install luacheck  # macOS
 # o sudo apt install lua-check  # Linux
 
@@ -279,6 +319,7 @@ brew install hadolint  # macOS
 - El linting se ejecuta automáticamente al guardar, entrar al buffer o salir de insert mode
 - Si no tienes un linter instalado, simplemente se omitirá sin errores
 - Ejecuta `:Lint` manualmente cuando quieras
+- Luacheck viene preconfigurado con `.luacheckrc` para reconocer variables globales de Neovim
 
 **Nota:** Solo instala los linters que necesites para tus proyectos.
 

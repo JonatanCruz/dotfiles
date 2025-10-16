@@ -3,6 +3,14 @@ return {
     'nvim-telescope/telescope.nvim',
     tag = '0.1.5',
     dependencies = { 'nvim-lua/plenary.nvim' },
+    cmd = { 'Telescope' },  -- Cargar cuando se ejecute el comando :Telescope
+    keys = {
+      { '<leader>ff', desc = 'Buscar archivos' },
+      { '<leader>fg', desc = 'Buscar texto en proyecto' },
+      { '<leader>fb', desc = 'Buscar en buffers abiertos' },
+      { '<leader>fh', desc = 'Buscar en la ayuda de Nvim' },
+      { '<leader>ft', desc = 'Buscar TODOs' },
+    },
     config = function()
       local telescope = require('telescope')
       local actions = require('telescope.actions')

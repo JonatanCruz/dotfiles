@@ -2,7 +2,7 @@ return {
   -- Supermaven: Autocompletado AI (gratuito)
   {
     'supermaven-inc/supermaven-nvim',
-    event = 'InsertEnter',
+    event = 'VeryLazy',  -- Cambiado de InsertEnter para que los comandos estén disponibles antes
     config = function()
       require('supermaven-nvim').setup({
         keymaps = {
@@ -74,19 +74,49 @@ return {
 
       -- Configuración para la línea de comandos (:)
       cmp.setup.cmdline(':', {
-        mapping = cmp.mapping.preset.cmdline(),
+        mapping = cmp.mapping.preset.cmdline({
+          ['<Tab>'] = { c = cmp.mapping.select_next_item() },
+          ['<S-Tab>'] = { c = cmp.mapping.select_prev_item() },
+          ['<C-n>'] = { c = cmp.mapping.select_next_item() },
+          ['<C-p>'] = { c = cmp.mapping.select_prev_item() },
+        }),
         sources = cmp.config.sources({
-          { name = 'path' }    -- Sugerencias de rutas de archivos
+          {
+            name = 'cmdline',
+            option = {
+              ignore_cmds = { 'Man', '!' },
+              treat_trailing_slash = false
+            },
+            keyword_length = 2,  -- Muestra sugerencias después de 2 caracteres
+          }
         }, {
-          { name = 'cmdline' } -- Sugerencias de comandos de nvim
-        })
+          {
+            name = 'path',
+            option = {
+              trailing_slash = true,
+              label_trailing_slash = true,
+            }
+          }
+        }),
+        matching = { disallow_symbol_nonprefix_matching = false },
+        completion = {
+          completeopt = 'menu,menuone,noselect'
+        },
+        experimental = {
+          ghost_text = false,
+        }
       })
 
-      -- Configuración para la línea de búsqueda (/)
-      cmp.setup.cmdline('/', {
-        mapping = cmp.mapping.preset.cmdline(),
+      -- Configuración para la línea de búsqueda (/ y ?)
+      cmp.setup.cmdline({ '/', '?' }, {
+        mapping = cmp.mapping.preset.cmdline({
+          ['<Tab>'] = { c = cmp.mapping.select_next_item() },
+          ['<S-Tab>'] = { c = cmp.mapping.select_prev_item() },
+          ['<C-n>'] = { c = cmp.mapping.select_next_item() },
+          ['<C-p>'] = { c = cmp.mapping.select_prev_item() },
+        }),
         sources = {
-          { name = 'buffer' } -- Sugerencias del texto en el buffer actual
+          { name = 'buffer' }
         }
       })
     end,
