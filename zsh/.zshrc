@@ -214,3 +214,4 @@ eval "$(direnv hook zsh)"
 eval "$(starship init zsh)"
 
 # ============================== FIN DE LA CONFIGURACIÓN ===============================
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
