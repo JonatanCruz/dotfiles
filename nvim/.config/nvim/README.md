@@ -2,31 +2,216 @@
 
 Configuración modular de Neovim usando Lua y lazy.nvim como gestor de plugins.
 
+## 📚 Documentación
+
+- **[STRUCTURE.md](docs/STRUCTURE.md)** - Arquitectura completa del proyecto (200+ líneas)
+- **[CONTRIBUTING.md](docs/CONTRIBUTING.md)** - Guía detallada para agregar plugins (250+ líneas)
+
+## 📑 Tabla de Contenidos
+
+- [Estructura del Proyecto](#estructura-del-proyecto)
+  - [Arquitectura Escalable](#️-arquitectura-escalable)
+  - [Utilidades Compartidas](#️-utilidades-compartidas)
+- [Características Principales](#características-principales)
+- [Instalación](#instalación)
+- [Comandos Útiles](#comandos-útiles)
+- [Atajos de Teclado](#atajos-de-teclado-principales)
+- [Personalización](#personalización)
+- [Configuración de AI y Linting](#configuración-de-ai-y-linting)
+- [Migración y Limpieza](#migración-y-limpieza)
+- [Solución de Problemas](#solución-de-problemas)
+- [Recursos](#recursos)
+
 ## Estructura del Proyecto
 
 ```
 nvim/
 └── .config/nvim/
-    ├── init.lua                    # Punto de entrada principal
+    ├── init.lua                    # Punto de entrada principal (7 líneas)
     ├── lazy-lock.json              # Versiones bloqueadas de plugins
+    ├── .luacheckrc                 # Configuración de luacheck
+    │
     ├── lua/
-    │   ├── config/                 # Configuración base
-    │   │   ├── globals.lua         # Variables globales
-    │   │   ├── options.lua         # Opciones de Neovim
-    │   │   ├── keymaps.lua         # Atajos de teclado globales
+    │   ├── config/                 # Configuración base de Neovim
     │   │   ├── autocmds.lua        # Autocomandos
+    │   │   ├── constants.lua       # ⭐ Constantes compartidas (borders, colores, LSP, etc)
+    │   │   ├── globals.lua         # Variables globales
+    │   │   ├── keymaps.lua         # Atajos de teclado globales
     │   │   ├── lazy.lua            # Configuración de lazy.nvim
-    │   │   └── lsp_servers.lua     # Lista de servidores LSP
-    │   └── plugins/                # Plugins organizados por categoría
+    │   │   ├── lsp_servers.lua     # Lista de servidores LSP
+    │   │   └── options.lua         # Opciones de Neovim
+    │   │
+    │   ├── utils/                  # ⭐ Utilidades reutilizables
+    │   │   ├── init.lua            # Helpers generales (map, autocmd, notify, etc)
+    │   │   ├── icons.lua           # 130+ iconos Nerd Font organizados
+    │   │   ├── colors.lua          # Paleta Catppuccin + helpers (hex_to_rgb, blend)
+    │   │   └── transparency.lua    # ⭐ Sistema centralizado de transparencia (60+ groups)
+    │   │
+    │   └── plugins/                # ⭐ Plugins organizados en subcategorías
     │       ├── colorscheme.lua     # Tema Catppuccin Mocha
-    │       ├── completion.lua      # Autocompletado (nvim-cmp + Supermaven AI)
-    │       ├── editing.lua         # Herramientas de edición
-    │       ├── git.lua             # Gitsigns + LazyGit
-    │       ├── linting.lua         # Linting con nvim-lint
-    │       ├── lsp.lua             # Configuración LSP + Trouble
-    │       ├── telescope.lua       # Búsqueda difusa
-    │       └── ui.lua              # Interfaz (lualine, nvim-tree, which-key)
+    │       │
+    │       ├── ui/                 # Interfaz de usuario (10 archivos)
+    │       │   ├── statusline.lua  # Lualine
+    │       │   ├── bufferline.lua  # Bufferline con pestañas
+    │       │   ├── tree.lua        # Nvim-tree con navegación l/h
+    │       │   ├── whichkey.lua    # Which-key con iconos
+    │       │   ├── alpha.lua       # Dashboard de inicio
+    │       │   ├── notify.lua      # Notificaciones
+    │       │   ├── indent.lua      # Guías de indentación
+    │       │   ├── colorizer.lua   # Preview de colores
+    │       │   ├── dressing.lua    # UI mejorada
+    │       │   └── todo.lua        # TODOs destacados
+    │       │
+    │       ├── editor/             # Edición y formateo (4 archivos)
+    │       │   ├── formatting.lua  # Conform (formateo automático)
+    │       │   ├── treesitter.lua  # Treesitter
+    │       │   ├── autopairs.lua   # Autopairs con integración cmp
+    │       │   └── comments.lua    # Comment.nvim
+    │       │
+    │       ├── coding/             # Autocompletado (2 archivos)
+    │       │   ├── cmp.lua         # Nvim-cmp completo con cmdline
+    │       │   └── ai.lua          # Supermaven AI
+    │       │
+    │       ├── lsp.lua             # LSP + Mason + Trouble
+    │       │
+    │       ├── lsp/                # Herramientas LSP adicionales
+    │       │   └── linting.lua     # Nvim-lint
+    │       │
+    │       ├── git/                # Herramientas Git
+    │       │   ├── gitsigns.lua    # Gitsigns
+    │       │   └── lazygit.lua     # LazyGit TUI
+    │       │
+    │       └── tools/              # Herramientas generales
+    │           └── telescope.lua   # Telescope
+    │
+    ├── docs/                       # ⭐ Documentación
+    │   ├── CONTRIBUTING.md         # Guía para agregar plugins (250+ líneas)
+    │   └── STRUCTURE.md            # Arquitectura del proyecto (200+ líneas)
+    │
     └── README.md                   # Este archivo
+```
+
+### 🏗️ Arquitectura Escalable
+
+Esta configuración está diseñada para ser **escalable y mantenible**:
+
+- **Archivos pequeños**: Cada plugin en su propio archivo (20-80 líneas vs 376 líneas antes)
+- **Utilidades compartidas**: Icons, colors, transparency reutilizables
+- **Constantes centralizadas**: Configuraciones compartidas en un solo lugar
+- **Documentación inline**: Cada archivo con headers descriptivos
+- **Lazy loading inteligente**: Optimizado por archivo individual
+
+### ⚙️ Utilidades Compartidas
+
+#### 🎨 **Sistema de Transparencia Centralizado** (`utils/transparency.lua`)
+
+Sistema completo para gestionar transparencia en todos los plugins:
+
+```lua
+local transparency = require("utils.transparency")
+
+-- Aplicar transparencia a 60+ highlight groups automáticamente
+transparency.apply_transparency()
+
+-- Transparencia específica con opciones
+transparency.set_transparent("GroupName", { fg = "#color" })
+
+-- Link transparente
+transparency.link_transparent("From", "To")
+
+-- Autocomando para persistir al cambiar tema
+transparency.setup_autocmd()
+```
+
+**Grupos transparentes incluidos (60+)**:
+- Ventanas principales y flotantes
+- Nvim-tree, Telescope, Which-key, Alpha
+- nvim-cmp, Trouble, Lazy, Mason
+- Pmenu, Borders, Statusline
+
+#### 🎯 **Iconos Centralizados** (`utils/icons.lua`)
+
+130+ iconos Nerd Font organizados por categoría:
+
+```lua
+local icons = require("utils.icons")
+
+-- Categorías disponibles
+icons.diagnostics.error  --
+icons.git.branch         --
+icons.ui.search          -- 󰍉
+icons.whichkey.buffer    -- 󰓩
+icons.todo.TODO          --
+icons.kind.Function      -- 󰊕
+```
+
+#### 🌈 **Helpers de Colores** (`utils/colors.lua`)
+
+Paleta Catppuccin Mocha completa + funciones helper:
+
+```lua
+local colors = require("utils.colors")
+
+-- Paleta completa
+colors.catppuccin.blue     -- #89b4fa
+colors.catppuccin.pink     -- #f5c2e7
+
+-- Alias comunes
+colors.primary             -- Azul
+colors.secondary           -- Rosa
+colors.diagnostic.error    -- Rojo
+
+-- Helpers
+colors.hex_to_rgb("#89b4fa")           -- {r=137, g=180, b=250}
+colors.with_alpha("#89b4fa", 0.5)      -- rgba(137, 180, 250, 0.50)
+colors.blend("#color1", "#color2", 0.5) -- Color mezclado
+```
+
+#### 🛠️ **Helpers Generales** (`utils/init.lua`)
+
+Funciones reutilizables:
+
+```lua
+local utils = require("utils")
+
+-- Keymaps
+utils.map("n", "<leader>x", ":Command<cr>", { desc = "Descripción" })
+utils.buf_map(bufnr, "n", "K", vim.lsp.buf.hover, "Hover docs")
+
+-- Autocomandos
+utils.autocmd("BufEnter", { pattern = "*.lua", callback = fn })
+utils.augroup("MyGroup", { clear = true })
+
+-- Utilidades
+utils.notify("Message", "info")
+utils.safe_require("module")
+utils.has_plugin("telescope.nvim")
+utils.executable_exists("rg")
+```
+
+#### 📐 **Constantes Compartidas** (`config/constants.lua`)
+
+Configuraciones centralizadas para todos los plugins:
+
+```lua
+local constants = require("config.constants")
+
+-- Borders
+constants.borders.style              -- "rounded"
+
+-- UI
+constants.ui.sidebar_width           -- 30
+constants.ui.timeout                 -- 300
+
+-- LSP
+constants.lsp.signs                  -- Signos de diagnóstico
+constants.lsp.diagnostic_config      -- Config de diagnósticos
+
+-- Transparencia
+constants.transparency.enabled       -- true
+
+-- Treesitter
+constants.treesitter.ensure_installed -- Lista de lenguajes
 ```
 
 ## Características Principales
@@ -226,35 +411,94 @@ nvim/
 
 ### Añadir un Nuevo Plugin
 
-1. Crea un archivo en `lua/plugins/` o edita uno existente:
+**Ver documentación completa**: `docs/CONTRIBUTING.md`
+
+1. **Elegir categoría** apropiada:
+   - `plugins/ui/` - Interfaz (statusline, dashboard, etc)
+   - `plugins/editor/` - Edición (formateo, comentarios, etc)
+   - `plugins/coding/` - Autocompletado y snippets
+   - `plugins/lsp/` - LSP y diagnósticos
+   - `plugins/git/` - Herramientas Git
+   - `plugins/tools/` - Herramientas generales
+
+2. **Crear archivo** `plugins/categoria/mi-plugin.lua`:
    ```lua
+   -- ============================================================================
+   -- [Nombre] - [Descripción breve]
+   -- ============================================================================
+   -- [Descripción detallada]
+   -- Documentación: [URL del repo]
+   -- ============================================================================
+
+   local icons = require("utils.icons")
+   local colors = require("utils.colors")
+   local constants = require("config.constants")
+
    return {
-     {
-       'autor/nombre-plugin',
-       event = 'VeryLazy',  -- Carga diferida
-       config = function()
-         -- Tu configuración aquí
-       end,
-     }
+     "autor/plugin",
+     event = "VeryLazy",
+     keys = {
+       { "<leader>x", "<cmd>Comando<cr>", desc = "Descripción" },
+     },
+     opts = {
+       icon = icons.ui.search,
+       color = colors.primary,
+       border = constants.borders.style,
+     },
    }
    ```
 
-2. Guarda el archivo - lazy.nvim detectará el cambio automáticamente
+3. **Guardar** - lazy.nvim detectará el cambio automáticamente
+
+4. **Si usa `<leader>`**, registrar en `plugins/ui/whichkey.lua`:
+   ```lua
+   { "<leader>x", group = "Nombre", icon = icons.whichkey.nombre },
+   ```
+
+### Usar Utilidades Compartidas
+
+**Iconos**:
+```lua
+local icons = require("utils.icons")
+icon = icons.diagnostics.error  --
+```
+
+**Colores**:
+```lua
+local colors = require("utils.colors")
+fg = colors.primary              -- #89b4fa
+bg = colors.catppuccin.surface0  -- #313244
+```
+
+**Transparencia**:
+```lua
+local transparency = require("utils.transparency")
+transparency.set_transparent("MiPlugin", { fg = "#color" })
+```
+
+**Constantes**:
+```lua
+local constants = require("config.constants")
+border = constants.borders.style
+timeout = constants.ui.timeout
+```
 
 ### Añadir un Nuevo LSP
 
 1. Edita `lua/config/lsp_servers.lua`
-2. Descomenta o añade el servidor que necesites
+2. Añade el servidor a la lista
 3. Reinicia Neovim - Mason lo instalará automáticamente
 
 ### Modificar Opciones
 
-Edita `lua/config/options.lua` para cambiar comportamientos del editor.
+- **Opciones de Neovim:** `lua/config/options.lua`
+- **Constantes compartidas:** `lua/config/constants.lua`
 
 ### Añadir Keymaps
 
 - **Keymaps globales:** `lua/config/keymaps.lua`
-- **Keymaps de plugin:** En el archivo del plugin correspondiente en `lua/plugins/`
+- **Keymaps de plugin:** En el archivo del plugin en `lua/plugins/categoria/`
+- **Usar helper:** `utils.map("n", "lhs", "rhs", { desc = "..." })`
 
 ## Integración con Tmux
 
@@ -322,6 +566,25 @@ brew install hadolint  # macOS
 - Luacheck viene preconfigurado con `.luacheckrc` para reconocer variables globales de Neovim
 
 **Nota:** Solo instala los linters que necesites para tus proyectos.
+
+## Migración y Limpieza
+
+### Archivos Antiguos (Si existen)
+
+Después de la refactorización a la nueva estructura modular, algunos archivos monolíticos antiguos pueden seguir existiendo. Si encuentras estos archivos en `lua/plugins/`, **puedes eliminarlos de forma segura**:
+
+```bash
+# Archivos que fueron divididos en subcarpetas:
+rm -f lua/plugins/ui.lua          # → Dividido en plugins/ui/*
+rm -f lua/plugins/editing.lua     # → Dividido en plugins/editor/*
+rm -f lua/plugins/completion.lua  # → Dividido en plugins/coding/*
+rm -f lua/plugins/git.lua         # → Dividido en plugins/git/*
+rm -f lua/plugins/telescope.lua   # → Movido a plugins/tools/telescope.lua
+rm -f lua/plugins/linting.lua     # → Movido a plugins/lsp/linting.lua
+rm -f lua/plugins/tools.lua       # → Dividido en plugins/tools/*
+```
+
+**Nota:** Los archivos nuevos en las subcarpetas (`ui/`, `editor/`, `coding/`, etc.) son los que deben permanecer.
 
 ## Solución de Problemas
 
