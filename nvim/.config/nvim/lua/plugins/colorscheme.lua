@@ -49,6 +49,7 @@ return {
           lsp_trouble = true,
           which_key = true,
           alpha = true,
+          bufferline = true,
           indent_blankline = {
             enabled = true,
             colored_indent_levels = false,

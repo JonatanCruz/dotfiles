@@ -40,6 +40,19 @@ M.transparent_groups = {
   "TabLineFill",
   "TabLineSel",
 
+  -- BufferLine
+  "BufferLineFill",
+  "BufferLineBackground",
+  "BufferLineBufferVisible",
+  "BufferLineBufferSelected",
+  "BufferLineSeparator",
+  "BufferLineSeparatorVisible",
+  "BufferLineSeparatorSelected",
+  "BufferLineTab",
+  "BufferLineTabSelected",
+  "BufferLineTabSeparator",
+  "BufferLineTabSeparatorSelected",
+
   -- Pmenu (menú de completado)
   "Pmenu",
   "PmenuSbar",
