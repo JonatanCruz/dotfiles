@@ -118,6 +118,17 @@ nvim/
 - `<leader>q` - Cerrar ventana
 - `<leader>rr` - Recargar configuración
 
+### Gestión de Paquetes
+- `<leader>pl` - Abrir Lazy
+- `<leader>ps` - **Lazy Sync** (instalar/actualizar todos los plugins)
+- `<leader>pu` - Lazy Update (actualizar plugins)
+- `<leader>pc` - Lazy Clean (limpiar plugins no usados)
+- `<leader>pC` - Lazy Check (verificar actualizaciones disponibles)
+- `<leader>pr` - Lazy Restore (restaurar desde lock file)
+- `<leader>pp` - Lazy Profile (ver rendimiento de carga)
+- `<leader>pm` - Abrir Mason
+- `<leader>pM` - **Mason Update** (actualizar LSP/linters/formatters)
+
 ### Navegación
 - `<C-h/j/k/l>` - Navegar entre splits
 - `<S-h/l>` - Cambiar entre buffers

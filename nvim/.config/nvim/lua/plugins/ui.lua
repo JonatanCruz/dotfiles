@@ -73,21 +73,30 @@ return {
         spacing = 3,
         align = 'left',
       },
+      -- Ordenar alfabéticamente
+      sort_by_description = false,
+      -- Mostrar íconos
+      icons = {
+        breadcrumb = "»",
+        separator = "➜",
+        group = "+",
+      },
     },
     config = function(_, opts)
       local wk = require('which-key')
       wk.setup(opts)
 
-      -- Registrar grupos de keybindings con descripciones
+      -- Registrar grupos de keybindings con descripciones (ordenados alfabéticamente)
       wk.register({
-        ['<leader>f'] = { name = 'Buscar (Telescope)' },
-        ['<leader>s'] = { name = 'Splits' },
-        ['<leader>b'] = { name = 'Buffer' },
-        ['<leader>h'] = { name = 'Git Hunk' },
-        ['<leader>t'] = { name = 'Toggle' },
-        ['<leader>g'] = { name = 'Git' },
-        ['<leader>x'] = { name = 'Trouble/Diagnósticos' },
-        ['<leader>l'] = { name = 'Linting' },
+        ['<leader>b'] = { name = '+Buffer' },
+        ['<leader>f'] = { name = '+Buscar (Telescope)' },
+        ['<leader>g'] = { name = '+Git' },
+        ['<leader>h'] = { name = '+Git Hunk' },
+        ['<leader>l'] = { name = '+Linting' },
+        ['<leader>p'] = { name = '+Paquetes (Lazy/Mason)' },
+        ['<leader>s'] = { name = '+Splits' },
+        ['<leader>t'] = { name = '+Toggle' },
+        ['<leader>x'] = { name = '+Trouble/Diagnósticos' },
       })
     end,
   },

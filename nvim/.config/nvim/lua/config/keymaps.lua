@@ -81,3 +81,20 @@ keymap('n', '<leader>rr', ':source $MYVIMRC<CR>', { desc = 'Recargar configuraci
 -- Incrementar/decrementar números
 keymap('n', '<leader>+', '<C-a>', { desc = 'Incrementar número' })
 keymap('n', '<leader>-', '<C-x>', { desc = 'Decrementar número' })
+
+-- ============================================================================
+-- GESTIÓN DE PAQUETES (LAZY Y MASON)
+-- ============================================================================
+
+-- Lazy.nvim (gestor de plugins)
+keymap('n', '<leader>pl', ':Lazy<CR>', { desc = 'Abrir Lazy' })
+keymap('n', '<leader>ps', ':Lazy sync<CR>', { desc = 'Lazy: Sync (instalar/actualizar)' })
+keymap('n', '<leader>pu', ':Lazy update<CR>', { desc = 'Lazy: Update (actualizar plugins)' })
+keymap('n', '<leader>pc', ':Lazy clean<CR>', { desc = 'Lazy: Clean (limpiar plugins)' })
+keymap('n', '<leader>pC', ':Lazy check<CR>', { desc = 'Lazy: Check (verificar actualizaciones)' })
+keymap('n', '<leader>pr', ':Lazy restore<CR>', { desc = 'Lazy: Restore (restaurar desde lock)' })
+keymap('n', '<leader>pp', ':Lazy profile<CR>', { desc = 'Lazy: Profile (ver rendimiento)' })
+
+-- Mason (gestor de LSP, linters, formatters)
+keymap('n', '<leader>pm', ':Mason<CR>', { desc = 'Abrir Mason' })
+keymap('n', '<leader>pM', ':MasonUpdate<CR>', { desc = 'Mason: Update (actualizar herramientas)' })
