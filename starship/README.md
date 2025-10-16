@@ -1,10 +1,10 @@
 # Configuración de Starship
 
-Prompt minimalista y rápido con tema Dracula personalizado.
+Prompt minimalista y rápido con tema Catppuccin Mocha personalizado.
 
 ## Características
 
-- **Tema:** Dracula con colores personalizados
+- **Tema:** Catppuccin Mocha con colores personalizados
 - **Rendimiento:** Ultra rápido, escrito en Rust
 - **Información contextual:** Muestra solo lo relevante
 - **Modo Vi:** Indicador visual del modo actual
@@ -62,17 +62,17 @@ Debería ser la **última línea** del archivo.
 5. ⏱️ **Duración del comando** (naranja, si >1s)
 6. ➜ **Símbolo del prompt** (verde/rojo según estado)
 
-## Colores Dracula
+## Colores Catppuccin Mocha
 
 | Elemento | Color | Hex |
 |----------|-------|-----|
-| Directorio | Rosa | `#ff79c6` |
-| Git branch/status | Púrpura | `#bd93f9` |
-| Node.js | Verde | `#50fa7b` |
-| Duración | Naranja | `#ffb86c` |
-| Prompt OK | Verde | `#50fa7b` |
-| Prompt Error | Rojo | `#ff5555` |
-| Modo Vi | Púrpura | `#bd93f9` |
+| Directorio | Rosa | `#f5c2e7` |
+| Git branch/status | Mauve | `#cba6f7` |
+| Node.js | Verde | `#a6e3a1` |
+| Duración | Peach | `#fab387` |
+| Prompt OK | Verde | `#a6e3a1` |
+| Prompt Error | Rojo | `#f38ba8` |
+| Modo Vi | Mauve | `#cba6f7` |
 
 ## Módulos Configurados
 
@@ -151,7 +151,7 @@ took 2.5s
 Edita `starship.toml`:
 ```toml
 [directory]
-style = "#ff79c6"  # Cambia el color aquí
+style = "#f5c2e7"  # Cambia el color aquí (Rosa Catppuccin)
 ```
 
 ### Añadir Más Lenguajes
@@ -160,13 +160,13 @@ style = "#ff79c6"  # Cambia el color aquí
 # Python
 [python]
 symbol = " "
-style = "#50fa7b"
+style = "#a6e3a1"  # Verde Catppuccin
 format = '[ $symbol ($version) ]($style)'
 
 # Rust
 [rust]
 symbol = " "
-style = "#ff5555"
+style = "#f38ba8"  # Rojo Catppuccin
 format = '[ $symbol ($version) ]($style)'
 ```
 
@@ -215,12 +215,12 @@ $directory\
 [username]
 show_always = true
 format = "[$user]($style) "
-style_user = "#8be9fd"
+style_user = "#89dceb"  # Sky Catppuccin
 
 [hostname]
 ssh_only = false
 format = "[@$hostname]($style) "
-style = "#8be9fd"
+style = "#89dceb"  # Sky Catppuccin
 ```
 
 ## Módulos Disponibles
@@ -263,12 +263,12 @@ Starship incluye presets predefinidos:
 starship preset
 
 # Ver preset específico
-starship preset dracula
+starship preset catppuccin-mocha
 starship preset gruvbox-rainbow
 starship preset pure-preset
 ```
 
-**Nota:** El preset actual es una versión personalizada de Dracula.
+**Nota:** El preset actual es una versión personalizada de Catppuccin Mocha.
 
 ## Performance
 
@@ -365,5 +365,5 @@ stow -R starship
 - [Starship Documentation](https://starship.rs/)
 - [Configuration Guide](https://starship.rs/config/)
 - [Presets](https://starship.rs/presets/)
-- [Dracula Theme](https://draculatheme.com/)
+- [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
 - [Nerd Fonts](https://www.nerdfonts.com/)

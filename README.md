@@ -468,6 +468,6 @@ Si encuentras algún problema o tienes sugerencias de mejora, no dudes en abrir 
 ## 📚 Referencias
 
 - [GNU Stow Documentation](https://www.gnu.org/software/stow/manual/stow.html)
-- [Dracula Theme](https://draculatheme.com/)
+- [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
 - [Dotfiles Guide](https://dotfiles.github.io/)
 - [Managing Dotfiles with GNU Stow](https://systemcrafters.net/managing-your-dotfiles/using-gnu-stow/)

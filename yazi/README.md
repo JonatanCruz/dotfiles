@@ -1,10 +1,10 @@
 # Configuración de Yazi
 
-Gestor de archivos de terminal rápido y moderno con tema Dracula y fondo transparente.
+Gestor de archivos de terminal rápido y moderno con tema Catppuccin y fondo transparente.
 
 ## Características
 
-- **Tema:** Dracula con fondo transparente
+- **Tema:** Catppuccin con fondo transparente
 - **Navegación:** Estilo Vim (hjkl)
 - **Preview:** Vista previa de archivos
 - **Performance:** Escrito en Rust, extremadamente rápido
@@ -16,7 +16,7 @@ Gestor de archivos de terminal rápido y moderno con tema Dracula y fondo transp
 yazi/
 └── .config/yazi/
     ├── yazi.toml      # Configuración general
-    ├── theme.toml     # Tema Dracula
+    ├── theme.toml     # Tema Catppuccin
     └── keymap.toml    # Atajos de teclado
 ```
 
@@ -133,21 +133,21 @@ sort_dir_first = true      # Directorios primero
 - `created` - Por fecha de creación
 - `size` - Por tamaño
 
-### theme.toml - Tema Dracula
+### theme.toml - Tema Catppuccin
 
 **Colores principales:**
-- Rosa (`#ff79c6`) - Ruta actual
-- Púrpura (`#bd93f9`) - Borde activo
-- Verde (`#50fa7b`) - Modo normal
-- Naranja (`#ffb86c`) - Modo selección
-- Rojo (`#ff5555`) - Errores
-- Gris (`#6272a4`) - Bordes y elementos inactivos
+- Rosa (`#f5c2e7`) - Ruta actual
+- Mauve (`#cba6f7`) - Borde activo
+- Verde (`#a6e3a1`) - Modo normal
+- Peach (`#fab387`) - Modo selección
+- Rojo (`#f38ba8`) - Errores
+- Overlay (`#6c7086`) - Bordes y elementos inactivos
 
 **Personalizar colores:**
 Edita `theme.toml`:
 ```toml
 [mgr]
-cwd = { fg = "#ff79c6", bold = true }  # Cambia el color aquí
+cwd = { fg = "#f5c2e7", bold = true }  # Cambia el color aquí (Rosa Catppuccin)
 ```
 
 ### keymap.toml - Atajos de Teclado
@@ -390,4 +390,4 @@ yazi  # Volver a abrir
 - [Yazi Documentation](https://yazi-rs.github.io/)
 - [GitHub Repository](https://github.com/sxyazi/yazi)
 - [Plugins Wiki](https://github.com/sxyazi/yazi/wiki/Plugins)
-- [Dracula Theme](https://draculatheme.com/)
+- [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
