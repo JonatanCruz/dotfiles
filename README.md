@@ -18,6 +18,7 @@ Toda la configuración sigue una paleta de colores unificada **Catppuccin Mocha*
 | **Shell** | [Zsh](https://www.zsh.org/)                         |
 | **Prompt** | [Starship](https://starship.rs/)                    |
 | **Editor de Código** | [Neovim](https://neovim.io/)                        |
+| **AI Code Assistant** | [Claude Code](https://claude.com/claude-code)       |
 | **Explorador de Archivos** | [Yazi](https://github.com/sxyazi/yazi) & NvimTree |
 | **Navegación Rápida** | [Zoxide](https://github.com/ajeetdsouza/zoxide)     |
 
@@ -153,6 +154,7 @@ stow zsh
 stow zsh-plugins
 stow starship
 stow yazi
+stow claude  # Configuración global de Claude Code
 
 # Solo en macOS:
 stow wezterm
@@ -175,6 +177,8 @@ dotfiles/
 │   └── .gitconfig             # Configuración de Git con delta
 ├── nvim/
 │   └── .config/nvim/          # Configuración de Neovim
+├── claude/
+│   └── .claude/               # Configuración global de Claude Code
 ├── tmux/
 │   └── .tmux.conf             # Configuración de tmux
 ├── zsh/
