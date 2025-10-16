@@ -38,6 +38,9 @@ fi
 # Añade bin al path
 export PATH="$HOME/.local/bin:$PATH"
 
+# Añade Python bin al path (para linters instalados con pip3)
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+
 # Aumenta el límite de anidamiento de funciones para evitar errores con Starship/ZLE.
 export FUNCNEST=1000
 
@@ -214,4 +217,3 @@ eval "$(direnv hook zsh)"
 eval "$(starship init zsh)"
 
 # ============================== FIN DE LA CONFIGURACIÓN ===============================
-export PATH="$HOME/Library/Python/3.9/bin:$PATH"
