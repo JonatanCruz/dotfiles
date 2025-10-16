@@ -63,7 +63,6 @@ return {
       },
       win = {
         border = 'rounded',
-        position = 'bottom',
         padding = { 2, 2, 2, 2 },
       },
       -- Ordenar alfabéticamente
