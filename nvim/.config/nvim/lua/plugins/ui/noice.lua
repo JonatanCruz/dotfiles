@@ -80,7 +80,7 @@ return {
     },
     -- Presets para una mejor experiencia
     presets = {
-      bottom_search = true,        -- Barra de búsqueda en la parte inferior
+      bottom_search = false,       -- Usar popup para búsqueda (igual que comandos)
       command_palette = true,       -- Paleta de comandos estilo VSCode
       long_message_to_split = true, -- Mensajes largos en split
       inc_rename = false,           -- Input para inc-rename.nvim
@@ -132,7 +132,7 @@ return {
       view_error = "notify",
       view_warn = "notify",
       view_history = "messages",
-      view_search = "virtualtext",
+      view_search = false,
     },
     -- Configuración de popupmenu
     popupmenu = {

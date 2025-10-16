@@ -224,7 +224,7 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - **Explorador de archivos:** nvim-tree - Navegación con `l` (abrir) y `h` (cerrar), auto-apertura con `nvim .`
 - **Pantalla de inicio:** alpha-nvim - Dashboard con ASCII art y accesos rápidos
 - **Notificaciones:** nvim-notify - Notificaciones modernas y elegantes
-- **UI mejorada de mensajes:** noice.nvim - Cmdline, mensajes y LSP progress con interfaz moderna
+- **UI mejorada de mensajes:** noice.nvim - Cmdline (comandos `:` y búsqueda `/`), mensajes y LSP progress con interfaz moderna
 - **Keybinding Discovery:** which-key.nvim v3 - Muestra atajos disponibles con iconos Nerd Font personalizados
 - **Guías de indentación:** indent-blankline.nvim - Líneas verticales para visualizar estructura
 - **Preview de colores:** nvim-colorizer.lua - Muestra colores hex/RGB en tiempo real
