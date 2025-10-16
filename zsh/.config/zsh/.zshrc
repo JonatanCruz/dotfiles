@@ -11,9 +11,6 @@
 # CONFIGURACIÓN BASE
 # ==============================================================================
 
-# Directorio de configuración
-export ZDOTDIR="${ZDOTDIR:-${HOME}/.config/zsh}"
-
 # Cargar configuración base
 source "${ZDOTDIR}/config/environment.zsh"
 source "${ZDOTDIR}/config/history.zsh"

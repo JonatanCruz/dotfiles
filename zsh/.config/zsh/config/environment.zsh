@@ -32,7 +32,11 @@ fi
 
 # Paths adicionales
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+
+# Python user packages (macOS specific)
+if [ -d "$HOME/Library/Python/3.9/bin" ]; then
+  export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+fi
 
 # Límite de anidamiento de funciones (para Starship/ZLE)
 export FUNCNEST=1000
