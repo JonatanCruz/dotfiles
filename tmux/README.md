@@ -5,7 +5,8 @@ Configuración completa de tmux optimizada para desarrollo con múltiples plugin
 ## 🎨 Características
 
 - **Prefix key:** `Ctrl+s` (más ergonómico que `Ctrl+b`)
-- **Tema:** Catppuccin Mocha con fondo transparente (armonía visual con todo el setup)
+- **Tema:** Catppuccin Mocha con fondo transparente y status bar minimalista
+- **Status Bar:** Ultra minimalista - solo tabs y sesión (sin CPU, RAM, u otra info innecesaria)
 - **Navegación:** Estilo Vim (hjkl) integrada con Neovim
 - **Historial:** 30,000 líneas (amplio historial de comandos)
 - **Persistencia:** Sesiones guardadas automáticamente
@@ -239,13 +240,15 @@ Modo de navegación y copia estilo Vim:
 
 ## 🎨 Tema Catppuccin Mocha
 
-Configuración del tema oficial de Catppuccin:
+Configuración del tema oficial de Catppuccin con enfoque minimalista:
 
 - **Flavor:** Mocha (oscuro con colores cálidos y suaves)
-- **Status bar:** En la parte superior, fondo transparente
-- **Módulos en status bar:** Directorio actual, sesión, CPU, y hora
-- **Separadores:** Estilo personalizado con iconos
-- **Hora:** Formato 24h
+- **Status bar:** En la parte superior, completamente transparente
+- **Diseño minimalista:** Solo muestra información esencial para desarrollo
+  - Tabs/ventanas: Número + nombre (ej: `1 nvim  2 zsh  3 git`)
+  - Sesión actual: Nombre del proyecto (esquina derecha)
+  - Sin métricas del sistema (CPU, RAM, hora, etc.)
+- **Filosofía:** El código y la terminal son los protagonistas
 - **Colores:** Esquema Catppuccin Mocha oficial
   - Base: `#1e1e2e`
   - Mantle: `#181825`
@@ -554,7 +557,8 @@ Prefix + q
 2. **Nombra tus sesiones** - Más fácil de encontrar con FZF
 3. **Thumbs para copiar** - Olvídate del mouse
 4. **Zoom con Prefix+m** - Foco total en un pane
-5. **Toggle status bar** - Más espacio vertical cuando lo necesites
-6. **Deja que Continuum guarde** - No te preocupes por perder trabajo
-7. **Usa Copy Mode** - Busca en el output con `/`
-8. **Alt+hjkl para resize** - Ajusta panes sin soltar Neovim
+5. **Status bar minimalista** - Configurado para mostrar solo lo esencial; el código es el protagonista
+6. **Toggle status bar** - `Prefix + \` para más espacio vertical cuando lo necesites
+7. **Deja que Continuum guarde** - No te preocupes por perder trabajo
+8. **Usa Copy Mode** - Busca en el output con `/`
+9. **Alt+hjkl para resize** - Ajusta panes sin soltar Neovim
