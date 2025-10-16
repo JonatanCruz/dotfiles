@@ -71,31 +71,36 @@ return {
       icons = {
         breadcrumb = "»",
         separator = "➜",
-        group = "+",
+        group = "",  -- Sin prefijo para grupos (los iconos ya están en el nombre)
       },
     },
     config = function(_, opts)
       local wk = require('which-key')
       wk.setup(opts)
 
-      -- Transparencia para which-key (debe ir después de setup)
+      -- Transparencia completa para which-key (debe ir después de setup)
       vim.api.nvim_set_hl(0, 'WhichKeyFloat', { bg = 'none' })
-      vim.api.nvim_set_hl(0, 'WhichKeyBorder', { fg = '#89b4fa', bg = 'none' }) -- Azul Catppuccin
+      vim.api.nvim_set_hl(0, 'WhichKeyBorder', { fg = '#89b4fa', bg = 'none' })
+      vim.api.nvim_set_hl(0, 'WhichKeyNormal', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'WhichKeyTitle', { fg = '#89b4fa', bg = 'none' })
+      vim.api.nvim_set_hl(0, 'WhichKeyGroup', { fg = '#f5c2e7' })  -- Rosa Catppuccin para grupos
+      vim.api.nvim_set_hl(0, 'WhichKeyDesc', { fg = '#cdd6f4' })   -- Texto Catppuccin
+      vim.api.nvim_set_hl(0, 'WhichKeyIcon', { fg = '#89b4fa' })   -- Azul Catppuccin para iconos
 
-      -- Registrar grupos de keybindings con descripciones e iconos
+      -- Registrar grupos de keybindings con descripciones e iconos personalizados
       -- Sintaxis actualizada para which-key v3
       wk.add({
-        { '<leader>b', group = '󰓩 Buffer' },
-        { '<leader>f', group = '󰍉 Buscar (Telescope)' },
-        { '<leader>g', group = '󰊢 Git' },
-        { '<leader>h', group = ' Git Hunk' },
-        { '<leader>l', group = '󰁨 Linting' },
-        { '<leader>n', group = '󰹾 No-highlight' },
-        { '<leader>p', group = '󰏖 Paquetes (Lazy/Mason)' },
-        { '<leader>r', group = '󰑓 Reload/Rename' },
-        { '<leader>s', group = '󰯌 Splits' },
-        { '<leader>t', group = '󰔡 Toggle/Terminal' },
-        { '<leader>x', group = '󰙅 Trouble/Diagnósticos' },
+        { '<leader>b', group = 'Buffer', icon = '󰓩' },
+        { '<leader>f', group = 'Buscar (Telescope)', icon = '󰍉' },
+        { '<leader>g', group = 'Git', icon = '󰊢' },
+        { '<leader>h', group = 'Git Hunk', icon = '' },
+        { '<leader>l', group = 'Linting', icon = '󰁨' },
+        { '<leader>n', group = 'No-highlight', icon = '󰹾' },
+        { '<leader>p', group = 'Paquetes (Lazy/Mason)', icon = '󰏖' },
+        { '<leader>r', group = 'Reload/Rename', icon = '󰑓' },
+        { '<leader>s', group = 'Splits', icon = '󰯌' },
+        { '<leader>t', group = 'Toggle/Terminal', icon = '󰔡' },
+        { '<leader>x', group = 'Trouble/Diagnósticos', icon = '󰙅' },
       })
     end,
   },

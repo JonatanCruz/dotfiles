@@ -36,7 +36,7 @@ nvim/
 - **Statusline:** lualine.nvim
 - **Explorador de archivos:** nvim-tree
 - **Notificaciones:** nvim-notify
-- **Keybinding Discovery:** which-key.nvim - Muestra atajos disponibles
+- **Keybinding Discovery:** which-key.nvim v3 - Muestra atajos disponibles con iconos Nerd Font personalizados y colores según tipo
 
 ### ⚡ Productividad
 - **Búsqueda difusa:** Telescope
