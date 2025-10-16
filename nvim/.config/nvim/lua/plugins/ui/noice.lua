@@ -12,9 +12,6 @@
 -- :Noice telescope - Buscar mensajes con Telescope
 -- ============================================================================
 
-local icons = require("utils.icons")
-local constants = require("config.constants")
-
 return {
   "folke/noice.nvim",
   event = "VeryLazy",
@@ -27,8 +24,12 @@ return {
     { "<leader>sl", "<cmd>Noice last<cr>", desc = "Último mensaje Noice" },
     { "<leader>sd", "<cmd>Noice dismiss<cr>", desc = "Cerrar notificaciones" },
   },
-  opts = {
-    lsp = {
+  opts = function()
+    local icons = require("utils.icons")
+    local constants = require("config.constants")
+
+    return {
+      lsp = {
       -- Override markdown rendering para que funcione con Treesitter
       override = {
         ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
@@ -205,5 +206,6 @@ return {
         },
       },
     },
-  },
+    }
+  end,
 }

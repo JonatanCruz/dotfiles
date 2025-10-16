@@ -38,6 +38,12 @@ require('lazy').setup({
   -- Importa automáticamente todos los archivos .lua de lua/plugins/
   spec = {
     { import = 'plugins' },
+    { import = 'plugins.ui' },
+    { import = 'plugins.editor' },
+    { import = 'plugins.coding' },
+    { import = 'plugins.lsp' },
+    { import = 'plugins.git' },
+    { import = 'plugins.tools' },
   },
 
   -- ============================================================================
