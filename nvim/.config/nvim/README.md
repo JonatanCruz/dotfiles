@@ -18,32 +18,37 @@ nvim/
     │   │   ├── lazy.lua            # Configuración de lazy.nvim
     │   │   └── lsp_servers.lua     # Lista de servidores LSP
     │   └── plugins/                # Plugins organizados por categoría
-    │       ├── colorscheme.lua     # Tema Dracula
-    │       ├── completion.lua      # Autocompletado (nvim-cmp)
+    │       ├── colorscheme.lua     # Tema Catppuccin Mocha
+    │       ├── completion.lua      # Autocompletado (nvim-cmp) + snippets
     │       ├── editing.lua         # Herramientas de edición
-    │       ├── lsp.lua             # Configuración LSP
+    │       ├── git.lua             # Gitsigns + LazyGit
+    │       ├── lsp.lua             # Configuración LSP + Trouble
     │       ├── telescope.lua       # Búsqueda difusa
-    │       ├── tools.lua           # LazyGit
-    │       └── ui.lua              # Interfaz (lualine, nvim-tree)
+    │       └── ui.lua              # Interfaz (lualine, nvim-tree, which-key)
     └── README.md                   # Este archivo
 ```
 
 ## Características Principales
 
 ### 🎨 Interfaz
-- **Tema:** Dracula con fondo transparente
+- **Tema:** Catppuccin Mocha con fondo transparente
 - **Statusline:** lualine.nvim
 - **Explorador de archivos:** nvim-tree
 - **Notificaciones:** nvim-notify
+- **Keybinding Discovery:** which-key.nvim - Muestra atajos disponibles
 
 ### ⚡ Productividad
 - **Búsqueda difusa:** Telescope
-- **Git UI:** LazyGit
+- **Git integrado:**
+  - Gitsigns - Cambios git en el gutter, blame, navegación de hunks
+  - LazyGit - Interfaz TUI completa para git
 - **Autocompletado:** nvim-cmp con múltiples fuentes
+- **Snippets:** friendly-snippets - Biblioteca de templates para múltiples lenguajes
 - **Formateo automático:** conform.nvim
 
 ### 🔧 LSP y Análisis de Código
 - **LSP Manager:** Mason + mason-lspconfig
+- **UI de Diagnósticos:** Trouble.nvim - Vista mejorada de errores y warnings
 - **Resaltado de sintaxis:** Treesitter
 - **Servidores LSP configurados:**
   - HTML, CSS, Tailwind
@@ -81,10 +86,15 @@ nvim/
 - `:LspInfo` - Ver estado de LSP en el buffer actual
 - `:LspRestart` - Reiniciar servidor LSP
 
+### Diagnósticos
+- `:Trouble` - Abrir lista de diagnósticos
+- `:TroubleToggle` - Toggle vista de diagnósticos
+
 ### Otros
 - `:checkhealth` - Diagnóstico del sistema
 - `:Telescope` - Abrir selector de Telescope
 - `:ConformInfo` - Ver configuración de formateo
+- `:WhichKey` - Ver todos los keybindings disponibles
 
 ## Atajos de Teclado Principales
 
@@ -110,14 +120,27 @@ nvim/
 
 ### Git
 - `<leader>gg` - Abrir LazyGit
+- `]c` / `[c` - Siguiente/anterior hunk de git
+- `<leader>hs` - Stage hunk
+- `<leader>hr` - Reset hunk
+- `<leader>hp` - Preview hunk
+- `<leader>hb` - Blame línea completa
+- `<leader>tb` - Toggle blame inline
+- `<leader>hd` - Diff contra index
 
-### LSP
+### LSP y Diagnósticos
 - `K` - Mostrar documentación
 - `gd` - Ir a definición
 - `gr` - Ver referencias
+- `gR` - Ver referencias con Trouble
 - `<leader>rn` - Renombrar símbolo
 - `<leader>d` - Ver diagnóstico
 - `[d` / `]d` - Navegar entre diagnósticos
+- `<leader>xx` - Toggle Trouble
+- `<leader>xw` - Workspace diagnostics
+- `<leader>xd` - Document diagnostics
+- `<leader>xq` - Quickfix list
+- `<leader>xl` - Location list
 
 ### Edición
 - `gcc` - Comentar/descomentar línea
@@ -203,8 +226,21 @@ La configuración está optimizada para carga rápida:
 
 ## Recursos
 
+### Core
 - [Lazy.nvim](https://github.com/folke/lazy.nvim)
 - [Mason](https://github.com/williamboman/mason.nvim)
 - [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
 - [Telescope](https://github.com/nvim-telescope/telescope.nvim)
-- [Dracula Theme](https://github.com/Mofiqul/dracula.nvim)
+
+### UI & Theme
+- [Catppuccin](https://github.com/catppuccin/nvim)
+- [Which-key](https://github.com/folke/which-key.nvim)
+- [Trouble](https://github.com/folke/trouble.nvim)
+
+### Git
+- [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)
+- [LazyGit](https://github.com/kdheepak/lazygit.nvim)
+
+### Completion & Snippets
+- [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
+- [friendly-snippets](https://github.com/rafamadriz/friendly-snippets)

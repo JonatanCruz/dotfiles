@@ -7,6 +7,7 @@ return {
       -- Snippets
       'L3MON4D3/LuaSnip',
       'saadparwaiz1/cmp_luasnip',
+      'rafamadriz/friendly-snippets', -- Biblioteca de snippets precargados
       -- Fuentes de autocompletado
       'hrsh7th/cmp-nvim-lsp', -- para LSP
       'hrsh7th/cmp-buffer',   -- para el buffer actual
@@ -16,6 +17,9 @@ return {
     config = function()
       local cmp = require('cmp')
       local luasnip = require('luasnip')
+
+      -- Cargar snippets de friendly-snippets
+      require('luasnip.loaders.from_vscode').lazy_load()
 
       cmp.setup({
         snippet = {

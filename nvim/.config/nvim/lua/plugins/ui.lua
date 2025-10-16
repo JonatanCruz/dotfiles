@@ -35,6 +35,62 @@ return {
     end
   },
 
+  -- Which-key: Mostrar keybindings disponibles
+  {
+    'folke/which-key.nvim',
+    event = 'VeryLazy',
+    init = function()
+      vim.o.timeout = true
+      vim.o.timeoutlen = 300
+    end,
+    opts = {
+      plugins = {
+        marks = true,     -- Mostrar marks con m
+        registers = true, -- Mostrar registros con "
+        spelling = {
+          enabled = true,  -- z= para sugerencias de spelling
+          suggestions = 20,
+        },
+        presets = {
+          operators = true,    -- Ayuda con operadores como d, y, c
+          motions = true,      -- Ayuda con motions
+          text_objects = true, -- Ayuda con text objects como iw, i(
+          windows = true,      -- Ayuda con comandos de ventanas
+          nav = true,          -- Navegación miscelánea
+          z = true,            -- Bindings que empiezan con z
+          g = true,            -- Bindings que empiezan con g
+        },
+      },
+      window = {
+        border = 'rounded',
+        position = 'bottom',
+        margin = { 1, 0, 1, 0 },
+        padding = { 2, 2, 2, 2 },
+      },
+      layout = {
+        height = { min = 4, max = 25 },
+        width = { min = 20, max = 50 },
+        spacing = 3,
+        align = 'left',
+      },
+    },
+    config = function(_, opts)
+      local wk = require('which-key')
+      wk.setup(opts)
+
+      -- Registrar grupos de keybindings con descripciones
+      wk.register({
+        ['<leader>f'] = { name = 'Buscar (Telescope)' },
+        ['<leader>s'] = { name = 'Splits' },
+        ['<leader>b'] = { name = 'Buffer' },
+        ['<leader>h'] = { name = 'Git Hunk' },
+        ['<leader>t'] = { name = 'Toggle' },
+        ['<leader>g'] = { name = 'Git' },
+        ['<leader>x'] = { name = 'Trouble/Diagnósticos' },
+      })
+    end,
+  },
+
   -- Nvim-notify: Notificaciones modernas
   {
     'rcarriga/nvim-notify',
