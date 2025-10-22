@@ -17,7 +17,31 @@ Sugiere comandos mientras escribes basándose en tu historial.
 - `Ctrl+→` - Aceptar palabra por palabra
 - `Ctrl+F` - Aceptar sugerencia (alternativa)
 
-### 2. zsh-syntax-highlighting
+### 2. zsh-you-should-use
+Te recuerda cuando usas un comando que tiene un alias configurado.
+
+**Características:**
+- Aprende tus aliases más rápido
+- Mensajes amigables recordando el alias
+- Mejora tu productividad recordándote shortcuts
+
+**Ejemplo:**
+```bash
+$ git status
+Found existing alias for "git status". You should use: "gs"
+```
+
+### 3. zsh-completions
+Colección adicional de autocompletados para 250+ comandos.
+
+**Características:**
+- Autocompletado mejorado para comandos populares
+- Actualizado regularmente por la comunidad
+- Se integra automáticamente con el sistema de completion de zsh
+
+**Comandos soportados:** docker, docker-compose, npm, yarn, cargo, pip, git, y muchos más.
+
+### 4. zsh-syntax-highlighting
 Resalta la sintaxis de comandos mientras escribes.
 
 **Colores:**
@@ -32,7 +56,7 @@ Resalta la sintaxis de comandos mientras escribes.
 - Resalta argumentos, opciones y rutas
 - Detecta errores antes de ejecutar
 
-### 3. zsh-history-substring-search
+### 5. zsh-history-substring-search
 Búsqueda mejorada en el historial.
 
 **Uso:**
@@ -50,7 +74,9 @@ Búsqueda mejorada en el historial.
 ```
 zsh-plugins/
 └── .zsh/
-    ├── zsh-autosuggestions/        (git submodule)
+    ├── zsh-autosuggestions/         (git submodule)
+    ├── zsh-you-should-use/          (git submodule)
+    ├── zsh-completions/             (git submodule)
     ├── zsh-syntax-highlighting/     (git submodule)
     └── zsh-history-substring-search/ (git submodule)
 ```
@@ -111,11 +137,25 @@ git submodule status
 
 ## Configuración en .zshrc
 
-Los plugins se cargan en este orden en `.zshrc`:
+### Completions (en config/completion.zsh)
+
+`zsh-completions` se agrega al fpath antes de inicializar compinit:
+
+```bash
+# Agregar directorio de completions adicionales al FPATH
+if [[ -d ~/.zsh/zsh-completions/src ]]; then
+  fpath=(~/.zsh/zsh-completions/src $fpath)
+fi
+```
+
+### Plugins (en plugins.zsh)
+
+Los plugins se cargan en este orden:
 
 ```bash
 # Carga de plugins (el orden importa)
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
 source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh  # ÚLTIMO
 ```
@@ -269,9 +309,26 @@ git commit -m "Remove nombre-plugin"
 git push
 ```
 
+## Personalización de you-should-use
+
+Configurar en `.zshrc` antes de cargar el plugin:
+
+```bash
+# Estilo del mensaje (hardcode, bold, default)
+export YSU_MESSAGE_STYLE="hardcode"
+
+# Modo de mensaje (BESTMATCH, ALL)
+export YSU_MODE=ALL
+
+# Ignorar ciertos aliases
+export YSU_IGNORED_ALIASES=("g" "d")
+```
+
 ## Referencias
 
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- [zsh-you-should-use](https://github.com/MichaelAquilina/zsh-you-should-use)
+- [zsh-completions](https://github.com/zsh-users/zsh-completions)
 - [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - [zsh-history-substring-search](https://github.com/zsh-users/zsh-history-substring-search)
 - [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)

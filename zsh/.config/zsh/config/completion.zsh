@@ -2,6 +2,11 @@
 # COMPLETION - Sistema de autocompletado con caché
 # ==============================================================================
 
+# Agregar directorio de completions adicionales al FPATH
+if [[ -d ~/.zsh/zsh-completions/src ]]; then
+  fpath=(~/.zsh/zsh-completions/src $fpath)
+fi
+
 # Agregar directorio de completions de Docker al FPATH
 if [[ -d ~/.docker/completions ]]; then
   fpath=(~/.docker/completions $fpath)

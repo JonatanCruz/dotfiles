@@ -7,3 +7,9 @@
 [submodule "zsh-plugins/.zsh/zsh-history-substring-search"]
 	path = zsh-plugins/.zsh/zsh-history-substring-search
 	url = https://github.com/zsh-users/zsh-history-substring-search.git
+[submodule "zsh-plugins/.zsh/zsh-you-should-use"]
+	path = zsh-plugins/.zsh/zsh-you-should-use
+	url = https://github.com/MichaelAquilina/zsh-you-should-use.git
+[submodule "zsh-plugins/.zsh/zsh-completions"]
+	path = zsh-plugins/.zsh/zsh-completions
+	url = https://github.com/zsh-users/zsh-completions.git

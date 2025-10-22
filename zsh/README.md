@@ -296,6 +296,14 @@ nvim ~/.config/zsh/config/keybindings.zsh
   - `→` para aceptar sugerencia completa
   - `Ctrl+→` para aceptar palabra por palabra
 
+- **zsh-you-should-use**: Te recuerda cuando usas comandos que tienen aliases
+  - Ejemplo: `git status` → "You should use: gs"
+  - Ayuda a aprender y usar tus aliases más eficientemente
+
+- **zsh-completions**: Autocompletados adicionales para 250+ comandos
+  - Mejora el autocompletado de docker, npm, yarn, cargo, pip, etc.
+  - Se integra automáticamente con Tab
+
 - **zsh-syntax-highlighting**: Resalta comandos mientras escribes
   - Verde: comando válido
   - Rojo: comando inválido
