@@ -213,23 +213,35 @@ myip        # Obtener IP pública
 
 ### Nueva Categoría
 
+Ejemplo con Docker (ya configurado en este repositorio):
+
 1. Crea nuevo archivo:
    ```bash
-   nvim ~/.config/zsh/aliases/docker.zsh
+   nvim ~/.config/zsh/aliases/nueva-categoria.zsh
    ```
 
 2. Agrega aliases:
    ```bash
-   # Docker aliases
-   alias d='docker'
-   alias dc='docker-compose'
-   alias dps='docker ps'
+   # Aliases de la nueva categoría
+   alias ejemplo='comando'
    ```
 
 3. Carga en `.zshrc`:
    ```bash
-   source "${ZDOTDIR}/aliases/docker.zsh"
+   source "${ZDOTDIR}/aliases/nueva-categoria.zsh"
    ```
+
+### Categoría Docker (Incluida)
+
+Este repositorio ya incluye aliases completos de Docker en:
+- `aliases/docker.zsh` - Aliases y funciones útiles para Docker y Docker Compose
+
+Para ver todos los aliases disponibles:
+```bash
+cat ~/.config/zsh/aliases/docker.zsh
+```
+
+El autocompletado de Docker se instala con el paquete `docker` de Stow. Ver `docker/README.md` para más información.
 
 ## Modificar Configuración Base
 
