@@ -44,9 +44,36 @@ Toda la configuración sigue una paleta de colores unificada **Catppuccin Mocha*
 
 Para replicar este entorno en una nueva máquina:
 
+### Opción 1: Script de Instalación Automático (Recomendado)
+
 **1. Clona este repositorio:**
 ```bash
-git clone https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
+git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+```
+
+**2. Ejecuta el instalador interactivo:**
+```bash
+./install.sh
+```
+
+El script te permitirá:
+- ✓ Detectar automáticamente tu sistema operativo (Linux/macOS)
+- ✓ Verificar dependencias (stow, git)
+- ✓ Seleccionar qué paquetes instalar (nvim, zsh, tmux, docker, etc.)
+- ✓ Detectar y resolver conflictos con archivos existentes
+- ✓ Crear backups automáticos si es necesario
+- ✓ Instalar todo con GNU Stow
+
+**3. Sigue las instrucciones post-instalación que muestra el script**
+
+---
+
+### Opción 2: Instalación Manual
+
+**1. Clona este repositorio:**
+```bash
+git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
