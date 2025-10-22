@@ -12,7 +12,7 @@ local act = wezterm.action
 -- ============================================================================
 
 config.color_scheme = "Catppuccin Mocha"
-config.font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Bold", style = "Italic" })
+config.font = wezterm.font("JetBrainsMono Nerd Font")
 config.font_size = 14.5
 
 -- Transparencia y blur
@@ -55,6 +55,11 @@ config.scrollback_lines = 10000
 
 -- Confirmar antes de cerrar con múltiples panes
 config.window_close_confirmation = "AlwaysPrompt"
+
+-- Variables de entorno para Claude Code
+config.set_environment_variables = {
+  TERM_PROGRAM = "WezTerm",
+}
 
 -- Scroll automático al escribir
 config.alternate_buffer_wheel_scroll_speed = 1
