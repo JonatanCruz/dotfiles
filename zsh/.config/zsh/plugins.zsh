@@ -13,4 +13,10 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source <(fzf --zsh)              # FZF
 eval "$(zoxide init zsh)"        # Zoxide (cd inteligente)
 eval "$(direnv hook zsh)"        # Direnv (vars por directorio)
+
+# Google Cloud SDK completion (si está instalado)
+if [ -f "/snap/google-cloud-sdk/current/completion.zsh.inc" ]; then
+    source "/snap/google-cloud-sdk/current/completion.zsh.inc"
+fi
+
 eval "$(starship init zsh)"      # Starship prompt (DEBE SER EL ÚLTIMO)

@@ -29,6 +29,7 @@ source "${ZDOTDIR}/aliases/navigation.zsh"
 source "${ZDOTDIR}/aliases/editor.zsh"
 source "${ZDOTDIR}/aliases/utils.zsh"
 source "${ZDOTDIR}/aliases/docker.zsh"
+source "${ZDOTDIR}/aliases/gcloud.zsh"
 
 # ==============================================================================
 # PLUGINS Y HERRAMIENTAS

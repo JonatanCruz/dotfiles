@@ -136,6 +136,54 @@ ghrc        # gh repo clone
 ghrv        # gh repo view --web
 ```
 
+### Google Cloud (gcloud)
+
+```bash
+# Configuración y autenticación
+g            # gcloud
+gauth        # gcloud auth login
+gconfig      # gcloud config list
+gconfigs     # gcloud config configurations list
+gproject     # gcloud config set project
+gswitch      # Cambiar proyecto (función)
+gcontext     # Ver configuración actual completa
+
+# Compute Engine (VMs)
+gvmlist      # Listar VMs
+gvmcreate    # Crear VM
+gvmstart     # Iniciar VM
+gvmstop      # Detener VM
+gssh         # SSH a VM
+gvmssh       # SSH a VM por nombre (función)
+
+# Kubernetes Engine (GKE)
+gkelist      # Listar clusters
+gkecreate    # Crear cluster
+gkecreds     # Obtener credenciales kubectl
+
+# Cloud Run
+grunlist     # Listar servicios
+grundeploy   # Desplegar servicio
+grunlogs     # Ver logs
+
+# Cloud Storage
+gls          # Listar archivos/buckets
+gcp          # Copiar archivos
+gbuckets     # Listar buckets
+
+# Cloud SQL
+gsqllist     # Listar instancias
+gsqlconnect  # Conectar a instancia
+
+# IAM
+gserviceaccounts  # Listar service accounts
+groles            # Listar roles
+
+# Utilidades
+ginfo        # Información del SDK
+gresources   # Ver todos los recursos del proyecto
+```
+
 ### Tmux
 
 ```bash
@@ -242,6 +290,18 @@ cat ~/.config/zsh/aliases/docker.zsh
 ```
 
 El autocompletado de Docker se instala con el paquete `docker` de Stow. Ver `docker/README.md` para más información.
+
+### Categoría Google Cloud (Incluida)
+
+Este repositorio incluye aliases completos de Google Cloud CLI en:
+- `aliases/gcloud.zsh` - Aliases y funciones para gcloud, GCE, GKE, Cloud Run, etc.
+
+Para ver todos los aliases disponibles:
+```bash
+cat ~/.config/zsh/aliases/gcloud.zsh
+```
+
+El autocompletado de gcloud se carga automáticamente desde el SDK instalado.
 
 ## Modificar Configuración Base
 
