@@ -19,4 +19,9 @@ if [ -f "/snap/google-cloud-sdk/current/completion.zsh.inc" ]; then
     source "/snap/google-cloud-sdk/current/completion.zsh.inc"
 fi
 
+# GitHub CLI completion (si está instalado)
+if command -v gh &> /dev/null; then
+    eval "$(gh completion -s zsh)"
+fi
+
 eval "$(starship init zsh)"      # Starship prompt (DEBE SER EL ÚLTIMO)

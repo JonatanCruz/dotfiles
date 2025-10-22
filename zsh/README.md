@@ -127,13 +127,69 @@ gb          # git branch
 # Historial
 gl          # git log (formato gráfico)
 
-# GitHub CLI
-ghpr        # gh pr create
-ghprl       # gh pr list
-ghprv       # gh pr view
-ghis        # gh issue list
-ghrc        # gh repo clone
-ghrv        # gh repo view --web
+```
+
+### GitHub CLI (gh)
+
+```bash
+# Autenticación
+ghauth       # gh auth login
+ghauthstatus # gh auth status
+
+# Repositorios
+ghrepolist   # Listar repos
+ghrepocreate # Crear repo
+ghrepoclone  # Clonar repo
+ghrepoweb    # Abrir repo en web
+ghv          # Ver repo actual
+ghvw         # Ver repo actual en web
+
+# Pull Requests
+ghprlist     # Listar PRs (alias: ghprs)
+ghprcreate   # Crear PR (alias: ghprc)
+ghprview     # Ver PR (alias: ghprv)
+ghprco       # Checkout PR
+ghprmerge    # Mergear PR (alias: ghprm)
+ghprdiff     # Ver diff de PR
+ghprstatus   # Estado de PRs
+ghpr-mine    # Mis PRs (función)
+ghpr-squash  # Mergear con squash (función)
+ghpr-approve # Aprobar PR (función)
+
+# Issues
+ghissuelist  # Listar issues (alias: ghis)
+ghissuecreate # Crear issue (alias: ghic)
+ghissueview  # Ver issue (alias: ghiv)
+ghissue-mine # Issues asignados a mí (función)
+
+# Workflows y Actions
+ghworkflowlist # Listar workflows (alias: ghw)
+ghrunlist     # Listar runs (alias: ghr)
+ghrunview     # Ver run (alias: ghrv)
+ghrunwatch    # Ver run en vivo (alias: ghrw)
+ghrunlogs     # Ver logs de run
+
+# Gists
+ghgistlist   # Listar gists
+ghgistcreate # Crear gist
+ghgistview   # Ver gist
+
+# Releases
+ghreleases   # Listar releases
+ghreleasecreate # Crear release
+
+# Búsqueda
+ghsearchrepos   # Buscar repos
+ghsearchissues  # Buscar issues
+ghsearchprs     # Buscar PRs
+ghsearchcode    # Buscar código
+
+# Funciones útiles
+ghstatus     # Estado completo del repo
+ghme         # Mi perfil de GitHub
+ghclone      # Clonar repo rápido
+ghcode       # Buscar en código del repo
+ghtrending   # Ver repos trending
 ```
 
 ### Google Cloud (gcloud)
@@ -290,6 +346,18 @@ cat ~/.config/zsh/aliases/docker.zsh
 ```
 
 El autocompletado de Docker se instala con el paquete `docker` de Stow. Ver `docker/README.md` para más información.
+
+### Categoría GitHub CLI (Incluida)
+
+Este repositorio incluye aliases completos de GitHub CLI en:
+- `aliases/gh.zsh` - Aliases y funciones para repos, PRs, issues, actions, etc.
+
+Para ver todos los aliases disponibles:
+```bash
+cat ~/.config/zsh/aliases/gh.zsh
+```
+
+El autocompletado de gh se genera automáticamente desde el CLI instalado.
 
 ### Categoría Google Cloud (Incluida)
 

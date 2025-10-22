@@ -25,11 +25,3 @@ alias gpl='git pull'
 alias gco='git checkout'
 alias gcb='git checkout -b'
 alias gb='git branch'
-
-# GitHub CLI
-alias ghpr='gh pr create'
-alias ghprl='gh pr list'
-alias ghprv='gh pr view'
-alias ghis='gh issue list'
-alias ghrc='gh repo clone'
-alias ghrv='gh repo view --web'
