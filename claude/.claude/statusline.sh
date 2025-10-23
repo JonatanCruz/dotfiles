@@ -115,33 +115,49 @@ if git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
-# Construye la línea de estado
-status_line=""
+# Construye la línea de estado con dos partes: izquierda y derecha
+left_section=""
+right_section=""
 
-# Ícono del sistema operativo (siempre visible)
-status_line+="${BLUE}${os_icon}${RESET}"
-
-# Hostname (solo si estamos en SSH)
-if [ -n "$ssh_hostname" ]; then
-    status_line+=" ${YELLOW} ${ssh_hostname}${RESET}"
-fi
-
-# Separador antes del modelo
-status_line+=" ${DIM}${OVERLAY0}│${RESET}"
-
-# Icono y modelo
-status_line+=" ${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
+# SECCIÓN IZQUIERDA - Modelo como elemento principal
+# Icono y modelo (prominente)
+left_section+="${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
 
 # Separador
-status_line+=" ${DIM}${OVERLAY0}│${RESET}"
+left_section+=" ${DIM}${OVERLAY0}│${RESET}"
 
 # Directorio
-status_line+=" ${BLUE} ${dir_name}${RESET}"
+left_section+=" ${BLUE} ${dir_name}${RESET}"
 
 # Rama de git (si existe)
 if [ -n "$git_branch" ]; then
-    status_line+=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE} ${git_branch}${RESET}"
+    left_section+=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE} ${git_branch}${RESET}"
 fi
+
+# SECCIÓN DERECHA - Información del host
+# Ícono del sistema operativo
+right_section+="${BLUE}${os_icon}${RESET}"
+
+# Hostname (solo si estamos en SSH)
+if [ -n "$ssh_hostname" ]; then
+    right_section+=" ${YELLOW} ${ssh_hostname}${RESET}"
+fi
+
+# Calcula el ancho del terminal
+term_width=$(tput cols 2>/dev/null || echo 80)
+
+# Elimina códigos ANSI para calcular longitud real del texto
+left_length=$(echo -e "$left_section" | sed 's/\x1b\[[0-9;]*m//g' | wc -m | tr -d ' ')
+right_length=$(echo -e "$right_section" | sed 's/\x1b\[[0-9;]*m//g' | wc -m | tr -d ' ')
+
+# Calcula el padding necesario
+padding=$((term_width - left_length - right_length))
+if [ $padding -lt 1 ]; then
+    padding=1
+fi
+
+# Construye la línea final con padding
+status_line="${left_section}$(printf '%*s' $padding '')${right_section}"
 
 # Output de la línea de estado
 echo -e "$status_line"
