@@ -65,6 +65,42 @@ if [ -z "$current_dir" ]; then
     current_dir="$PWD"
 fi
 
+# Detecta el sistema operativo
+os_icon=""
+case "$(uname -s)" in
+    Darwin)
+        os_icon=""  # macOS
+        ;;
+    Linux)
+        # Detecta distribución específica si es posible
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            case "$ID" in
+                ubuntu) os_icon="" ;;
+                debian) os_icon="" ;;
+                fedora) os_icon="" ;;
+                arch) os_icon="" ;;
+                *) os_icon="" ;;  # Linux genérico
+            esac
+        else
+            os_icon=""  # Linux genérico
+        fi
+        ;;
+    MINGW*|MSYS*|CYGWIN*)
+        os_icon=""  # Windows
+        ;;
+    *)
+        os_icon=""  # Desconocido
+        ;;
+esac
+
+# Detecta si estamos en SSH
+ssh_hostname=""
+if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    # Estamos en SSH, obtener hostname
+    ssh_hostname=$(hostname -s 2>/dev/null || hostname | cut -d'.' -f1)
+fi
+
 # Obtén el nombre del directorio actual (basename)
 dir_name=$(basename "$current_dir")
 
@@ -82,8 +118,19 @@ fi
 # Construye la línea de estado
 status_line=""
 
+# Ícono del sistema operativo (siempre visible)
+status_line+="${BLUE}${os_icon}${RESET}"
+
+# Hostname (solo si estamos en SSH)
+if [ -n "$ssh_hostname" ]; then
+    status_line+=" ${YELLOW} ${ssh_hostname}${RESET}"
+fi
+
+# Separador antes del modelo
+status_line+=" ${DIM}${OVERLAY0}│${RESET}"
+
 # Icono y modelo
-status_line+="${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
+status_line+=" ${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
 
 # Separador
 status_line+=" ${DIM}${OVERLAY0}│${RESET}"

@@ -25,12 +25,47 @@ ls -la ~/.claude
 
 Esta configuración global incluye:
 
-- **Statusline personalizado** - Muestra modelo, directorio y rama de git
+- **Statusline con indicadores de entorno** - Muestra:
+  - Ícono del sistema operativo (, , , etc.)
+  - Hostname (solo cuando estás en SSH)
+  - Modelo de Claude actual
+  - Directorio de trabajo
+  - Rama de git
 - **Protección de archivos sensibles** - Bloquea acceso a `.env`, secrets, keys, etc.
 - **Confirmación para operaciones peligrosas** - Requiere confirmación para `rm *`, `git push --force`, etc.
 - **Co-authored-by habilitado** - Atribuye a Claude en commits
+- **SuperClaude Framework v4** - Agentes especializados, modos y comandos avanzados
 
 Ver documentación completa en `.claude/README.md`
+
+## 📊 Statusline con Indicadores de Entorno
+
+El statusline personalizado muestra información contextual con colores Catppuccin Mocha:
+
+**En equipo local (macOS):**
+```
+ │ 󰧑 Sonnet 4.5 │  dotfiles │  main
+```
+
+**En servidor remoto (SSH):**
+```
+  servidor-prod │ 󰧑 Sonnet 4.5 │  proyecto │  main
+```
+
+**Elementos mostrados:**
+1. 💻 **Ícono del OS** (azul) - Siempre visible
+   - macOS, Linux, Ubuntu, Debian, Fedora, Arch
+2. 🌐 **Hostname** (amarillo) - Solo cuando estás en SSH
+   - Previene ejecutar comandos en el servidor equivocado
+3. 🤖 **Modelo de Claude** (naranja)
+4. 📁 **Directorio actual** (azul)
+5. 🌿 **Rama de Git** (morado) - Si estás en un repo
+
+**Beneficios:**
+- ⚡ Identificación visual instantánea del entorno
+- 🎯 Prevención de errores en servidores remotos
+- 🔄 Consistencia con Starship prompt
+- 🎨 Colores Catppuccin Mocha
 
 ## 🎨 Personalización
 
