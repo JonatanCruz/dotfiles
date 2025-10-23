@@ -2,7 +2,7 @@
 
 WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en Rust. Esta configuración está optimizada para **desarrollo de software** con funcionalidades avanzadas, keybindings intuitivos y herramientas para mejorar la productividad.
 
-## 🎨 Características Principales
+##  Características Principales
 
 ### Apariencia
 - **Tema:** Catppuccin Mocha - esquema de colores unificado
@@ -24,7 +24,7 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 - **Scrollback:** 10,000 líneas de historial
 - **Animaciones:** 60 FPS
 
-## ⌨️ Atajos de Teclado
+##  Atajos de Teclado
 
 ### Gestión de Panes (Splits)
 | Atajo | Acción |
@@ -65,13 +65,13 @@ WezTerm es un emulador de terminal GPU-acelerado y multiplataforma, escrito en R
 | `Cmd + -` | Disminuir tamaño de fuente |
 | `Cmd + 0` | Restablecer tamaño de fuente |
 
-## 🖱️ Bindings del Mouse
+##  Bindings del Mouse
 | Acción | Efecto |
 |--------|--------|
 | `Ctrl + Click` | Abrir enlace bajo el cursor |
 | `Click Derecho` | Pegar desde clipboard |
 
-## 🔗 Hyperlink Rules (Detección Automática)
+##  Hyperlink Rules (Detección Automática)
 
 La configuración detecta automáticamente y hace clickeables:
 - URLs estándar (http, https)
@@ -79,7 +79,7 @@ La configuración detecta automáticamente y hace clickeables:
 - Paths de archivos absolutos (`/ruta/al/archivo`)
 - URLs de localhost (`localhost:3000`, `localhost:8080`, etc.)
 
-## 🎯 Quick Select Patterns
+##  Quick Select Patterns
 
 Con `Cmd + Shift + Space` puedes seleccionar rápidamente:
 - **Git commit hashes** (7-40 caracteres hex)
@@ -90,7 +90,7 @@ Con `Cmd + Shift + Space` puedes seleccionar rápidamente:
 - **Colores hex** (#ff5733)
 - **Container IDs de Docker** (12 caracteres hex)
 
-## 💼 Filosofía de Uso: WezTerm + Tmux
+##  Filosofía de Uso: WezTerm + Tmux
 
 Esta configuración oculta la tab bar de WezTerm y delega la gestión de ventanas/paneles a **tmux** para:
 
@@ -226,7 +226,7 @@ wezterm ls-fonts --list-color-schemes
 # No hay comando específico, reinicia la aplicación
 ```
 
-## 🧘 Integración con Neovim
+##  Integración con Neovim
 
 ### Modo Zen
 Esta configuración incluye soporte para el modo Zen de Neovim mediante la variable de usuario `ZEN_MODE`. Cuando activas el modo Zen en Neovim, WezTerm ajusta automáticamente:
@@ -237,7 +237,7 @@ Esta configuración incluye soporte para el modo Zen de Neovim mediante la varia
 
 Para usar esta característica, necesitas un plugin de Neovim como [zen-mode.nvim](https://github.com/folke/zen-mode.nvim) configurado para enviar la variable `ZEN_MODE`.
 
-## 💡 Casos de Uso para Desarrollo
+##  Casos de Uso para Desarrollo
 
 ### Workflow con Tmux (Recomendado)
 ```
@@ -314,7 +314,7 @@ Usa `Prefix + número` para saltar entre ventanas de tmux.
 - [Nerd Fonts](https://www.nerdfonts.com/)
 - [Catppuccin Theme for WezTerm](https://github.com/catppuccin/wezterm)
 
-## 🎨 Alternativas de Configuración
+##  Alternativas de Configuración
 
 Si prefieres otros esquemas visuales:
 
@@ -329,7 +329,7 @@ config.default_cursor_style = "BlinkingBlock" -- Bloque parpadeante
 config.default_cursor_style = "SteadyBar"     -- Barra sólida
 ```
 
-## 🚀 Tips y Mejores Prácticas
+##  Tips y Mejores Prácticas
 
 ### 1. Usar Tabs para Contextos Diferentes
 Renombra tus tabs con `Cmd + Shift + R` para identificarlas fácilmente:
@@ -381,7 +381,7 @@ Prefix + -  # Split horizontal para tests watch mode
 docker-compose logs -f
 ```
 
-## 🔧 Personalización Avanzada
+##  Personalización Avanzada
 
 ### Agregar Más Patterns a Quick Select
 Edita `wezterm.lua` y agrega patrones personalizados:
@@ -424,7 +424,7 @@ Puedes crear keybindings para cambiar entre workspaces:
 },
 ```
 
-## 📊 Comparación: WezTerm vs Alternativas
+##  Comparación: WezTerm vs Alternativas
 
 | Característica | WezTerm | iTerm2 | Alacritty | Kitty |
 |----------------|---------|--------|-----------|-------|
