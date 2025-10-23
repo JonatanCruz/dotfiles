@@ -69,28 +69,28 @@ fi
 os_icon=""
 case "$(uname -s)" in
     Darwin)
-        os_icon=""  # macOS
+        os_icon=$'\uf179'  # macOS (Apple logo)
         ;;
     Linux)
         # Detecta distribución específica si es posible
         if [ -f /etc/os-release ]; then
             . /etc/os-release
             case "$ID" in
-                ubuntu) os_icon="" ;;
-                debian) os_icon="" ;;
-                fedora) os_icon="" ;;
-                arch) os_icon="" ;;
-                *) os_icon="" ;;  # Linux genérico
+                ubuntu) os_icon=$'\uf31b' ;;  # Ubuntu logo
+                debian) os_icon=$'\uf306' ;;  # Debian logo
+                fedora) os_icon=$'\uf30a' ;;  # Fedora logo
+                arch) os_icon=$'\uf303' ;;    # Arch logo
+                *) os_icon=$'\uf17c' ;;       # Linux genérico
             esac
         else
-            os_icon=""  # Linux genérico
+            os_icon=$'\uf17c'  # Linux genérico
         fi
         ;;
     MINGW*|MSYS*|CYGWIN*)
-        os_icon=""  # Windows
+        os_icon=$'\uf17a'  # Windows
         ;;
     *)
-        os_icon=""  # Desconocido
+        os_icon=$'\uf128'  # Desconocido (question mark)
         ;;
 esac
 
@@ -115,6 +115,11 @@ if git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
+# Iconos Nerd Font (usando códigos Unicode)
+icon_folder=$'\uf07c'     # Folder icon
+icon_git_branch=$'\ue0a0' # Git branch icon
+icon_server=$'\uf233'     # Server icon
+
 # Construye la línea de estado en formato lineal compacto
 status_line=""
 
@@ -125,11 +130,11 @@ status_line+="${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
 status_line+=" ${DIM}${OVERLAY0}│${RESET}"
 
 # Directorio
-status_line+=" ${BLUE} ${dir_name}${RESET}"
+status_line+=" ${BLUE}${icon_folder} ${dir_name}${RESET}"
 
 # Rama de git (si existe)
 if [ -n "$git_branch" ]; then
-    status_line+=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE} ${git_branch}${RESET}"
+    status_line+=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE}${icon_git_branch} ${git_branch}${RESET}"
 fi
 
 # Sistema operativo (icono) - inmediatamente después de git
@@ -137,7 +142,7 @@ status_line+=" ${DIM}${OVERLAY0}│${RESET} ${BLUE}${os_icon}${RESET}"
 
 # Hostname (solo si estamos en SSH) - al lado del OS
 if [ -n "$ssh_hostname" ]; then
-    status_line+=" ${YELLOW}${ssh_hostname}${RESET}"
+    status_line+=" ${YELLOW}${icon_server} ${ssh_hostname}${RESET}"
 fi
 
 # Output de la línea de estado

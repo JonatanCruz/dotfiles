@@ -12,7 +12,17 @@ local act = wezterm.action
 -- ============================================================================
 
 config.color_scheme = "Catppuccin Mocha"
-config.font = wezterm.font("JetBrainsMono Nerd Font")
+
+-- Configuración de fuente con soporte completo de Nerd Font icons
+config.font = wezterm.font_with_fallback({
+  {
+    family = "JetBrainsMono Nerd Font Mono",
+    weight = "Regular",
+    harfbuzz_features = { "calt=1", "clig=1", "liga=1" },
+  },
+  "JetBrainsMono Nerd Font",
+  "Symbols Nerd Font",
+})
 config.font_size = 14.5
 
 -- Transparencia y blur
