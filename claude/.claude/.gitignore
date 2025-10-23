@@ -10,3 +10,17 @@ transcripts/
 # Ignorar archivos temporales
 *.tmp
 *.log
+
+# Ignorar archivos de sesión de Claude
+history.jsonl
+debug/
+file-history/
+projects/
+session-env/
+shell-snapshots/
+statsig/
+todos/
+downloads/
+
+# Ignorar backups de SuperClaude
+backups/
