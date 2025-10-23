@@ -84,6 +84,21 @@ brew install starship
 curl -sS https://starship.rs/install.sh | sh
 ```
 
+**SuperClaude (Claude Code Enhancement):**
+```bash
+# Instalar pipx (gestor de paquetes Python)
+brew install pipx  # macOS
+# o
+sudo apt install pipx  # Ubuntu/Debian
+
+# Instalar SuperClaude
+pipx install SuperClaude
+
+# Aplicar configuración desde dotfiles
+cd ~/dotfiles
+stow claude
+```
+
 ## Aliases Principales
 
 ### Navegación de Archivos (eza)
@@ -238,6 +253,177 @@ groles            # Listar roles
 # Utilidades
 ginfo        # Información del SDK
 gresources   # Ver todos los recursos del proyecto
+```
+
+### SuperClaude (Claude Code Enhancement)
+
+SuperClaude v4 es un framework que mejora Claude Code con agentes especializados, modos de comportamiento y comandos avanzados.
+
+#### Comandos Principales
+
+```bash
+# Ayuda y documentación
+/sc:help          # Mostrar todos los comandos disponibles
+
+# Análisis y desarrollo
+/sc:analyze       # Analizar código, arquitectura, o problemas
+/sc:build         # Construir features completas con mejores prácticas
+/sc:implement     # Implementar funcionalidad específica
+/sc:design        # Diseñar arquitectura o componentes
+/sc:improve       # Mejorar código existente con sugerencias
+
+# Testing y calidad
+/sc:test          # Generar y ejecutar tests
+/sc:troubleshoot  # Debugging y resolución de problemas
+
+# Documentación
+/sc:document      # Generar documentación técnica
+/sc:explain       # Explicar código o conceptos
+
+# Investigación
+/sc:research      # Investigación profunda con fuentes
+/sc:brainstorm    # Exploración colaborativa de ideas
+
+# Gestión de tareas
+/sc:task          # Gestión de tareas complejas multi-paso
+/sc:workflow      # Orquestar workflows completos
+/sc:estimate      # Estimar esfuerzo y complejidad
+
+# Business & Strategy
+/sc:business-panel # Análisis con panel de expertos de negocio
+/sc:spec-panel    # Panel de especificación y requisitos
+
+# Gestión de sesión
+/sc:load          # Cargar contexto de sesión previa
+/sc:save          # Guardar estado actual de la sesión
+```
+
+#### Modos de Comportamiento
+
+Los modos se activan automáticamente según contexto o manualmente con flags:
+
+```bash
+# Modo Brainstorming
+/sc:brainstorm "crear aplicación web"
+--brainstorm  # Activación manual
+
+# Modo Deep Research
+/sc:research "arquitectura microservicios"
+--research    # Activación manual
+
+# Modo Task Management (tareas complejas >3 pasos)
+/sc:task "implementar sistema de autenticación"
+--task-manage # Activación manual
+
+# Modo Token Efficiency (optimizar uso de tokens)
+--uc          # Ultra-compressed mode
+--token-efficient
+
+# Modo Introspection (análisis meta-cognitivo)
+--introspect  # Analizar razonamiento y decisiones
+
+# Modo Orchestration (selección óptima de herramientas)
+--orchestrate # Auto-activado en operaciones complejas
+```
+
+#### Agentes Especializados
+
+SuperClaude incluye 17 agentes especializados que se activan automáticamente:
+
+**Arquitectura:**
+- `backend-architect` - Diseño de backend y APIs
+- `frontend-architect` - Arquitectura de UI y frontend
+- `system-architect` - Diseño de sistemas completos
+- `devops-architect` - Infraestructura y deployment
+
+**Ingeniería:**
+- `security-engineer` - Seguridad y vulnerabilidades
+- `performance-engineer` - Optimización y rendimiento
+- `quality-engineer` - Testing y calidad de código
+
+**Desarrollo:**
+- `python-expert` - Especialista en Python
+- `refactoring-expert` - Mejora de código existente
+- `technical-writer` - Documentación técnica
+
+**Análisis:**
+- `requirements-analyst` - Análisis de requisitos
+- `root-cause-analyst` - Debugging profundo
+- `deep-research-agent` - Investigación sistemática
+
+**Mentoría:**
+- `learning-guide` - Guía de aprendizaje
+- `socratic-mentor` - Enseñanza socrática
+
+**Gestión:**
+- `pm-agent` - Project management y documentación
+- `business-panel-experts` - Panel de 9 expertos de negocio
+
+#### Ejemplos de Uso
+
+**Análisis de código:**
+```bash
+/sc:analyze src/auth.js
+# Análisis completo con agentes apropiados
+```
+
+**Implementación de features:**
+```bash
+/sc:implement "agregar autenticación JWT"
+# Implementación completa con tests
+```
+
+**Investigación técnica:**
+```bash
+/sc:research "mejores prácticas para manejo de errores en Node.js"
+# Investigación profunda con fuentes verificadas
+```
+
+**Panel de expertos de negocio:**
+```bash
+/sc:business-panel @estrategia.pdf
+# Análisis con Porter, Christensen, Drucker, etc.
+```
+
+**Debugging complejo:**
+```bash
+/sc:troubleshoot "error de memoria en producción"
+# Análisis sistemático de causa raíz
+```
+
+**Gestión de tareas complejas:**
+```bash
+/sc:task "migrar de REST a GraphQL"
+# Gestión jerárquica con memoria persistente
+```
+
+#### Integración con MCP Servers
+
+SuperClaude se integra con MCP servers para capacidades extendidas:
+
+```bash
+--c7          # Context7 - Documentación oficial
+--seq         # Sequential - Razonamiento multi-paso
+--magic       # Magic - Generación de UI moderno
+--play        # Playwright - Testing de navegador
+--serena      # Serena - Memoria y análisis semántico
+--tavily      # Tavily - Búsqueda web en tiempo real
+```
+
+#### Configuración
+
+SuperClaude se configura automáticamente con GNU Stow:
+
+```bash
+# Aplicar configuración
+cd ~/dotfiles
+stow claude
+
+# Los archivos se encuentran en ~/.claude/
+# - CLAUDE.md - Punto de entrada
+# - RULES.md - Reglas de comportamiento
+# - agents/ - Agentes especializados
+# - commands/ - Comandos disponibles
 ```
 
 ### Tmux
