@@ -8,6 +8,8 @@ add_newline = true
 
 # Define un prompt de una sola línea, conciso y elegante.
 format = """\
+$os\
+$hostname\
 $directory\
 $git_branch\
 $git_status\
@@ -16,6 +18,29 @@ $cmd_duration\
 $line_break$character"""
 
 # --- MÓDULOS ESENCIALES ---
+
+# Sistema operativo: Ícono discreto para identificar el entorno.
+[os]
+disabled = false
+style = "#89b4fa" # Blue Catppuccin Mocha
+format = "[$symbol]($style) "
+
+[os.symbols]
+Macos = ""
+Linux = ""
+Windows = ""
+Ubuntu = ""
+Debian = ""
+Fedora = ""
+Arch = ""
+
+# Hostname: Muestra solo cuando estás en SSH (conexión remota).
+[hostname]
+ssh_only = true
+ssh_symbol = " "
+style = "#f9e2af" # Yellow Catppuccin Mocha
+format = "[$ssh_symbol$hostname]($style) "
+trim_at = "."
 
 # Directorio actual: Color rosa, truncado para no ocupar espacio.
 [directory]

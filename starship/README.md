@@ -49,23 +49,34 @@ Debería ser la **última línea** del archivo.
 
 ## Apariencia del Prompt
 
+**Local (macOS/Linux):**
 ```
-~/dotfiles  main M U took 2s
+ ~/dotfiles  main M U took 2s
+➜
+```
+
+**Remoto (SSH):**
+```
+  servidor-prod ~/proyecto  main
 ➜
 ```
 
 **Elementos mostrados:**
-1. 📁 **Directorio actual** (rosa)
-2. 🌿 **Rama de Git** (púrpura)
-3. 📊 **Estado de Git** (púrpura)
-4. ⚡ **Node.js version** (verde, solo en proyectos Node)
-5. ⏱️ **Duración del comando** (naranja, si >1s)
-6. ➜ **Símbolo del prompt** (verde/rojo según estado)
+1. 💻 **Sistema operativo** (azul) - Siempre visible
+2. 🌐 **Hostname** (amarillo) - Solo en SSH (remoto)
+3. 📁 **Directorio actual** (rosa)
+4. 🌿 **Rama de Git** (púrpura)
+5. 📊 **Estado de Git** (púrpura)
+6. ⚡ **Node.js version** (verde, solo en proyectos Node)
+7. ⏱️ **Duración del comando** (naranja, si >1s)
+8. ➜ **Símbolo del prompt** (verde/rojo según estado)
 
 ## Colores Catppuccin Mocha
 
 | Elemento | Color | Hex |
 |----------|-------|-----|
+| Sistema operativo | Azul | `#89b4fa` |
+| Hostname (SSH) | Amarillo | `#f9e2af` |
 | Directorio | Rosa | `#f5c2e7` |
 | Git branch/status | Mauve | `#cba6f7` |
 | Node.js | Verde | `#a6e3a1` |
@@ -75,6 +86,63 @@ Debería ser la **última línea** del archivo.
 | Modo Vi | Mauve | `#cba6f7` |
 
 ## Módulos Configurados
+
+### OS (Sistema Operativo)
+
+Muestra un ícono discreto del sistema operativo actual. **Siempre visible** para identificar rápidamente el entorno.
+
+```toml
+[os]
+disabled = false
+style = "#89b4fa"  # Blue Catppuccin Mocha
+format = "[$symbol]($style) "
+```
+
+**Íconos por sistema:**
+-  macOS
+-  Linux
+-  Windows
+-  Ubuntu
+-  Debian
+-  Fedora
+-  Arch Linux
+
+**Ejemplo:**
+```
+ ~/dotfiles  # macOS
+ ~/dotfiles  # Linux genérico
+```
+
+### Hostname (SSH)
+
+Muestra el nombre del servidor **solo cuando estás conectado por SSH**. Útil para distinguir entre sesiones locales y remotas.
+
+```toml
+[hostname]
+ssh_only = true           # Solo en SSH
+ssh_symbol = " "         # Símbolo de conexión remota
+style = "#f9e2af"         # Yellow Catppuccin Mocha
+format = "[$ssh_symbol$hostname]($style) "
+trim_at = "."             # Muestra solo hasta el primer punto
+```
+
+**Ejemplos:**
+
+**Local (sin SSH):**
+```
+ ~/proyecto  # Sin hostname
+```
+
+**Remoto (SSH):**
+```
+  servidor-prod ~/proyecto   # Con hostname visible
+  web-01 ~/app              # Hostname truncado en el primer punto
+```
+
+**Beneficios:**
+- ⚡ **Identificación rápida** - Sabes si estás en local o remoto
+- 🎯 **Prevención de errores** - Evita ejecutar comandos peligrosos en el servidor equivocado
+- 🔧 **Multi-servidor** - Distingue fácilmente entre diferentes servidores SSH
 
 ### Directory
 ```toml
@@ -203,10 +271,13 @@ $cmd_duration\
 $character"""
 ```
 
-### Añadir Username y Hostname
+### Mostrar Username Siempre
+
+Por defecto, el hostname ya está configurado para SSH. Si deseas agregar también el username:
 
 ```toml
 format = """\
+$os\
 $username\
 $hostname\
 $directory\
@@ -217,10 +288,12 @@ show_always = true
 format = "[$user]($style) "
 style_user = "#89dceb"  # Sky Catppuccin
 
+# Hostname ya está configurado (solo SSH)
+# Para mostrarlo siempre, cambia:
 [hostname]
-ssh_only = false
+ssh_only = false  # Cambia a false para mostrarlo siempre
 format = "[@$hostname]($style) "
-style = "#89dceb"  # Sky Catppuccin
+style = "#f9e2af"  # Yellow Catppuccin
 ```
 
 ## Módulos Disponibles
