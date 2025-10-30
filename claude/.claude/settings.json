@@ -1,11 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "outputStyle": "catppuccin-dev",
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh",
-    "padding": 0
-  },
+  "cleanupPeriodDays": 30,
+  "includeCoAuthoredBy": true,
   "permissions": {
     "deny": [
       "Read(./.env)",
@@ -29,6 +25,11 @@
       "Bash(brew uninstall:*)"
     ]
   },
-  "includeCoAuthoredBy": true,
-  "cleanupPeriodDays": 30
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  },
+  "outputStyle": "catppuccin-dev",
+  "alwaysThinkingEnabled": true
 }
