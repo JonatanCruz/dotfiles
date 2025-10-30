@@ -14,6 +14,7 @@ $directory\
 $git_branch\
 $git_status\
 $nodejs\
+$status\
 $cmd_duration\
 $line_break$character"""
 
@@ -89,3 +90,11 @@ style = "#fab387" # Peach Catppuccin Mocha
 success_symbol = "[➜](#a6e3a1)" # Green Catppuccin Mocha
 error_symbol = "[➜](#f38ba8)" # Red Catppuccin Mocha
 vimcmd_symbol = "[❮](#cba6f7)" # Mauve Catppuccin Mocha
+
+# Status: Muestra código de error solo cuando falla un comando.
+[status]
+disabled = false
+style = "#f38ba8" # Red Catppuccin Mocha
+format = '[$symbol$status ]($style)'
+symbol = "✘"
+# Solo aparece en errores, invisible cuando todo va bien
