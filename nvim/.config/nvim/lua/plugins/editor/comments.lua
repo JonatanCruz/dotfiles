@@ -12,10 +12,31 @@ return {
     { "gc", mode = "v", desc = "Comentar selección" },
     { "gbc", mode = "n", desc = "Comentar bloque" },
     { "gb", mode = "v", desc = "Comentar bloque selección" },
+    { "<leader>/", mode = "n", desc = "Comentar/descomentar línea" },
+    { "<leader>/", mode = "v", desc = "Comentar/descomentar selección" },
   },
-  opts = {
-    padding = true,
-    sticky = true,
-    ignore = "^$", -- Ignorar líneas vacías
-  },
+  config = function()
+    require("Comment").setup({
+      padding = true,
+      sticky = true,
+      ignore = "^$", -- Ignorar líneas vacías
+      toggler = {
+        line = "gcc",
+        block = "gbc",
+      },
+      opleader = {
+        line = "gc",
+        block = "gb",
+      },
+      mappings = {
+        basic = true,
+        extra = true,
+      },
+    })
+
+    -- Keybinding personalizado para <leader>/
+    local api = require("Comment.api")
+    vim.keymap.set("n", "<leader>/", api.toggle.linewise.current, { desc = "Comentar/descomentar línea" })
+    vim.keymap.set("v", "<leader>/", "<ESC><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>", { desc = "Comentar/descomentar selección" })
+  end,
 }
