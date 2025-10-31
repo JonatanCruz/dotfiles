@@ -31,5 +31,5 @@
     "padding": 0
   },
   "outputStyle": "catppuccin-dev",
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": false
 }
