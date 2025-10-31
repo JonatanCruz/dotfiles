@@ -35,18 +35,21 @@ Los errores aparecen:
 
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
-| `<leader>d` | Ver diagnóstico flotante | Ventana con detalles completos del error |
-| `gl` | Ver diagnóstico inline | Alternativa a `<leader>d` |
+| `<leader>de` | Ver diagnóstico flotante | Ventana con detalles completos (examine) |
+| `gl` | Ver diagnóstico inline | Alternativa rápida |
 | `K` | Hover documentation | Ver documentación del símbolo |
 
-### Listas de Errores
+### Listas de Errores (Trouble - Mejor UI)
 
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
-| `<leader>q` | Location list | Lista de errores del archivo actual |
-| `<leader>xd` | Document diagnostics (Trouble) | UI mejorada de errores del archivo |
-| `<leader>xw` | Workspace diagnostics (Trouble) | Errores de todo el proyecto |
-| `<leader>xx` | Toggle Trouble | Abrir/cerrar ventana Trouble |
+| `<leader>dd` | Toggle Trouble | Abrir/cerrar ventana Trouble |
+| `<leader>df` | Document/File diagnostics | Errores del archivo actual |
+| `<leader>dw` | Workspace diagnostics | Errores de todo el proyecto |
+| `<leader>dq` | Quickfix | Lista quickfix |
+| `<leader>dl` | Location list | Lista de ubicaciones |
+| `<leader>dr` | LSP References | Referencias con Trouble |
+| `<leader>dL` | Location list nativa | Lista nativa de Vim |
 
 ## 💡 Soluciones Automáticas (Code Actions)
 
@@ -104,7 +107,7 @@ Los errores aparecen:
 ### Escenario 2: Code Review de Warnings
 
 ```
-1. <leader>xd      → Ver todos los warnings del archivo
+1. <leader>df      → Ver todos los warnings del archivo
 2. j/k             → Navegar en lista
 3. Enter           → Saltar al warning
 4. <leader>ca      → Ver soluciones
@@ -114,7 +117,7 @@ Los errores aparecen:
 ### Escenario 3: Limpieza de Código
 
 ```
-1. <leader>xw      → Ver problemas del proyecto
+1. <leader>dw      → Ver problemas del proyecto
 2. Filtrar por tipo (errors, warnings, hints)
 3. Para cada item:
    - Enter         → Ir al problema
@@ -126,7 +129,7 @@ Los errores aparecen:
 
 ```
 1. ]d              → Navegar entre problemas
-2. gl              → Ver error sin abrir ventana
+2. gl o <leader>de → Ver error sin abrir ventana
 3. Si necesitas más contexto:
    - K             → Ver documentación
    - gd            → Ir a definición
@@ -145,12 +148,13 @@ Los errores aparecen:
 
 | Comando | Ventana | Descripción |
 |---------|---------|-------------|
-| `<leader>xx` | Trouble general | Toggle ventana principal |
-| `<leader>xw` | Workspace | Problemas de todo el proyecto |
-| `<leader>xd` | Document | Problemas del archivo actual |
-| `<leader>xq` | Quickfix | Lista quickfix de Vim |
-| `<leader>xl` | Location list | Lista de ubicaciones |
-| `gR` | LSP References | Referencias con UI mejorada |
+| `<leader>dd` | Trouble general | Toggle ventana principal |
+| `<leader>dw` | Workspace | Problemas de todo el proyecto |
+| `<leader>df` | Document/File | Problemas del archivo actual |
+| `<leader>dq` | Quickfix | Lista quickfix de Vim |
+| `<leader>dl` | Location list | Lista de ubicaciones |
+| `<leader>dr` | LSP References | Referencias con UI mejorada |
+| `gR` | LSP References | Alias de <leader>dr |
 
 ### Navegación en Trouble
 
@@ -199,16 +203,16 @@ Los errores se muestran en orden de importancia:
 → `<leader>ca` → Enter
 
 **"Ver qué está mal aquí"**
-→ `<leader>d` o `gl`
+→ `<leader>de` o `gl`
 
 **"Ir al próximo error"**
 → `]d` (todos) o `]e` (solo errors)
 
 **"Ver todos los errores del archivo"**
-→ `<leader>xd`
+→ `<leader>df`
 
 **"Ver todos los errores del proyecto"**
-→ `<leader>xw`
+→ `<leader>dw`
 
 **"Arreglar imports"**
 → `<leader>ca` → Buscar "Organize imports"
@@ -251,7 +255,7 @@ K → Ver documentación
 
 ### 5. Code review antes de commit
 ```vim
-<leader>xw → Ver todos los problemas
+<leader>dw → Ver todos los problemas
 Filtrar por severidad
 Arreglar uno por uno con <leader>ca
 <leader>f en cada archivo modificado
