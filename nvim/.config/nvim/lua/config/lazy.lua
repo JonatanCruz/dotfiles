@@ -25,10 +25,11 @@ vim.opt.rtp:prepend(lazypath)
 -- ============================================================================
 -- Se cargan ANTES de los plugins para que estén disponibles
 
-require('config.globals')   -- Variables globales
-require('config.options')   -- Opciones de Neovim
-require('config.keymaps')   -- Keymaps generales
-require('config.autocmds')  -- Autocomandos
+require('config.globals')      -- Variables globales
+require('config.options')      -- Opciones de Neovim
+require('config.keymaps')      -- Keymaps generales
+require('config.autocmds')     -- Autocomandos
+require('config.diagnostics')  -- Configuración de diagnósticos LSP
 
 -- ============================================================================
 -- CONFIGURACIÓN DE LAZY
