@@ -15,10 +15,30 @@ keymap('n', '<leader>q', ':q<CR>', { desc = 'Cerrar ventana' })
 keymap('n', '<leader>Q', ':qa!<CR>', { desc = 'Salir sin guardar' })
 keymap('n', '<leader>x', ':x<CR>', { desc = 'Guardar y salir' })
 
--- Navegación entre buffers
+-- ============================================================================
+-- NAVEGACIÓN Y GESTIÓN DE BUFFERS
+-- ============================================================================
+
+-- Navegación rápida entre buffers (Shift + h/l)
 keymap('n', '<S-l>', ':bnext<CR>', { desc = 'Siguiente buffer' })
 keymap('n', '<S-h>', ':bprevious<CR>', { desc = 'Buffer anterior' })
-keymap('n', '<leader>bd', ':bdelete<CR>', { desc = 'Cerrar buffer actual' })
+
+-- Gestión de buffers con <leader>b (buffer)
+keymap('n', '<leader>bc', ':bdelete<CR>', { desc = 'Cerrar buffer actual (close)' })
+keymap('n', '<leader>bd', ':bdelete<CR>', { desc = 'Cerrar buffer actual (delete)' })
+keymap('n', '<leader>bC', ':bdelete!<CR>', { desc = 'Forzar cierre de buffer' })
+keymap('n', '<leader>bw', ':bwipeout<CR>', { desc = 'Eliminar buffer completamente (wipeout)' })
+keymap('n', '<leader>bn', ':bnext<CR>', { desc = 'Buffer siguiente (next)' })
+keymap('n', '<leader>bp', ':bprevious<CR>', { desc = 'Buffer anterior (previous)' })
+keymap('n', '<leader>bf', ':bfirst<CR>', { desc = 'Primer buffer (first)' })
+keymap('n', '<leader>bl', ':blast<CR>', { desc = 'Último buffer (last)' })
+keymap('n', '<leader>ba', ':buffers<CR>', { desc = 'Listar todos los buffers (all)' })
+keymap('n', '<leader>bo', ':%bdelete|edit#|bdelete#<CR>', { desc = 'Cerrar todos excepto actual (only)' })
+
+-- Selección rápida de buffer por número
+for i = 1, 9 do
+  keymap('n', '<leader>b' .. i, ':buffer ' .. i .. '<CR>', { desc = 'Ir al buffer ' .. i })
+end
 
 -- ============================================================================
 -- NAVEGACIÓN ENTRE VENTANAS (SPLITS)
