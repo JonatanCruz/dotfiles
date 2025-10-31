@@ -96,13 +96,55 @@ return {
         local keymap = vim.keymap.set
         local opts = { noremap = true, silent = true, buffer = bufnr }
 
-        keymap("n", "K", vim.lsp.buf.hover, opts)
-        keymap("n", "gd", vim.lsp.buf.definition, opts)
-        keymap("n", "gr", vim.lsp.buf.references, opts)
-        keymap("n", "<leader>rn", vim.lsp.buf.rename, opts)
-        keymap("n", "<leader>d", vim.diagnostic.open_float, opts)
-        keymap("n", "[d", vim.diagnostic.goto_prev, opts)
-        keymap("n", "]d", vim.diagnostic.goto_next, opts)
+        -- ================================================================
+        -- NAVEGACIÓN LSP - Comandos que empiezan con 'g' (go to...)
+        -- ================================================================
+
+        -- Ir a definición/declaración
+        keymap("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Ir a definición" }))
+        keymap("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Ir a declaración" }))
+
+        -- Ver referencias y uso
+        keymap("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Ver referencias" }))
+        keymap("n", "gR", "<cmd>TroubleToggle lsp_references<cr>", vim.tbl_extend("force", opts, { desc = "Referencias en Trouble" }))
+
+        -- Ir a implementación y type definition
+        keymap("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Ir a implementación" }))
+        keymap("n", "gt", vim.lsp.buf.type_definition, vim.tbl_extend("force", opts, { desc = "Ir a definición de tipo" }))
+
+        -- ================================================================
+        -- INFORMACIÓN Y DOCUMENTACIÓN
+        -- ================================================================
+
+        -- Hover (documentación flotante)
+        keymap("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Ver documentación" }))
+        keymap("n", "gK", vim.lsp.buf.signature_help, vim.tbl_extend("force", opts, { desc = "Ver firma de función" }))
+
+        -- ================================================================
+        -- ACCIONES DE CÓDIGO
+        -- ================================================================
+
+        -- Code actions y refactoring
+        keymap({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code actions" }))
+        keymap("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Renombrar símbolo" }))
+        keymap("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend("force", opts, { desc = "Formatear archivo" }))
+
+        -- ================================================================
+        -- DIAGNÓSTICOS (ERRORES Y WARNINGS)
+        -- ================================================================
+
+        -- Ver diagnósticos
+        keymap("n", "<leader>d", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Ver diagnóstico" }))
+        keymap("n", "gl", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Ver diagnóstico en línea" }))
+
+        -- Navegar entre diagnósticos
+        keymap("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Diagnóstico anterior" }))
+        keymap("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Diagnóstico siguiente" }))
+        keymap("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end, vim.tbl_extend("force", opts, { desc = "Error anterior" }))
+        keymap("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end, vim.tbl_extend("force", opts, { desc = "Error siguiente" }))
+
+        -- Lista de diagnósticos
+        keymap("n", "<leader>q", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Lista de diagnósticos" }))
       end
 
       -- Mason ya está inicializado en su plugin separado arriba
