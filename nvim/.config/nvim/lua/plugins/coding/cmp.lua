@@ -28,6 +28,9 @@ return {
     -- Cargar snippets de friendly-snippets
     require("luasnip.loaders.from_vscode").lazy_load()
 
+    -- Cargar custom snippets personalizados
+    require("snippets").load()
+
     -- Configuración principal
     cmp.setup({
       snippet = {
