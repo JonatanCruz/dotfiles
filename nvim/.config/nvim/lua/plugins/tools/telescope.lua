@@ -16,8 +16,35 @@ return {
       local actions = require('telescope.actions')
 
       telescope.setup({
-        -- Esta es la sección nueva y más importante
         defaults = {
+          -- Buscar desde el directorio actual de Neovim (no todo el sistema)
+          cwd = vim.fn.getcwd(),
+
+          -- Configuración de archivos a ignorar/mostrar
+          file_ignore_patterns = {
+            "node_modules",
+            ".git/",
+            "%.jpg",
+            "%.jpeg",
+            "%.png",
+            "%.svg",
+            "%.otf",
+            "%.ttf",
+          },
+
+          -- Respeta .gitignore pero busca en ocultos
+          vimgrep_arguments = {
+            "rg",
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+            "--smart-case",
+            "--hidden",              -- Buscar en archivos ocultos
+            "--glob=!.git/",         -- Excepto .git
+          },
+
           mappings = {
             -- Mapeos para el modo inserción (i)
             i = {
@@ -35,7 +62,18 @@ return {
               ['<C-k>'] = actions.move_selection_previous,
             }
           }
-        }
+        },
+        pickers = {
+          find_files = {
+            hidden = true,           -- Mostrar archivos ocultos
+            find_command = {
+              "rg",
+              "--files",
+              "--hidden",            -- Buscar archivos ocultos
+              "--glob=!.git/",       -- Excepto .git
+            },
+          },
+        },
       })
 
       -- Transparencia (gestionada por utils/transparency.lua)
