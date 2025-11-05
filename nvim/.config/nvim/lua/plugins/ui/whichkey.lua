@@ -62,20 +62,33 @@ return {
 
     -- Registrar grupos de keybindings con descripciones e íconos
     wk.add({
-      { "<leader>b", group = "Buffer", icon = icons.whichkey.buffer },
-      { "<leader>d", group = "Debug (DAP)", icon = "" },
-      { "<leader>f", group = "Buscar (Telescope)", icon = icons.whichkey.search },
-      { "<leader>g", group = "Git", icon = icons.whichkey.git },
-      { "<leader>h", group = "Git Hunk", icon = icons.whichkey.hunk },
+      -- Buffers y Archivos
+      { "<leader>b", group = "Buffers", icon = icons.whichkey.buffer },
+      { "<leader>f", group = "Find (Telescope)", icon = icons.whichkey.search },
+
+      -- Git (3 grupos relacionados)
+      { "<leader>g", group = "Git (Diffview/LazyGit)", icon = icons.whichkey.git },
+      { "<leader>h", group = "Git Hunks (Gitsigns)", icon = icons.whichkey.hunk },
+      { "<leader>t", group = "Test/Toggle", icon = icons.whichkey.toggle },
+
+      -- Código y LSP
+      { "<leader>o", group = "Outline (Aerial)", icon = icons.whichkey.outline },
+      { "<leader>x", group = "Diagnostics (Trouble)", icon = icons.whichkey.diagnostics },
       { "<leader>l", group = "Linting", icon = icons.whichkey.lint },
-      { "<leader>n", group = "No-highlight", icon = icons.whichkey.no_highlight },
-      { "<leader>o", group = "Outline/Symbols", icon = icons.whichkey.outline },
-      { "<leader>p", group = "Paquetes (Lazy/Mason)", icon = icons.whichkey.packages },
-      { "<leader>q", group = "Quit/Session", icon = "󰗼" },
+
+      -- Debugging y Testing
+      { "<leader>d", group = "Debug (DAP)", icon = "" },
+
+      -- Refactoring y Documentación
       { "<leader>r", group = "Refactor/Rename", icon = icons.whichkey.reload },
-      { "<leader>s", group = "System/Mensajes (Noice)", icon = icons.whichkey.system },
-      { "<leader>t", group = "Toggle/Terminal", icon = icons.whichkey.toggle },
-      { "<leader>x", group = "Trouble/Diagnósticos", icon = icons.whichkey.diagnostics },
+      { "<leader>n", group = "Generate Docs (Neogen)", icon = "📝" },
+
+      -- Swap (textobjects)
+      { "<leader>s", group = "Swap/System", icon = "🔄" },
+
+      -- Sistema y Paquetes
+      { "<leader>p", group = "Packages (Lazy/Mason)", icon = icons.whichkey.packages },
+      { "<leader>q", group = "Quit/Session", icon = "󰗼" },
     })
   end,
 }
