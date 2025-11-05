@@ -5,8 +5,9 @@
 -- Centralizar estos valores facilita su mantenimiento y consistencia.
 -- ============================================================================
 
-local icons = require("utils.icons")
-local colors = require("utils.colors")
+local error_handler = require("utils.error_handler")
+local icons = error_handler.safe_require("utils.icons", {})
+local colors = error_handler.safe_require("utils.colors", {})
 
 local M = {}
 

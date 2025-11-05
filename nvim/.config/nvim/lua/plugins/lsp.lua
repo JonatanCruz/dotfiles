@@ -48,13 +48,13 @@ return {
       use_diagnostic_signs = false,
     },
     keys = {
-      -- Diagnósticos con <leader>d (diagnostics)
-      { '<leader>dd', '<cmd>TroubleToggle<cr>', desc = 'Toggle Trouble (diagnostics)' },
-      { '<leader>dw', '<cmd>TroubleToggle workspace_diagnostics<cr>', desc = 'Workspace Diagnostics' },
-      { '<leader>df', '<cmd>TroubleToggle document_diagnostics<cr>', desc = 'Document/File Diagnostics' },
-      { '<leader>dq', '<cmd>TroubleToggle quickfix<cr>', desc = 'Quickfix List' },
-      { '<leader>dl', '<cmd>TroubleToggle loclist<cr>', desc = 'Location List' },
-      { '<leader>dr', '<cmd>TroubleToggle lsp_references<cr>', desc = 'LSP References' },
+      -- Diagnósticos con <leader>x (siguiendo convención de LazyVim/NvChad)
+      { '<leader>xx', '<cmd>TroubleToggle<cr>', desc = 'Toggle Trouble (diagnostics)' },
+      { '<leader>xw', '<cmd>TroubleToggle workspace_diagnostics<cr>', desc = 'Workspace Diagnostics' },
+      { '<leader>xd', '<cmd>TroubleToggle document_diagnostics<cr>', desc = 'Document Diagnostics' },
+      { '<leader>xq', '<cmd>TroubleToggle quickfix<cr>', desc = 'Quickfix List' },
+      { '<leader>xl', '<cmd>TroubleToggle loclist<cr>', desc = 'Location List' },
+      { '<leader>xr', '<cmd>TroubleToggle lsp_references<cr>', desc = 'LSP References' },
       { 'gR', '<cmd>TroubleToggle lsp_references<cr>', desc = 'LSP References (alias)' },
     },
     config = function(_, opts)
@@ -133,11 +133,12 @@ return {
         -- ================================================================
         -- DIAGNÓSTICOS (ERRORES Y WARNINGS)
         -- ================================================================
-        -- NOTA: <leader>d ahora es prefijo para TODOS los diagnósticos
-        -- Ver también Trouble keybindings más arriba (<leader>dd, dw, df, etc.)
+        -- NOTA: <leader>x ahora es prefijo para TODOS los diagnósticos (convención LazyVim)
+        -- <leader>d se reserva para Debug (DAP)
+        -- Ver también Trouble keybindings más arriba (<leader>xx, xw, xd, etc.)
 
         -- Ver diagnósticos flotantes
-        keymap("n", "<leader>de", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Ver diagnóstico (examine)" }))
+        keymap("n", "<leader>xe", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Ver diagnóstico (examine)" }))
         keymap("n", "gl", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Ver diagnóstico en línea" }))
 
         -- Navegar entre diagnósticos
@@ -147,7 +148,7 @@ return {
         keymap("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end, vim.tbl_extend("force", opts, { desc = "Error siguiente" }))
 
         -- Lista de diagnósticos nativa
-        keymap("n", "<leader>dL", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Location list nativa" }))
+        keymap("n", "<leader>xL", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Location list nativa" }))
       end
 
       -- Mason ya está inicializado en su plugin separado arriba

@@ -63,12 +63,14 @@ return {
     -- Registrar grupos de keybindings con descripciones e íconos
     wk.add({
       { "<leader>b", group = "Buffer", icon = icons.whichkey.buffer },
+      { "<leader>d", group = "Debug (DAP)", icon = "" },
       { "<leader>f", group = "Buscar (Telescope)", icon = icons.whichkey.search },
       { "<leader>g", group = "Git", icon = icons.whichkey.git },
       { "<leader>h", group = "Git Hunk", icon = icons.whichkey.hunk },
       { "<leader>l", group = "Linting", icon = icons.whichkey.lint },
       { "<leader>n", group = "No-highlight", icon = icons.whichkey.no_highlight },
       { "<leader>p", group = "Paquetes (Lazy/Mason)", icon = icons.whichkey.packages },
+      { "<leader>q", group = "Quit/Session", icon = "󰗼" },
       { "<leader>r", group = "Reload/Rename", icon = icons.whichkey.reload },
       { "<leader>s", group = "System/Mensajes (Noice)", icon = icons.whichkey.system },
       { "<leader>t", group = "Toggle/Terminal", icon = icons.whichkey.toggle },

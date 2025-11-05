@@ -26,12 +26,14 @@ return {
   config = function()
     require("supermaven-nvim").setup({
       -- ================================================================
-      -- KEYMAPS OPTIMIZADOS
+      -- KEYMAPS OPTIMIZADOS (Alineados con nvim-cmp)
       -- ================================================================
+      -- NOTA: Evita conflictos con tmux-navigator (<C-h/j/k/l> en NORMAL)
+      -- y sigue convenciones de nvim-cmp para consistencia
       keymaps = {
-        accept_suggestion = "<C-l>",    -- Ctrl+l: Aceptar sugerencia completa
-        clear_suggestion = "<C-h>",     -- Ctrl+h: Limpiar sugerencia (más ergonómico)
-        accept_word = "<C-j>",          -- Ctrl+j: Aceptar solo próxima palabra
+        accept_suggestion = "<C-y>",    -- Ctrl+y: Aceptar sugerencia (convención nvim-cmp "yes")
+        clear_suggestion = "<C-e>",     -- Ctrl+e: Rechazar sugerencia (convención "escape")
+        accept_word = "<M-l>",          -- Alt+l: Aceptar solo próxima palabra
       },
 
       -- ================================================================

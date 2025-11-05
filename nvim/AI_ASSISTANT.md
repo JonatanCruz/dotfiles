@@ -25,18 +25,20 @@ Autocompletado con IA en tiempo real para Neovim, optimizado para rendimiento y 
 
 | Comando | Acción | Uso |
 |---------|--------|-----|
-| `Ctrl+l` | **Aceptar sugerencia completa** ⭐ | Acepta toda la sugerencia |
-| `Ctrl+j` | Aceptar palabra | Acepta solo próxima palabra |
-| `Ctrl+h` | Limpiar sugerencia | Cancela y limpia sugerencia actual |
+| `Ctrl+y` | **Aceptar sugerencia completa** ⭐ | Acepta toda la sugerencia (convención nvim-cmp) |
+| `Alt+l` | Aceptar palabra | Acepta solo próxima palabra |
+| `Ctrl+e` | Rechazar sugerencia | Cancela y limpia sugerencia actual (convención nvim-cmp) |
+
+**Nota sobre keybindings**: Estos atajos están alineados con las convenciones de nvim-cmp (`Ctrl+y` para aceptar, `Ctrl+e` para rechazar) y NO conflictúan con la navegación de ventanas tmux-navigator (`Ctrl+h/j/k/l` en modo NORMAL).
 
 ## 💡 Cómo Usar
 
 1. **Activación automática**: Supermaven se activa al entrar en modo INSERT
 2. **Ver estado**: `<leader>as` para verificar que está activo
 3. **Escribir código**: Las sugerencias aparecen automáticamente en gris
-4. **Aceptar**: Presiona `Ctrl+l` para aceptar toda la sugerencia
-5. **Parcial**: Presiona `Ctrl+j` para solo la próxima palabra
-6. **Cancelar**: Presiona `Ctrl+h` o sigue escribiendo
+4. **Aceptar**: Presiona `Ctrl+y` para aceptar toda la sugerencia
+5. **Parcial**: Presiona `Alt+l` para solo la próxima palabra
+6. **Cancelar**: Presiona `Ctrl+e` o sigue escribiendo
 7. **Toggle**: `<leader>ai` para activar/desactivar cuando quieras
 
 ## 🎨 Visualización
@@ -53,8 +55,8 @@ def calculate_total(
 # Aparece sugerencia gris: items: list, tax_rate: float) -> float:
 #     return sum(item.price * (1 + tax_rate) for item in items)
 
-# Presiona Ctrl+l para aceptar toda la sugerencia
-# O Ctrl+j para aceptar solo "items: list"
+# Presiona Ctrl+y para aceptar toda la sugerencia
+# O Alt+l para aceptar solo "items: list"
 ```
 
 ## 🚫 Archivos Ignorados (Optimizado)
@@ -95,8 +97,10 @@ El asistente NO funciona en:
 | Aspecto | Antes | Ahora | Mejora |
 |---------|-------|-------|--------|
 | **Carga** | VeryLazy | InsertEnter | Más eficiente ⚡ |
-| **Cancel** | Ctrl+] | Ctrl+h | Más ergonómico 👍 |
-| **Toggle** | Ninguno | `<leader>ai` | Acceso rápido 🎯 |
+| **Aceptar** | Ctrl+l | Ctrl+y | Convención nvim-cmp 🎯 |
+| **Rechazar** | Ctrl+] | Ctrl+e | Convención nvim-cmp ✅ |
+| **Navegación** | Conflicto | Sin conflicto | Compatible tmux 🔧 |
+| **Toggle** | Ninguno | `<leader>ai` | Acceso rápido 🎮 |
 | **Status** | Ninguno | `<leader>as` | Visibilidad 📊 |
 | **Logs** | Ninguno | `<leader>al` | Debug fácil 🔍 |
 | **Filetypes ignorados** | 3 | 15+ | Menos interferencia 🚫 |
@@ -115,7 +119,7 @@ El asistente NO funciona en:
 
 **Sugerencias incorrectas**:
 ```vim
-Ctrl+h              # Cancelar y seguir escribiendo
+Ctrl+e              # Cancelar y seguir escribiendo
 <leader>ai          # Desactivar temporalmente
 ```
 
@@ -138,7 +142,7 @@ Ctrl+h              # Cancelar y seguir escribiendo
 1. Abrir archivo
 2. i (entrar INSERT) → Supermaven se activa automáticamente
 3. Escribir código
-4. Ctrl+l para aceptar sugerencias
+4. Ctrl+y para aceptar sugerencias
 5. <leader>ai si necesitas desactivarlo
 ```
 

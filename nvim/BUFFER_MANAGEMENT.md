@@ -10,19 +10,19 @@ Sistema intuitivo y completo para gestionar buffers (archivos abiertos) en Neovi
 
 ## 🚀 Navegación Rápida
 
-### Tab y Shift+Tab (Más Rápido)
+### Tab y Shift+Tab (Recomendado ⭐)
 
 | Comando | Acción |
 |---------|--------|
-| `Tab` | Siguiente buffer |
-| `Shift+Tab` | Buffer anterior |
+| `Tab` | Siguiente buffer (visual con BufferLine) |
+| `Shift+Tab` | Buffer anterior (visual con BufferLine) |
 
-### Shift+H y Shift+L (Alternativa)
+### Shift+H y Shift+L (Alternativa nativa)
 
 | Comando | Acción |
 |---------|--------|
-| `Shift+L` | Siguiente buffer |
-| `Shift+H` | Buffer anterior |
+| `Shift+L` | Siguiente buffer (comando nativo) |
+| `Shift+H` | Buffer anterior (comando nativo) |
 
 ## 🎮 Gestión con `<leader>b` (Space + b)
 
@@ -32,8 +32,7 @@ Todos los comandos de buffer empiezan con `<leader>b` para fácil memorización.
 
 | Comando | Acción | Mnemónico |
 |---------|--------|-----------|
-| `<leader>bc` | **Cerrar buffer actual** | **c** = **c**lose |
-| `<leader>bd` | Cerrar buffer (alias) | **d** = **d**elete |
+| `<leader>bc` | **Cerrar buffer actual ⭐** | **c** = **c**lose |
 | `<leader>bC` | Forzar cierre (sin guardar) | **C** = force **C**lose |
 | `<leader>bw` | Eliminar completamente (wipeout) | **w** = **w**ipeout |
 | `<leader>bo` | Cerrar todos excepto actual | **o** = **o**nly |
@@ -45,8 +44,8 @@ Todos los comandos de buffer empiezan con `<leader>b` para fácil memorización.
 
 | Comando | Acción | Mnemónico |
 |---------|--------|-----------|
-| `<leader>bn` | Siguiente buffer | **n** = **n**ext |
-| `<leader>bp` | Buffer anterior | **p** = **p**revious |
+| `Tab` / `Shift+Tab` | **Siguiente/Anterior ⭐** | Visual (recomendado) |
+| `Shift+L` / `Shift+H` | Siguiente/Anterior | Nativo (alternativa) |
 | `<leader>bf` | Primer buffer | **f** = **f**irst |
 | `<leader>bl` | Último buffer | **l** = **l**ast |
 | `<leader>b$` | Último buffer (alias) | **$** = fin (Vim) |
@@ -193,7 +192,7 @@ Tab          → Cambiar archivo sin split
 → `<leader>bC`
 
 **"Siguiente archivo"**
-→ `Tab` o `<leader>bn`
+→ `Tab` o `Shift+L`
 
 **"Ir al archivo 3"**
 → `<leader>b3`
@@ -324,4 +323,16 @@ Opciones:
 
 ---
 
-**Nota**: La diferencia clave es que `<leader>bc` ahora es intuitivo (**c** = **close**) mientras que `<leader>bd` sigue funcionando como alias (**d** = **delete**).
+## ✨ Cambios de Simplificación UX
+
+**Eliminaciones para reducir redundancia:**
+
+- `<leader>bd` → ELIMINADO (duplicaba `<leader>bc`)
+- `<leader>bn` → ELIMINADO (usar `Tab` o `Shift+L`)
+- `<leader>bp` (previous) → ELIMINADO (usar `Shift+Tab` o `Shift+H`)
+
+**Keybindings finales recomendados:**
+
+- **Navegación**: `Tab` / `Shift+Tab` (visual) o `Shift+L` / `Shift+H` (nativo)
+- **Cerrar**: `<leader>bc` (única forma intuitiva)
+- **Selección directa**: `<leader>b1` a `<leader>b9` (posición) o `<leader>bp` (pick interactivo)

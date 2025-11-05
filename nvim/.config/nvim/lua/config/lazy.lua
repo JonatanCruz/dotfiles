@@ -25,11 +25,19 @@ vim.opt.rtp:prepend(lazypath)
 -- ============================================================================
 -- Se cargan ANTES de los plugins para que estén disponibles
 
-require('config.globals')      -- Variables globales
-require('config.options')      -- Opciones de Neovim
-require('config.keymaps')      -- Keymaps generales
-require('config.autocmds')     -- Autocomandos
-require('config.diagnostics')  -- Configuración de diagnósticos LSP
+local error_handler = require('utils.error_handler')
+
+local core_modules = {
+  'config.globals',      -- Variables globales
+  'config.options',      -- Opciones de Neovim
+  'config.keymaps',      -- Keymaps generales
+  'config.autocmds',     -- Autocomandos
+  'config.diagnostics',  -- Configuración de diagnósticos LSP
+}
+
+for _, module in ipairs(core_modules) do
+  error_handler.safe_require(module)
+end
 
 -- ============================================================================
 -- CONFIGURACIÓN DE LAZY
@@ -45,6 +53,7 @@ require('lazy').setup({
     { import = 'plugins.lsp' },
     { import = 'plugins.git' },
     { import = 'plugins.tools' },
+    { import = 'plugins.debug' },
   },
 
   -- ============================================================================

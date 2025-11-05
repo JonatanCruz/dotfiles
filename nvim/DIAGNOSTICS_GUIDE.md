@@ -2,6 +2,10 @@
 
 Sistema completo para detectar, visualizar, navegar y solucionar errores y warnings en tu código.
 
+**Nota sobre Keybindings**: Esta configuración sigue la convención de la comunidad Neovim (LazyVim, NvChad, AstroNvim):
+- `<leader>x` para diagnósticos y Trouble
+- `<leader>d` está reservado para Debug (DAP)
+
 ## 🎨 Visualización de Errores
 
 ### Signos en el Gutter (Columna Izquierda)
@@ -35,7 +39,7 @@ Los errores aparecen:
 
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
-| `<leader>de` | Ver diagnóstico flotante | Ventana con detalles completos (examine) |
+| `<leader>xe` | Ver diagnóstico flotante | Ventana con detalles completos (examine) |
 | `gl` | Ver diagnóstico inline | Alternativa rápida |
 | `K` | Hover documentation | Ver documentación del símbolo |
 
@@ -43,13 +47,13 @@ Los errores aparecen:
 
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
-| `<leader>dd` | Toggle Trouble | Abrir/cerrar ventana Trouble |
-| `<leader>df` | Document/File diagnostics | Errores del archivo actual |
-| `<leader>dw` | Workspace diagnostics | Errores de todo el proyecto |
-| `<leader>dq` | Quickfix | Lista quickfix |
-| `<leader>dl` | Location list | Lista de ubicaciones |
-| `<leader>dr` | LSP References | Referencias con Trouble |
-| `<leader>dL` | Location list nativa | Lista nativa de Vim |
+| `<leader>xx` | Toggle Trouble | Abrir/cerrar ventana Trouble |
+| `<leader>xd` | Document diagnostics | Errores del archivo actual |
+| `<leader>xw` | Workspace diagnostics | Errores de todo el proyecto |
+| `<leader>xq` | Quickfix | Lista quickfix |
+| `<leader>xl` | Location list | Lista de ubicaciones |
+| `<leader>xr` | LSP References | Referencias con Trouble |
+| `<leader>xL` | Location list nativa | Lista nativa de Vim |
 
 ## 💡 Soluciones Automáticas (Code Actions)
 
@@ -98,7 +102,7 @@ Los errores aparecen:
 ```
 1. Abrir archivo con errores
 2. ]e              → Ir al primer error
-3. <leader>d       → Ver detalles del error
+3. <leader>xe      → Ver detalles del error
 4. <leader>ca      → Ver si hay fix automático
 5. Enter           → Aplicar fix
 6. ]e              → Repetir para siguiente error
@@ -107,7 +111,7 @@ Los errores aparecen:
 ### Escenario 2: Code Review de Warnings
 
 ```
-1. <leader>df      → Ver todos los warnings del archivo
+1. <leader>xd      → Ver todos los warnings del archivo
 2. j/k             → Navegar en lista
 3. Enter           → Saltar al warning
 4. <leader>ca      → Ver soluciones
@@ -117,7 +121,7 @@ Los errores aparecen:
 ### Escenario 3: Limpieza de Código
 
 ```
-1. <leader>dw      → Ver problemas del proyecto
+1. <leader>xw      → Ver problemas del proyecto
 2. Filtrar por tipo (errors, warnings, hints)
 3. Para cada item:
    - Enter         → Ir al problema
@@ -129,7 +133,7 @@ Los errores aparecen:
 
 ```
 1. ]d              → Navegar entre problemas
-2. gl o <leader>de → Ver error sin abrir ventana
+2. gl o <leader>xe → Ver error sin abrir ventana
 3. Si necesitas más contexto:
    - K             → Ver documentación
    - gd            → Ir a definición
@@ -148,13 +152,13 @@ Los errores aparecen:
 
 | Comando | Ventana | Descripción |
 |---------|---------|-------------|
-| `<leader>dd` | Trouble general | Toggle ventana principal |
-| `<leader>dw` | Workspace | Problemas de todo el proyecto |
-| `<leader>df` | Document/File | Problemas del archivo actual |
-| `<leader>dq` | Quickfix | Lista quickfix de Vim |
-| `<leader>dl` | Location list | Lista de ubicaciones |
-| `<leader>dr` | LSP References | Referencias con UI mejorada |
-| `gR` | LSP References | Alias de <leader>dr |
+| `<leader>xx` | Trouble general | Toggle ventana principal |
+| `<leader>xw` | Workspace | Problemas de todo el proyecto |
+| `<leader>xd` | Document | Problemas del archivo actual |
+| `<leader>xq` | Quickfix | Lista quickfix de Vim |
+| `<leader>xl` | Location list | Lista de ubicaciones |
+| `<leader>xr` | LSP References | Referencias con UI mejorada |
+| `gR` | LSP References | Alias de <leader>xr |
 
 ### Navegación en Trouble
 
@@ -203,16 +207,16 @@ Los errores se muestran en orden de importancia:
 → `<leader>ca` → Enter
 
 **"Ver qué está mal aquí"**
-→ `<leader>de` o `gl`
+→ `<leader>xe` o `gl`
 
 **"Ir al próximo error"**
 → `]d` (todos) o `]e` (solo errors)
 
 **"Ver todos los errores del archivo"**
-→ `<leader>df`
+→ `<leader>xd`
 
 **"Ver todos los errores del proyecto"**
-→ `<leader>dw`
+→ `<leader>xw`
 
 **"Arreglar imports"**
 → `<leader>ca` → Buscar "Organize imports"
@@ -247,7 +251,7 @@ gR → Ver todas las referencias
 ### 4. Depuración eficiente
 ```vim
 ]e → Solo ir a errors críticos
-<leader>d → Ver detalles
+<leader>xe → Ver detalles
 gd → Ir a definición para entender contexto
 K → Ver documentación
 <leader>ca → Aplicar fix
@@ -255,7 +259,7 @@ K → Ver documentación
 
 ### 5. Code review antes de commit
 ```vim
-<leader>dw → Ver todos los problemas
+<leader>xw → Ver todos los problemas
 Filtrar por severidad
 Arreglar uno por uno con <leader>ca
 <leader>f en cada archivo modificado
