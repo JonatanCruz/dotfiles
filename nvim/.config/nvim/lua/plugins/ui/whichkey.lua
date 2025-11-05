@@ -66,10 +66,9 @@ return {
       { "<leader>b", group = "Buffers", icon = icons.whichkey.buffer },
       { "<leader>f", group = "Find (Telescope)", icon = icons.whichkey.search },
 
-      -- Git (3 grupos relacionados)
+      -- Git (grupos relacionados)
       { "<leader>g", group = "Git (Diffview/LazyGit)", icon = icons.whichkey.git },
       { "<leader>h", group = "Git Hunks (Gitsigns)", icon = icons.whichkey.hunk },
-      { "<leader>t", group = "Test/Toggle", icon = icons.whichkey.toggle },
 
       -- Código y LSP
       { "<leader>o", group = "Outline (Aerial)", icon = icons.whichkey.outline },
@@ -78,13 +77,15 @@ return {
 
       -- Debugging y Testing
       { "<leader>d", group = "Debug (DAP)", icon = "" },
+      { "<leader>t", group = "Testing (Neotest)", icon = "" },
 
       -- Refactoring y Documentación
-      { "<leader>r", group = "Refactor/Rename", icon = icons.whichkey.reload },
-      { "<leader>n", group = "Generate Docs (Neogen)", icon = "📝" },
+      { "<leader>r", group = "Refactor/Rename", icon = "" },
+      { "<leader>n", group = "Generate Docs (Neogen)", icon = "" },
 
-      -- Swap (textobjects)
-      { "<leader>s", group = "Swap/System", icon = "🔄" },
+      -- Swap y Messages
+      { "<leader>s", group = "Swap Params (Treesitter)", icon = "" },
+      { "<leader>m", group = "Messages (Noice)", icon = "" },
 
       -- Sistema y Paquetes
       { "<leader>p", group = "Packages (Lazy/Mason)", icon = icons.whichkey.packages },

@@ -20,9 +20,9 @@ return {
     "rcarriga/nvim-notify",
   },
   keys = {
-    { "<leader>sn", "<cmd>Noice<cr>", desc = "Historial de mensajes Noice" },
-    { "<leader>sl", "<cmd>Noice last<cr>", desc = "Último mensaje Noice" },
-    { "<leader>sd", "<cmd>Noice dismiss<cr>", desc = "Cerrar notificaciones" },
+    { "<leader>mn", "<cmd>Noice<cr>", desc = "Historial de mensajes Noice" },
+    { "<leader>ml", "<cmd>Noice last<cr>", desc = "Último mensaje Noice" },
+    { "<leader>md", "<cmd>Noice dismiss<cr>", desc = "Cerrar notificaciones" },
   },
   opts = function()
     local icons = require("utils.icons")
