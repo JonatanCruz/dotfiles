@@ -78,16 +78,37 @@ nvim/
     │       ├── lsp/                # Herramientas LSP adicionales
     │       │   └── linting.lua     # Nvim-lint
     │       │
-    │       ├── git/                # Herramientas Git
-    │       │   ├── gitsigns.lua    # Gitsigns
-    │       │   └── lazygit.lua     # LazyGit TUI
+    │       ├── git/                # Herramientas Git (3 archivos)
+    │       │   ├── gitsigns.lua    # Gitsigns (hunks, blame)
+    │       │   ├── lazygit.lua     # LazyGit TUI
+    │       │   └── diffview.lua    # Diffview (diffs completos, merge)
     │       │
-    │       └── tools/              # Herramientas generales
-    │           └── telescope.lua   # Telescope
+    │       ├── debug/              # Debugging (2 archivos)
+    │       │   ├── dap.lua         # Debug Adapter Protocol
+    │       │   └── dap-ui.lua      # DAP UI
+    │       │
+    │       ├── test/               # Testing (1 archivo)
+    │       │   └── neotest.lua     # Neotest con Jest/Vitest
+    │       │
+    │       └── tools/              # Herramientas generales (6 archivos)
+    │           ├── telescope.lua   # Telescope
+    │           ├── session.lua     # Persistence (sesiones)
+    │           ├── aerial.lua      # Symbol outline
+    │           ├── neogen.lua      # Doc generation
+    │           └── refactoring.lua # Refactoring tools
+    │
+    │   └── snippets/               # ⭐ Custom snippets (89+ snippets)
+    │       ├── init.lua            # Loader
+    │       ├── typescript.lua      # 18 TS snippets
+    │       ├── typescriptreact.lua # 18 React snippets
+    │       ├── lua.lua             # 26 Lua/Neovim snippets
+    │       └── javascript.lua      # 27 JS snippets
     │
     ├── docs/                       # ⭐ Documentación
     │   ├── CONTRIBUTING.md         # Guía para agregar plugins (250+ líneas)
-    │   └── STRUCTURE.md            # Arquitectura del proyecto (200+ líneas)
+    │   ├── STRUCTURE.md            # Arquitectura del proyecto (200+ líneas)
+    │   ├── SNIPPETS.md             # Guía de custom snippets
+    │   └── SNIPPETS_TESTING.md     # Testing de snippets
     │
     └── README.md                   # Este archivo
 ```
@@ -232,33 +253,65 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - **TODOs destacados:** todo-comments.nvim - Resalta TODO, HACK, FIX, NOTE, WARN, PERF
 
 ### ⚡ Productividad
-- **Búsqueda difusa:** Telescope
+- **Búsqueda difusa:** Telescope - Fuzzy finder para archivos, texto, buffers, comandos
 - **Git integrado:**
-  - Gitsigns - Cambios git en el gutter, blame, navegación de hunks
-  - LazyGit - Interfaz TUI completa para git
+  - **Gitsigns** - Cambios git en el gutter, blame, navegación de hunks
+  - **LazyGit** - Interfaz TUI completa para git
+  - **Diffview** - Vista completa de diffs, merge conflicts, file history
 - **Autocompletado:**
-  - nvim-cmp - Autocompletado LSP, snippets, buffer, path
+  - **nvim-cmp** - Autocompletado LSP, snippets, buffer, path
   - **Autocompletado en cmdline** - Sugerencias al escribir `:` (comandos) y `/` (búsqueda)
   - **Supermaven AI** - Autocompletado AI en tiempo real (gratis, 1M token context)
-- **Snippets:** friendly-snippets - Biblioteca de templates para múltiples lenguajes
+- **Snippets:**
+  - **friendly-snippets** - Biblioteca de templates para múltiples lenguajes
+  - **Custom snippets** - 89+ snippets personalizados (TS/React/Lua/JS)
 - **Formateo automático:** conform.nvim
+- **Sesiones:** persistence.nvim - Auto-save/restore de sesiones por proyecto
 
 ### 🔧 LSP y Análisis de Código
 - **LSP Manager:** Mason + mason-lspconfig
+- **Navegación inteligente:**
+  - LSP - gd (definition), gr (references), gi (implementation)
+  - **Treesitter Textobjects** - ]m/[m (funciones), ]c/[c (clases), text objects (vif, vac)
+  - **Aerial** - Symbol outline con panel lateral navegable
 - **Linting:** nvim-lint - Linting asíncrono para ESLint, Stylelint, Pylint, etc.
 - **UI de Diagnósticos:** Trouble.nvim - Vista mejorada de errores y warnings
-- **Resaltado de sintaxis:** Treesitter
+- **Resaltado de sintaxis:** Treesitter con incremental selection
 - **Servidores LSP configurados:**
   - HTML, CSS, Tailwind
   - TypeScript/JavaScript
   - Lua
   - Emmet
 
+### 🐛 Debugging y Testing
+- **Debugging (DAP):**
+  - **nvim-dap** - Debug Adapter Protocol para debugging interactivo
+  - **nvim-dap-ui** - Interfaz visual para debugging (variables, watches, stack)
+  - **Debuggers configurados:** Node.js/TypeScript
+  - Breakpoints, step-through, variable inspection, REPL
+- **Testing (Neotest):**
+  - Framework de testing integrado con Neovim
+  - **Adapters:** Jest, Vitest
+  - Watch mode, test runner, debug tests con DAP
+  - UI con signos de estado (✅ pass, ❌ fail)
+
+### 🔄 Refactoring y Documentación
+- **Refactoring (refactoring.nvim):**
+  - Extract function/variable
+  - Inline variable/function
+  - Debug helpers (print statements)
+  - Telescope integration para selector de refactorings
+- **Generación de Docs (Neogen):**
+  - Auto-generación de JSDoc/TSDoc/LDoc
+  - Soporte: JS/TS/React/Python/Lua/Rust/Go
+  - Templates con placeholders navegables
+
 ### ✨ Edición Mejorada
-- Autopairs para paréntesis y comillas
-- Comentarios con Comment.nvim
-- Resaltado de texto copiado
-- Eliminación automática de espacios en blanco
+- **Autopairs** - Paréntesis y comillas automáticas con integración cmp
+- **Comment.nvim** - Comentarios inteligentes (gcc, gc visual)
+- **Resaltado de texto copiado** - Highlight al copiar
+- **Eliminación automática de espacios** - Clean trailing whitespace
+- **Error handling** - Sistema robusto con safe_require y try/catch
 
 ## Instalación
 
@@ -343,7 +396,7 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - `<leader>pm` - Abrir Mason
 - `<leader>pM` - **Mason Update** (actualizar LSP/linters/formatters)
 
-### Navegación
+### Navegación de Windows y Buffers
 - `<C-h/j/k/l>` - Navegar entre splits
 - `<S-h/l>` - Cambiar entre buffers
 - `<leader>bd` - Cerrar buffer actual
@@ -351,6 +404,90 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - `<S-Tab>` - Buffer anterior (bufferline)
 - `<leader>bp` - Elegir buffer interactivamente
 - `<leader>bc` - Cerrar buffer (elegir cual)
+
+### Navegación de Código (LSP + Treesitter)
+
+#### 🎯 Ir a Definiciones (LSP)
+- `gd` - **Go to Definition** - Ir a donde se define la función/clase/variable
+- `gD` - **Go to Declaration** - Ir a la declaración (headers, interfaces)
+- `gi` - **Go to Implementation** - Ir a la implementación concreta
+- `gt` - **Go to Type Definition** - Ir a la definición del tipo
+
+#### 🔍 Ver Referencias y Usos
+- `gr` - **References** - Ver todos los usos del símbolo (lista nativa)
+- `gR` - **References en Trouble** - Ver referencias con UI mejorada
+- `K` - **Hover** - Ver documentación del símbolo bajo el cursor
+- `gK` - **Signature Help** - Ver firma y parámetros de función
+
+#### 📍 Navegación por Funciones/Clases (Treesitter)
+- `]m` - Ir a **siguiente función** (function start)
+- `[m` - Ir a **función anterior** (function start)
+- `]M` - Ir a **fin de siguiente función** (function end)
+- `[M` - Ir a **fin de función anterior** (function end)
+- `]c` - Ir a **siguiente clase** (class start)
+- `[c` - Ir a **clase anterior** (class start)
+- `]C` - Ir a **fin de siguiente clase** (class end)
+- `[C` - Ir a **fin de clase anterior** (class end)
+- `]a` - Ir a **siguiente parámetro**
+- `[a` - Ir a **parámetro anterior**
+
+#### 🗂️ Symbol Outline (Aerial)
+- `<leader>o` - **Toggle Outline** - Panel lateral con todos los símbolos del archivo
+- `<leader>on` - **Next Symbol** - Saltar a siguiente símbolo (función/clase/método)
+- `<leader>op` - **Previous Symbol** - Saltar a símbolo anterior
+- **Dentro de Aerial:**
+  - `Enter` - Saltar al símbolo seleccionado
+  - `j/k` - Navegar por la lista
+  - `za` - Plegar/desplegar secciones
+  - `q` - Cerrar panel
+
+#### 📦 Selección de Text Objects (Treesitter)
+- **Funciones:**
+  - `vif` - Seleccionar **dentro** de función (inner function)
+  - `vaf` - Seleccionar función **completa** (around function)
+- **Clases:**
+  - `vic` - Seleccionar **dentro** de clase (inner class)
+  - `vac` - Seleccionar clase **completa** (around class)
+- **Parámetros/Argumentos:**
+  - `via` - Seleccionar **dentro** de parámetro (inner argument)
+  - `vaa` - Seleccionar parámetro **completo** (around argument)
+- **Bloques:**
+  - `vib` - Seleccionar **dentro** de bloque (inner block)
+  - `vab` - Seleccionar bloque **completo** (around block)
+
+#### 🔄 Swap de Parámetros (Treesitter)
+- `<leader>sn` - **Swap Next** - Intercambiar parámetro con el siguiente
+- `<leader>sp` - **Swap Previous** - Intercambiar parámetro con el anterior
+
+#### 💡 Ejemplos de Uso
+
+**Escenario 1: Explorar función desconocida**
+```
+1. Cursor sobre función → K (ver docs)
+2. gd (ir a definición)
+3. gr (ver todos los usos)
+```
+
+**Escenario 2: Navegar archivo grande**
+```
+1. <leader>o (abrir outline)
+2. j/k para navegar lista
+3. Enter para saltar
+```
+
+**Escenario 3: Refactorizar función**
+```
+1. ]m (ir a siguiente función)
+2. vaf (seleccionar función completa)
+3. <leader>re (extract function con refactoring.nvim)
+```
+
+**Escenario 4: Reordenar parámetros**
+```
+1. Cursor en primer parámetro
+2. <leader>sn (mover a la derecha)
+3. <leader>sp (mover a la izquierda)
+```
 
 ### Búsqueda (Telescope)
 - `<leader>ff` - Buscar archivos
@@ -370,28 +507,83 @@ constants.treesitter.ensure_installed -- Lista de lenguajes
 - **Nota:** `nvim .` abre automáticamente nvim-tree
 
 ### Git
-- `<leader>gg` - Abrir LazyGit
-- `]c` / `[c` - Siguiente/anterior hunk de git
-- `<leader>hs` - Stage hunk
-- `<leader>hr` - Reset hunk
-- `<leader>hp` - Preview hunk
-- `<leader>hb` - Blame línea completa
-- `<leader>tb` - Toggle blame inline
-- `<leader>hd` - Diff contra index
 
-### LSP y Diagnósticos
-- `K` - Mostrar documentación
-- `gd` - Ir a definición
-- `gr` - Ver referencias
-- `gR` - Ver referencias con Trouble
-- `<leader>rn` - Renombrar símbolo
-- `<leader>d` - Ver diagnóstico
-- `[d` / `]d` - Navegar entre diagnósticos
-- `<leader>xx` - Toggle Trouble
-- `<leader>xw` - Workspace diagnostics
-- `<leader>xd` - Document diagnostics
-- `<leader>xq` - Quickfix list
-- `<leader>xl` - Location list
+#### 🚀 LazyGit
+- `<leader>gg` - **Abrir LazyGit** - Interfaz TUI completa para git
+
+#### 📊 Git Diff (Diffview)
+- `<leader>gd` - **Open Diff View** - Ver todos los cambios en vista completa
+- `<leader>gD` - **Close Diff View** - Cerrar vista de diff
+- `<leader>gh` - **File History (all)** - Historia de commits de todo el repo
+- `<leader>gH` - **File History (current)** - Historia del archivo actual
+- `<leader>gm` - **Merge Conflicts** - Resolver conflictos con 3-way diff
+- **Dentro de Diffview:**
+  - `[x` / `]x` - Navegar conflictos (anterior/siguiente)
+  - `<leader>co` - **Choose Ours** - Elegir cambios nuestros
+  - `<leader>ct` - **Choose Theirs** - Elegir cambios de ellos
+  - `<leader>cb` - **Choose Base** - Elegir versión base
+  - `<leader>ca` - **Choose All** - Elegir todos los cambios
+  - `-` - Stage/unstage archivo desde diff
+
+#### 🔍 Hunks (Gitsigns)
+- `]c` / `[c` - **Navegar hunks** - Siguiente/anterior cambio de git
+- `<leader>hs` - **Stage hunk** - Añadir hunk al stage
+- `<leader>hr` - **Reset hunk** - Deshacer cambios del hunk
+- `<leader>hp` - **Preview hunk** - Vista previa del hunk
+- `<leader>hb` - **Blame línea** - Ver quién modificó la línea
+- `<leader>tb` - **Toggle blame inline** - Mostrar/ocultar blame en línea
+- `<leader>hd` - **Diff** - Diff contra index
+
+### Diagnósticos y Debugging
+
+#### 🐛 Diagnósticos (Errores/Warnings)
+- `<leader>xe` - **Examine diagnostic** - Ver diagnóstico flotante en línea actual
+- `gl` - Ver diagnóstico en línea (alias de xe)
+- `[d` / `]d` - **Navegar** diagnósticos (siguiente/anterior)
+- `[e` / `]e` - **Navegar errores** (solo errores, ignora warnings)
+- `<leader>xx` - **Toggle Trouble** - Panel con todos los diagnósticos
+- `<leader>xw` - **Workspace diagnostics** - Diagnósticos de todo el workspace
+- `<leader>xd` - **Document diagnostics** - Diagnósticos del archivo actual
+- `<leader>xq` - **Quickfix list** - Lista de quickfix
+- `<leader>xl` - **Location list** - Lista de ubicaciones
+- `<leader>xr` - **LSP References** - Ver referencias en Trouble
+
+#### 🔧 Debugging (DAP)
+- `<leader>db` - **Toggle Breakpoint** - Añadir/quitar breakpoint
+- `<leader>dc` - **Continue/Start** - Continuar o iniciar debugging
+- `<leader>di` - **Step Into** - Entrar en función
+- `<leader>do` - **Step Over** - Pasar por encima
+- `<leader>dO` - **Step Out** - Salir de función
+- `<leader>du` - **Toggle DAP UI** - Mostrar/ocultar interfaz de debugging
+- `<leader>dt` - **Terminate** - Terminar sesión de debug
+- `<leader>dr` - **Toggle REPL** - Abrir/cerrar REPL de debugging
+
+#### 🧪 Testing (Neotest)
+- `<leader>tt` - **Run Test** - Ejecutar test más cercano
+- `<leader>tf` - **Run File** - Ejecutar todos los tests del archivo
+- `<leader>ts` - **Toggle Summary** - Mostrar/ocultar resumen de tests
+- `<leader>to` - **Show Output** - Ver output del test
+- `<leader>tw` - **Toggle Watch** - Modo watch (re-ejecutar al guardar)
+- `<leader>td` - **Debug Test** - Debuggear test con DAP
+
+#### 🔄 Code Actions y Refactoring
+- `<leader>ca` - **Code Action** - Menú de acciones de código (normal y visual)
+- `<leader>rn` - **Rename Symbol** - Renombrar símbolo (LSP)
+- `<leader>f` - **Format** - Formatear archivo con LSP
+- **Refactoring (visual mode):**
+  - `<leader>re` - **Extract Function** - Extraer función de código seleccionado
+  - `<leader>rv` - **Extract Variable** - Extraer variable
+  - `<leader>ri` - **Inline Variable** - Inline variable (normal/visual)
+  - `<leader>rs` - **Select Refactor** - Selector de refactorings con Telescope
+- **Debug Helpers:**
+  - `<leader>rd` - **Print Variable** - Añadir print statement para debugging
+  - `<leader>rc` - **Cleanup Prints** - Limpiar prints de debugging
+
+#### 📝 Generación de Documentación (Neogen)
+- `<leader>nf` - **Generate Function Docs** - Generar JSDoc/TSDoc para función
+- `<leader>nc` - **Generate Class Docs** - Generar documentación para clase
+- `<leader>nt` - **Generate Type Docs** - Generar documentación para tipo
+- `<leader>ng` - **Auto Generate** - Auto-detectar y generar documentación
 
 ### Linting
 - `<leader>ll` - Ejecutar linting manualmente
