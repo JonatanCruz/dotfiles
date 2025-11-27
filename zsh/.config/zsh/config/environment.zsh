@@ -43,3 +43,11 @@ export FUNCNEST=1000
 
 # Claude Code - Límite de tokens de salida
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
+
+# Bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# .NET SDK
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"

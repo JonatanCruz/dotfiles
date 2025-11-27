@@ -125,8 +125,42 @@ Actionable rules for enhanced Claude Code framework operation.
 - **Version Control Hygiene**: Never leave temporary files that could be accidentally committed
 - **Resource Management**: Delete unused directories and files to prevent workspace bloat
 
-✅ **Right**: `rm temp_script.py` after use  
+✅ **Right**: `rm temp_script.py` after use
 ❌ **Wrong**: Leaving `debug.sh`, `test.log`, `temp/` directories
+
+## Refactoring Discipline
+**Priority**: 🟡 **Triggers**: Code improvements, file enhancements, refactoring tasks
+
+- **Refactor, Don't Duplicate**: ALWAYS refactor existing files, NEVER create versioned copies (-v2, -enhanced, -new, -refactored)
+- **Replace, Don't Accumulate**: When improving a file, REPLACE the original, don't create alternatives
+- **Delete Old Versions**: After refactoring, DELETE any previous versions immediately
+- **New Files Only for New Features**: Create new files ONLY for genuinely new functionality, not improvements
+- **Single Source of Truth**: Maintain exactly ONE version of each component or module
+- **No Version Suffixes**: Never use file naming patterns like `auth-v2.js`, `utils-enhanced.py`, `config-new.ts`
+- **Clean Migration**: When refactoring, ensure all references update to the new implementation
+
+✅ **Right**: Improve `auth.js` by refactoring it in place
+✅ **Right**: Delete `auth-old.js` after successful refactoring
+❌ **Wrong**: Create `auth-v2.js` alongside `auth.js`
+❌ **Wrong**: Keep both `utils.py` and `utils-enhanced.py`
+**Detection**: `find . -name "*-v2.*" -o -name "*-old.*" -o -name "*-new.*" -o -name "*-enhanced.*"`
+
+## Documentation Minimalism
+**Priority**: 🟡 **Triggers**: Documentation creation, claudedocs/ usage, change tracking
+
+- **Document Only High-Impact Work**: Only create documentation for processes that are absolutely necessary or have high strategic value
+- **No Incremental Change Docs**: Do NOT document normal refactorings, minor improvements, or routine changes
+- **Strategic Documentation Only**: Reserve `claudedocs/` for architecture decisions, complex analysis, critical investigations
+- **Avoid Documentation Bloat**: Prevent filling `claudedocs/` with every small change or task completion
+- **Self-Documenting Code**: Prefer clear code and comments over external documentation for routine work
+- **Documentation as Exception**: Documentation should be the exception, not the rule for every change
+- **High Signal, Low Noise**: Every document in `claudedocs/` should provide significant strategic value
+
+✅ **Right**: Document major architecture refactoring with system-wide impact
+✅ **Right**: Document complex debugging investigation with lessons learned
+❌ **Wrong**: Create `claudedocs/refactored-auth-function.md` for routine refactoring
+❌ **Wrong**: Document every minor code improvement or function change
+**Rationale**: Keep documentation focused on what matters, avoid maintenance burden of low-value docs
 
 ## Failure Investigation
 **Priority**: 🔴 **Triggers**: Errors, test failures, unexpected behavior, tool failures
@@ -203,8 +237,75 @@ Actionable rules for enhanced Claude Code framework operation.
 - **Separation of Concerns**: Keep tests, scripts, docs, and source code properly separated
 - **Purpose-Based Organization**: Organize files by their intended function and audience
 
-✅ **Right**: `tests/auth.test.js`, `scripts/deploy.sh`, `claudedocs/analysis.md`  
+✅ **Right**: `tests/auth.test.js`, `scripts/deploy.sh`, `claudedocs/analysis.md`
 ❌ **Wrong**: `auth.test.js` next to `auth.js`, `debug.sh` in project root
+
+## Microservice Documentation Structure
+**Priority**: 🟡 **Triggers**: Creating documentation for services, microservice implementations
+
+- **Standardized Structure**: ALL microservice documentation MUST follow the established `docs/` structure
+- **Mandatory Categories**: Every service must have organized subdirectories in `docs/`
+- **No Root-Level Docs**: NEVER create documentation files in service root (except README.md)
+- **No Scattered Docs**: NEVER create documentation in `src/`, subdirectories, or scattered locations
+- **Single Documentation Location**: ALL service documentation goes into `services/{service-name}/docs/`
+- **Consistent Organization**: Follow the same category structure across all services
+
+**Required `docs/` Structure for Services:**
+```
+services/{service-name}/
+├── README.md                    # Project entry point only
+└── docs/
+    ├── README.md               # Documentation index with navigation
+    ├── architecture/           # Architecture decisions, diagrams, domain models
+    ├── implementation/         # Implementation reports by wave/phase
+    │   ├── wave1/
+    │   ├── wave2/
+    │   └── wave3/
+    ├── guides/                 # Developer guides, configuration, how-tos
+    ├── security/               # Security audits, checklists, pentest (if applicable)
+    ├── testing/                # Test guides, results, strategies (if applicable)
+    ├── migration-reports/      # Technology migration documentation (if applicable)
+    ├── examples/               # Code examples, patterns, integration examples
+    ├── reference/              # Quick reference guides, API references
+    ├── decisions/              # Architecture Decision Records (ADRs)
+    └── setup/                  # Configuration, environment setup (if applicable)
+```
+
+**Documentation Placement Rules:**
+- **Architecture docs** → `docs/architecture/` (domain models, system design, diagrams)
+- **Implementation reports** → `docs/implementation/wave{N}/` (organized by wave/phase)
+- **How-to guides** → `docs/guides/` (configuration, usage, procedures)
+- **Security docs** → `docs/security/` (audits, checklists, pentests)
+- **Test docs** → `docs/testing/` (test guides, results, strategies)
+- **Migration docs** → `docs/migration-reports/` (technology migrations, API changes)
+- **Code examples** → `docs/examples/` (integration patterns, usage examples)
+- **Quick references** → `docs/reference/` (API references, cheat sheets)
+- **Decisions** → `docs/decisions/` (ADRs, technical decisions)
+
+**Enforcement:**
+- When creating ANY documentation for a service, ALWAYS check for `docs/` directory first
+- If `docs/` doesn't exist, create it with appropriate subdirectories
+- NEVER create files like `IMPLEMENTATION_SUMMARY.md`, `GUIDE.md` in service root
+- NEVER create README files inside `src/` subdirectories
+- ALL documentation must be properly categorized and indexed in `docs/README.md`
+
+✅ **Right**: `services/sales-service/docs/guides/configuration-guide.md`
+✅ **Right**: `services/identity-service/docs/security/security-audit.md`
+✅ **Right**: `services/inventory-service/docs/implementation/wave1/summary.md`
+❌ **Wrong**: `services/sales-service/IMPLEMENTATION_SUMMARY.md` (root level)
+❌ **Wrong**: `services/identity-service/src/infrastructure/README.md` (scattered)
+❌ **Wrong**: `services/inventory-service/claudedocs/guide.md` (use docs/ not claudedocs/)
+
+**Reference Implementation:**
+- Phase 1: `/services/identity-service/docs/` (established structure)
+- Phase 2: `/services/sales-service/docs/` (established structure)
+
+**Rationale**: Consistent documentation structure across all microservices improves:
+- Developer onboarding and navigation
+- Documentation discoverability
+- Project maintainability
+- Professional presentation
+- Scalability as project grows
 
 ## Safety Rules
 **Priority**: 🔴 **Triggers**: File operations, library usage, codebase changes
@@ -279,6 +380,8 @@ Task type → Best tool:
 - Build only what's asked (MVP first)
 - Professional language (no marketing superlatives)
 - Clean workspace (remove temp files)
+- Refactor in place, never create versioned files
+- Document only high-impact strategic work
 
 #### 🟢 RECOMMENDED (Apply When Practical)  
 - Parallel operations over sequential

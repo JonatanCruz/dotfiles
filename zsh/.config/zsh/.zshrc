@@ -41,3 +41,6 @@ source "${ZDOTDIR}/plugins.zsh"
 # ==============================================================================
 # FIN DE LA CONFIGURACIÓN
 # ==============================================================================
+
+# bun completions
+[ -s "/home/jonatan/.bun/_bun" ] && source "/home/jonatan/.bun/_bun"
