@@ -98,3 +98,36 @@ keymap('n', '<leader>pp', ':Lazy profile<CR>', { desc = 'Lazy: Profile (ver rend
 -- Mason (gestor de LSP, linters, formatters)
 keymap('n', '<leader>pm', ':Mason<CR>', { desc = 'Abrir Mason' })
 keymap('n', '<leader>pM', ':MasonUpdate<CR>', { desc = 'Mason: Update (actualizar herramientas)' })
+
+-- ============================================================================
+-- QUICKFIX Y LOCATION LIST
+-- ============================================================================
+
+keymap('n', '<leader>co', ':copen<CR>', { desc = 'Abrir quickfix' })
+keymap('n', '<leader>cc', ':cclose<CR>', { desc = 'Cerrar quickfix' })
+keymap('n', ']q', ':cnext<CR>', { desc = 'Siguiente quickfix' })
+keymap('n', '[q', ':cprev<CR>', { desc = 'Anterior quickfix' })
+keymap('n', '<leader>lo', ':lopen<CR>', { desc = 'Abrir location list' })
+keymap('n', '<leader>lc', ':lclose<CR>', { desc = 'Cerrar location list' })
+keymap('n', ']l', ':lnext<CR>', { desc = 'Siguiente location' })
+keymap('n', '[l', ':lprev<CR>', { desc = 'Anterior location' })
+
+-- ============================================================================
+-- MEJORAR EXPERIENCIA DE EDICIÓN
+-- ============================================================================
+
+-- Seleccionar todo el archivo
+keymap('n', '<leader>sa', 'ggVG', { desc = 'Seleccionar todo' })
+
+-- Copiar al portapapeles del sistema
+keymap({ 'n', 'v' }, '<leader>y', '"+y', { desc = 'Copiar al sistema' })
+keymap('n', '<leader>Y', '"+Y', { desc = 'Copiar línea al sistema' })
+
+-- Eliminar sin afectar el registro
+keymap({ 'n', 'v' }, '<leader>d', '"_d', { desc = 'Eliminar sin registro' })
+
+-- Buscar y reemplazar palabra bajo cursor
+keymap('n', '<leader>sr', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Buscar y reemplazar' })
+
+-- Hacer archivo ejecutable
+keymap('n', '<leader>cx', ':!chmod +x %<CR>', { silent = true, desc = 'Hacer ejecutable' })

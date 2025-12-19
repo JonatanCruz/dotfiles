@@ -14,6 +14,12 @@ $directory\
 $git_branch\
 $git_status\
 $nodejs\
+$python\
+$rust\
+$golang\
+$dotnet\
+$bun\
+$docker_context\
 $cmd_duration\
 $line_break$character"""
 
@@ -76,7 +82,44 @@ deleted = "D"
 [nodejs]
 symbol = ""
 style = "#a6e3a1" # Green Catppuccin Mocha
-format = '[ $symbol ($version) ]($style)'
+format = '[$symbol ($version) ]($style)'
+
+# Python: Se muestra en proyectos Python
+[python]
+symbol = ""
+style = "#f9e2af" # Yellow Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Rust: Se muestra en proyectos Rust
+[rust]
+symbol = ""
+style = "#fab387" # Peach Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Go: Se muestra en proyectos Go
+[golang]
+symbol = ""
+style = "#89dceb" # Teal Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# .NET: Se muestra en proyectos C#/.NET
+[dotnet]
+symbol = ""
+style = "#cba6f7" # Mauve Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Bun: Runtime JavaScript alternativo
+[bun]
+format = '[$symbol($version) ]($style)'
+symbol = "🍞 "
+style = "#f5c2e7" # Pink Catppuccin Mocha
+
+# Docker: Muestra el contexto activo de Docker
+[docker_context]
+symbol = " "
+style = "#89b4fa" # Blue Catppuccin Mocha
+format = '[$symbol$context ]($style)'
+only_with_files = true
 
 # Duración del comando: Útil y discreto. Color naranja.
 [cmd_duration]
