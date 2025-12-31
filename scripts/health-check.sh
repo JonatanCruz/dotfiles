@@ -18,7 +18,8 @@ readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
 # Configuration
-readonly DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly DOTFILES_DIR
 
 # Counters
 CHECKS_PASSED=0
@@ -69,12 +70,24 @@ check_binaries() {
         if command -v "$bin" &>/dev/null; then
             local version
             case "$bin" in
-                nvim) version=$(nvim --version | head -n1) ;;
-                tmux) version=$(tmux -V) ;;
-                zsh) version=$(zsh --version) ;;
-                git) version=$(git --version) ;;
-                stow) version="stow $(stow --version 2>&1 | head -n1 | grep -oP '\d+\.\d+')" ;;
-                *) version="" ;;
+                nvim)
+                    version=$(nvim --version | head -n1)
+                    ;;
+                tmux)
+                    version=$(tmux -V)
+                    ;;
+                zsh)
+                    version=$(zsh --version)
+                    ;;
+                git)
+                    version=$(git --version)
+                    ;;
+                stow)
+                    version="stow $(stow --version 2>&1 | head -n1 | grep -oP '\d+\.\d+')"
+                    ;;
+                *)
+                    version=""
+                    ;;
             esac
             check_pass "$bin found${version:+ - $version}"
         else
@@ -216,7 +229,8 @@ check_zsh() {
     )
 
     for plugin in "${plugins[@]}"; do
-        local name=$(basename "$plugin")
+        local name
+        name=$(basename "$plugin")
         if [ -d "$plugin" ]; then
             if [ -d "$plugin/.git" ]; then
                 check_pass "$name installed (git submodule)"

@@ -19,7 +19,8 @@ readonly NC='\033[0m'
 
 # Configuration
 readonly SNAPSHOT_DIR="$HOME/.dotfiles-snapshots"
-readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+readonly TIMESTAMP
 
 # Directories to snapshot
 readonly SNAPSHOT_TARGETS=(
@@ -66,7 +67,8 @@ create_snapshot() {
     # Create temporary directory for staging
     local temp_dir
     temp_dir=$(mktemp -d)
-    local staging_dir="$temp_dir/dotfiles-snapshot"
+    local staging_dir
+    staging_dir="$temp_dir/dotfiles-snapshot"
     mkdir -p "$staging_dir"
 
     # Copy configurations
@@ -75,7 +77,8 @@ create_snapshot() {
 
     for target in "${SNAPSHOT_TARGETS[@]}"; do
         if [ -e "$target" ]; then
-            local basename=$(basename "$target")
+            local basename
+            basename=$(basename "$target")
             local parent_dir
             parent_dir=$(dirname "$target" | sed "s|$HOME/||")
 
@@ -147,7 +150,8 @@ list_snapshots() {
     local index=1
     for snapshot in "$SNAPSHOT_DIR"/*.tar.gz; do
         if [ -f "$snapshot" ]; then
-            local name=$(basename "$snapshot")
+            local name
+            name=$(basename "$snapshot")
             local size
             size=$(du -h "$snapshot" | cut -f1)
             local date
@@ -229,7 +233,8 @@ rollback_snapshot() {
     # Copy from snapshot
     for item in "$extracted_dir"/.config/* "$extracted_dir"/.zsh "$extracted_dir"/.tmux; do
         if [ -e "$item" ]; then
-            local basename=$(basename "$item")
+            local basename
+            basename=$(basename "$item")
             local target_path
 
             if [[ "$item" == *".config/"* ]]; then

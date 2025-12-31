@@ -28,10 +28,11 @@ _lazy_nvm() {
   [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 }
 
-nvm() { _lazy_nvm; nvm "$@"; }
-node() { _lazy_nvm; node "$@"; }
-npm() { _lazy_nvm; npm "$@"; }
-npx() { _lazy_nvm; npx "$@"; }
+# Use 'function' keyword to prevent alias expansion during parsing
+function nvm() { _lazy_nvm; nvm "$@"; }
+function node() { _lazy_nvm; node "$@"; }
+function npm() { _lazy_nvm; npm "$@"; }
+function npx() { _lazy_nvm; npx "$@"; }
 
 # pyenv (Python Version Manager)
 export PYENV_ROOT="$HOME/.pyenv"

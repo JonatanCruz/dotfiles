@@ -17,15 +17,15 @@ _lazy_zoxide() {
   unset -f z zi
   eval "$(zoxide init zsh)"
 }
-z() { _lazy_zoxide; z "$@"; }
-zi() { _lazy_zoxide; zi "$@"; }
+function z() { _lazy_zoxide; z "$@"; }
+function zi() { _lazy_zoxide; zi "$@"; }
 
 # Lazy load direnv
 _lazy_direnv() {
   unset -f direnv
   eval "$(direnv hook zsh)"
 }
-direnv() { _lazy_direnv; direnv "$@"; }
+function direnv() { _lazy_direnv; direnv "$@"; }
 
 # Google Cloud SDK completion (si está instalado)
 if [ -f "/snap/google-cloud-sdk/current/completion.zsh.inc" ]; then
@@ -39,8 +39,9 @@ if command -v gh &> /dev/null; then
     eval "$(command gh completion -s zsh)"
   }
   # Unalias gh if it exists, then create function
+  # Use 'function' keyword to prevent alias expansion during parsing
   unalias gh 2>/dev/null || true
-  gh() { _lazy_gh; command gh "$@"; }
+  function gh() { _lazy_gh; command gh "$@"; }
 fi
 
 eval "$(starship init zsh)"      # Starship prompt (DEBE SER EL ÚLTIMO)

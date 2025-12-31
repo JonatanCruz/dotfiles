@@ -20,8 +20,10 @@ readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
 # Configuration
-readonly DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-readonly BACKUP_DIR="$HOME/.dotfiles-backups/$(date +%Y%m%d_%H%M%S)"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly DOTFILES_DIR
+BACKUP_DIR="$HOME/.dotfiles-backups/$(date +%Y%m%d_%H%M%S)"
+readonly BACKUP_DIR
 INTERACTIVE=true
 OS=""
 DISTRO=""
@@ -208,7 +210,8 @@ backup_existing_configs() {
 
     for config in "${configs_to_backup[@]}"; do
         if [ -e "$config" ] && [ ! -L "$config" ]; then
-            local basename=$(basename "$config")
+            local basename
+            basename=$(basename "$config")
             cp -r "$config" "$BACKUP_DIR/$basename"
             print_success "Backed up: $basename"
         fi
