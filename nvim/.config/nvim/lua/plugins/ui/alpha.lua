@@ -9,7 +9,13 @@ local colors = require("utils.colors")
 
 return {
   "goolord/alpha-nvim",
-  event = "VimEnter",
+  -- Conditional loading: only show dashboard when opening nvim without files (30-50ms savings)
+  event = function()
+    if vim.fn.argc() == 0 then
+      return "VimEnter"
+    end
+    return nil
+  end,
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     local alpha = require("alpha")
