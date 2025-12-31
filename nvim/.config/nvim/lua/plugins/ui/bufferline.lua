@@ -17,10 +17,13 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
   event = "VeryLazy",
   keys = {
-    { "<Tab>", "<cmd>BufferLineCycleNext<cr>", desc = "Siguiente buffer" },
-    { "<S-Tab>", "<cmd>BufferLineCyclePrev<cr>", desc = "Buffer anterior" },
-    { "<leader>bp", "<cmd>BufferLinePick<cr>", desc = "Elegir buffer" },
+    -- Buffer navigation (moved from Tab to leader for better Vim compatibility)
+    { "<leader>bn", "<cmd>BufferLineCycleNext<cr>", desc = "Siguiente buffer" },
+    { "<leader>bp", "<cmd>BufferLineCyclePrev<cr>", desc = "Buffer anterior" },
+    { "<leader>bP", "<cmd>BufferLinePick<cr>", desc = "Elegir buffer" },
     { "<leader>bc", "<cmd>BufferLinePickClose<cr>", desc = "Cerrar buffer (elegir)" },
+    { "<leader>bd", "<cmd>bdelete<cr>", desc = "Cerrar buffer actual" },
+    { "<leader>bo", "<cmd>BufferLineCloseOthers<cr>", desc = "Cerrar otros buffers" },
   },
   opts = function()
     local colors = require("catppuccin.palettes").get_palette()

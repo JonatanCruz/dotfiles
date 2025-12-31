@@ -46,10 +46,9 @@ return {
           automatic_installation = true,
           handlers = {},
           ensure_installed = {
-            -- Agrega debuggers según tus necesidades:
-            -- "js-debug-adapter",  -- JavaScript/TypeScript
-            -- "python",            -- Python (debugpy)
-            -- "codelldb",          -- C/C++/Rust
+            "debugpy",           -- Python debugging
+            "codelldb",          -- Rust/C/C++ debugging
+            "js-debug-adapter",  -- JavaScript/TypeScript debugging
           },
         },
       },
@@ -74,12 +73,33 @@ return {
       { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
     },
     config = function()
+      local dap = require("dap")
+
       -- Iconos para breakpoints
       vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticError", linehl = "", numhl = "" })
       vim.fn.sign_define("DapBreakpointCondition", { text = "", texthl = "DiagnosticWarn", linehl = "", numhl = "" })
       vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DiagnosticInfo", linehl = "", numhl = "" })
       vim.fn.sign_define("DapStopped", { text = "", texthl = "DiagnosticOk", linehl = "Visual", numhl = "" })
       vim.fn.sign_define("DapBreakpointRejected", { text = "", texthl = "DiagnosticError", linehl = "", numhl = "" })
+
+      -- Python configuration
+      dap.adapters.python = {
+        type = "executable",
+        command = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python",
+        args = { "-m", "debugpy.adapter" },
+      }
+
+      dap.configurations.python = {
+        {
+          type = "python",
+          request = "launch",
+          name = "Launch file",
+          program = "${file}",
+          pythonPath = function()
+            return "python3"
+          end,
+        },
+      }
     end,
   },
 }
