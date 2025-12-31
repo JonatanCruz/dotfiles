@@ -1,7 +1,7 @@
 # ~/.config/yazi/keymap.toml - Vim-style Navigation Keybindings
 
 # The correct section is [manager], not [mgr]
-[manager]
+[mgr]
 
 # Vim-style navigation (h/j/k/l already default in Yazi)
 keymap = [
