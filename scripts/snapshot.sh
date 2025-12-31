@@ -86,13 +86,13 @@ create_snapshot() {
             mkdir -p "$staging_dir/$parent_dir"
             cp -rL "$target" "$staging_dir/$parent_dir/" 2>/dev/null || {
                 print_warning "Could not copy $basename (may be broken symlink)"
-                ((skipped++))
+                skipped=$((skipped + 1))
                 continue
             }
             print_success "Captured: $basename"
-            ((copied++))
+            copied=$((copied + 1))
         else
-            ((skipped++))
+            skipped=$((skipped + 1))
         fi
     done
 
