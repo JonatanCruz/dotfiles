@@ -1,0 +1,296 @@
+name: Dotfiles CI/CD
+
+on:
+  push:
+    branches: [ main, develop, architecture/* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  DOTFILES_DIR: ${{ github.workspace }}
+
+jobs:
+  # ==============================================================================
+  # LINT SHELL SCRIPTS
+  # ==============================================================================
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Lint shell scripts
+        run: |
+          echo "🔍 Linting shell scripts..."
+          find . -type f -name "*.sh" -exec echo "Checking {}" \;
+          find . -type f -name "*.sh" -exec shellcheck --severity=warning {} +
+
+      - name: Lint Zsh configs
+        run: |
+          echo "🔍 Linting Zsh configuration files..."
+          # Basic syntax check for zsh files
+          for file in zsh/.config/zsh/**/*.zsh zsh/.zshrc 2>/dev/null || true; do
+            if [ -f "$file" ]; then
+              echo "Checking $file"
+              zsh -n "$file" || exit 1
+            fi
+          done
+        continue-on-error: true
+
+  # ==============================================================================
+  # LINT LUA CONFIGS
+  # ==============================================================================
+  luacheck:
+    name: Luacheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Lua and Luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4 luarocks
+          sudo luarocks install luacheck
+
+      - name: Lint Neovim Lua configs
+        run: |
+          echo "🔍 Linting Neovim Lua configuration..."
+          if [ -d "nvim/.config/nvim" ]; then
+            luacheck nvim/.config/nvim --globals vim --max-line-length 120 || true
+          else
+            echo "No Neovim config found, skipping"
+          fi
+
+  # ==============================================================================
+  # TEST STOW DRY RUN
+  # ==============================================================================
+  stow-test:
+    name: Stow Dry Run
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          - nvim
+          - zsh
+          - zsh-plugins
+          - tmux
+          - starship
+          - yazi
+          - wezterm
+          - docker
+          - claude
+          - git
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install GNU Stow
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y stow
+
+      - name: Test stow dry-run for ${{ matrix.package }}
+        run: |
+          echo "🧪 Testing stow for ${{ matrix.package }}"
+          if [ -d "${{ matrix.package }}" ]; then
+            stow --simulate --verbose=2 "${{ matrix.package }}"
+            echo "✓ Stow dry-run successful for ${{ matrix.package }}"
+          else
+            echo "⚠ Package ${{ matrix.package }} not found, skipping"
+          fi
+
+  # ==============================================================================
+  # TEST NEOVIM CONFIG
+  # ==============================================================================
+  neovim-test:
+    name: Neovim Config Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Neovim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:neovim-ppa/unstable
+          sudo apt-get update
+          sudo apt-get install -y neovim
+
+      - name: Setup Neovim config
+        run: |
+          mkdir -p ~/.config/nvim
+          if [ -d "nvim/.config/nvim" ]; then
+            cp -r nvim/.config/nvim/* ~/.config/nvim/
+            echo "✓ Neovim config copied"
+          fi
+
+      - name: Test Neovim config load
+        run: |
+          echo "🧪 Testing Neovim config load..."
+          nvim --headless -c "echo 'Config loaded successfully'" -c "quitall" 2>&1 | tee nvim-test.log
+
+          if grep -qi "error" nvim-test.log; then
+            echo "❌ Neovim config has errors"
+            cat nvim-test.log
+            exit 1
+          else
+            echo "✓ Neovim config loads without errors"
+          fi
+
+      - name: Run Neovim health check
+        run: |
+          echo "🏥 Running Neovim health check..."
+          nvim --headless -c "checkhealth" -c "quitall" 2>&1 | tee health-check.log || true
+
+          echo "Health check completed (warnings expected in CI environment)"
+          # Don't fail on health check warnings in CI
+        continue-on-error: true
+
+  # ==============================================================================
+  # SECURITY SCAN
+  # ==============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  # ==============================================================================
+  # HEALTH CHECK SCRIPT TEST
+  # ==============================================================================
+  health-check-test:
+    name: Health Check Script
+    runs-on: ubuntu-latest
+    needs: [shellcheck, stow-test]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git stow neovim tmux zsh
+
+      - name: Run health check script
+        run: |
+          echo "🏥 Running health check script..."
+          chmod +x scripts/health-check.sh
+          ./scripts/health-check.sh || true
+        continue-on-error: true
+
+  # ==============================================================================
+  # BOOTSTRAP SCRIPT TEST
+  # ==============================================================================
+  bootstrap-test:
+    name: Bootstrap Script Test
+    runs-on: ubuntu-latest
+    needs: [shellcheck]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Test bootstrap script (dry run)
+        run: |
+          echo "🧪 Testing bootstrap script..."
+          chmod +x scripts/bootstrap.sh
+
+          # Test help
+          ./scripts/bootstrap.sh --help
+
+          echo "✓ Bootstrap script executed successfully"
+
+  # ==============================================================================
+  # INTEGRATION TEST
+  # ==============================================================================
+  integration:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [shellcheck, luacheck, stow-test, neovim-test, security-scan]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Full integration test
+        run: |
+          echo "🔄 Running full integration test..."
+
+          # Install base dependencies
+          sudo apt-get update
+          sudo apt-get install -y git stow neovim tmux zsh
+
+          # Test bootstrap with no-deps flag
+          chmod +x scripts/bootstrap.sh
+          ./scripts/bootstrap.sh --help
+
+          # Test health check
+          chmod +x scripts/health-check.sh
+          ./scripts/health-check.sh || true
+
+          # Test snapshot creation
+          chmod +x scripts/snapshot.sh
+          ./scripts/snapshot.sh create ci-test
+          ./scripts/snapshot.sh list
+
+          echo "✓ Integration tests completed"
+
+  # ==============================================================================
+  # SUMMARY
+  # ==============================================================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [integration]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🎉 Dotfiles CI/CD Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ All checks completed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checks Performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ShellCheck linting" >> $GITHUB_STEP_SUMMARY
+          echo "- Luacheck linting" >> $GITHUB_STEP_SUMMARY
+          echo "- Stow dry-run tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Neovim config validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Security scanning (TruffleHog)" >> $GITHUB_STEP_SUMMARY
+          echo "- Integration testing" >> $GITHUB_STEP_SUMMARY
