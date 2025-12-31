@@ -1,0 +1,27 @@
+# === SENSITIVE DATA ===
+docker/.docker/config.json
+docker/.docker/.token_seed
+docker/.docker/.token_seed.lock
+**/*credentials*
+**/*secrets*
+**/*.key
+**/*.pem
+
+# === BUILD ARTIFACTS ===
+docker/.docker/buildx/
+*.log
+*.cache
+
+# === OS FILES ===
+.DS_Store
+Thumbs.db
+
+# === EDITOR ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === SERENA MEMORY (optional - session-only memories) ===
+.serena/memories/session_*.md
