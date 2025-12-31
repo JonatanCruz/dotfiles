@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "playwright-chrome": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=chrome"
+      ]
+    },
+    "playwright-firefox": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=firefox"
+      ]
+    },
+    "playwright-safari": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=webkit"
+      ]
+    },
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project-from-cwd"
+      ]
+    }
+  }
+}

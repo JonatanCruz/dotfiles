@@ -23,5 +23,5 @@ Thumbs.db
 *.swo
 *~
 
-# === SERENA MEMORY (optional - session-only memories) ===
-.serena/memories/session_*.md
+# === SERENA MEMORY (session-only memories) ===
+.serena/
