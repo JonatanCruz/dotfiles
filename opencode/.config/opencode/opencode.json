@@ -1,5 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "theme": "catppuccin",
   "permission": {
     "*": "allow",
     "bash": {
@@ -24,5 +25,23 @@
     "webfetch": "allow",
     "external_directory": "ask",
     "doom_loop": "ask"
+  },
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp",
+      "enabled": true,
+      "oauth": {}
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@executeautomation/playwright-mcp-server"],
+      "enabled": true
+    }
   }
 }
