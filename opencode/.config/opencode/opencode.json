@@ -4,9 +4,9 @@
   // ============================================================================
   // APPEARANCE & UI
   // ============================================================================
-  
+
   "theme": "catppuccin",
-  
+
   "tui": {
     "scroll_speed": 3,
     "scroll_acceleration": {
@@ -18,10 +18,10 @@
   // ============================================================================
   // MODELS & PROVIDERS
   // ============================================================================
-  
+
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5",
-  
+
   "provider": {
     "anthropic": {
       "options": {
@@ -34,9 +34,9 @@
   // ============================================================================
   // AGENTS
   // ============================================================================
-  
+
   "default_agent": "build",
-  
+
   "agent": {
     "build": {
       "description": "Full development mode with all tools enabled",
@@ -69,11 +69,11 @@
       }
     }
   },
-  
+
   // Note: Additional agents defined in ~/.config/opencode/agent/*.md
   // - backend-architect.md: Backend systems design specialist
   // - security-engineer.md: Security vulnerabilities and compliance
-  // 
+  //
   // Additional commands defined in ~/.config/opencode/command/*.md
   // - implement.md: Feature implementation with framework detection
   // - analyze.md: Comprehensive code analysis
@@ -82,7 +82,7 @@
   // ============================================================================
   // PERMISSIONS
   // ============================================================================
-  
+
   "permission": {
     "*": "allow",
     "bash": {
@@ -124,7 +124,7 @@
   // ============================================================================
   // MCP SERVERS
   // ============================================================================
-  
+
   "mcp": {
     "context7": {
       "type": "remote",
@@ -158,11 +158,20 @@
   // ============================================================================
   // FORMATTERS
   // ============================================================================
-  
+
   "formatter": {
     "prettier": {
       "command": ["npx", "prettier", "--write", "$FILE"],
-      "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".md", ".yaml", ".yml"]
+      "extensions": [
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".json",
+        ".md",
+        ".yaml",
+        ".yml"
+      ]
     },
     "biome": {
       "command": ["npx", "biome", "format", "--write", "$FILE"],
@@ -205,7 +214,7 @@
   // ============================================================================
   // CONTEXT MANAGEMENT
   // ============================================================================
-  
+
   "compaction": {
     "auto": true,
     "prune": true
@@ -214,7 +223,7 @@
   // ============================================================================
   // FILE WATCHER
   // ============================================================================
-  
+
   "watcher": {
     "ignore": [
       "node_modules/**",
@@ -242,7 +251,7 @@
   // ============================================================================
   // CUSTOM COMMANDS
   // ============================================================================
-  
+
   "command": {
     "test": {
       "template": "Run the full test suite with coverage report and show any failures. Focus on the failing tests and suggest fixes.",
@@ -256,22 +265,47 @@
     "optimize": {
       "template": "Analyze and optimize the code at $ARGUMENTS for:\n- Performance improvements\n- Memory efficiency\n- Code readability\n- Best practices",
       "description": "Optimize code performance"
+    },
+    "analyze": {
+      "template": "Analiza $ARGUMENTS usando Serena MCP:\n1. serena_get_symbols_overview() para estructura\n2. serena_find_symbol() para símbolos clave\n3. serena_search_for_pattern() para patrones\n4. Genera reporte y guarda en memoria",
+      "description": "Análisis profundo con Serena MCP"
+    },
+    "refactor": {
+      "template": "Refactoriza $ARGUMENTS usando Serena:\n1. serena_find_symbol() para encontrar\n2. serena_find_referencing_symbols() para referencias\n3. serena_rename_symbol() o serena_replace_symbol_body()\n4. Verifica cambios",
+      "description": "Refactoring seguro con Serena"
+    },
+    "audit": {
+      "template": "Audita el código en $ARGUMENTS:\n1. Buscar TODOs/FIXMEs con serena_search_for_pattern\n2. Buscar rutas hardcoded\n3. Buscar credenciales\n4. Verificar patrones inconsistentes\n5. Guardar reporte en memoria",
+      "description": "Auditoría de código con Serena"
+    },
+    "s:find": {
+      "template": "Usa serena_find_symbol(name_path_pattern=\"$ARGUMENTS\", include_body=true) para buscar el símbolo",
+      "description": "Buscar símbolo con Serena"
+    },
+    "s:refs": {
+      "template": "Usa serena_find_referencing_symbols(name_path=\"$ARGUMENTS\") para ver todas las referencias",
+      "description": "Ver referencias con Serena"
+    },
+    "s:overview": {
+      "template": "Usa serena_get_symbols_overview(relative_path=\"$ARGUMENTS\", depth=1) para ver la estructura",
+      "description": "Vista general con Serena"
+    },
+    "s:todos": {
+      "template": "Usa serena_search_for_pattern(substring_pattern=\"TODO|FIXME|HACK\", relative_path=\".\", context_lines_after=2) para buscar TODOs",
+      "description": "Buscar TODOs con Serena"
     }
   },
 
   // ============================================================================
   // INSTRUCTIONS & RULES
   // ============================================================================
-  
-  "instructions": [
-    "CLAUDE.md",
-    "AGENTS.md"
-  ],
+
+  "instructions": ["CLAUDE.md", "AGENTS.md"],
 
   // ============================================================================
   // SYSTEM SETTINGS
   // ============================================================================
-  
+
   "autoupdate": "notify",
   "share": "manual"
 }

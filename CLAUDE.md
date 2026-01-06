@@ -1,6 +1,70 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) and OpenCode when working with code in this repository.
+
+## 🤖 Serena MCP - Uso Automático (CRÍTICO)
+
+### Regla de Oro: SIEMPRE Usa Serena MCP
+
+**OBLIGATORIO**: Usa Serena MCP en lugar de grep/glob/ls para análisis de código.
+
+#### Cuándo Usar Serena (Siempre que sea posible)
+
+1. **Búsqueda de Símbolos** → `serena_find_symbol()`
+   - ❌ NO: `grep -r "function name"`
+   - ✅ SÍ: `serena_find_symbol(name_path_pattern="name", include_body=true)`
+
+2. **Análisis de Estructura** → `serena_get_symbols_overview()`
+   - ❌ NO: `ls -la` + lectura manual
+   - ✅ SÍ: `serena_get_symbols_overview(relative_path="dir", depth=1)`
+
+3. **Encontrar Referencias** → `serena_find_referencing_symbols()`
+   - ❌ NO: `grep -r "functionName"`
+   - ✅ SÍ: `serena_find_referencing_symbols(name_path="functionName")`
+
+4. **Refactoring Seguro** → `serena_rename_symbol()`
+   - ❌ NO: Buscar y reemplazar manualmente
+   - ✅ SÍ: `serena_rename_symbol(name_path="old", new_name="new")`
+
+#### Workflow Obligatorio
+
+**ANTES de editar código**:
+
+1. `serena_get_symbols_overview()` → Entender estructura
+2. `serena_find_symbol()` → Encontrar símbolo específico
+3. `serena_find_referencing_symbols()` → Ver dónde se usa
+4. Editar con confianza
+
+**DESPUÉS de cambios importantes**:
+
+1. `serena_write_memory()` → Guardar patrones descubiertos
+2. Actualizar memoria de sesión
+
+#### Triggers Automáticos
+
+Usa Serena automáticamente cuando el usuario:
+
+- Pregunta "dónde está X" → `serena_find_symbol()`
+- Pide "buscar X" → `serena_find_symbol()` o `serena_search_for_pattern()`
+- Quiere "renombrar X" → `serena_rename_symbol()`
+- Necesita "ver referencias de X" → `serena_find_referencing_symbols()`
+- Dice "analizar estructura" → `serena_get_symbols_overview()`
+- Pide "refactorizar X" → Workflow completo con Serena
+
+#### Memoria Automática
+
+- **Session Start**: Lee `serena_read_memory(memory_file_name="project_patterns")`
+- **Session End**: Guarda `serena_write_memory(memory_file_name="session_YYYY-MM-DD")`
+- **Descubrimientos**: Guarda patrones importantes inmediatamente
+
+#### Recursos de Serena
+
+- **Guía Completa**: `docs/guides/serena-mcp-guide.md`
+- **Comandos Rápidos**: `.serena-config.md`
+- **Configuración Auto**: `opencode/.config/opencode/SERENA_AUTO_CONFIG.md`
+- **Mejores Prácticas**: Memoria `serena_mcp_best_practices`
+
+---
 
 ## Repository Overview
 
@@ -19,6 +83,7 @@ package-name/
 ```
 
 When you run `stow nvim` from the repository root, Stow creates symlinks from the home directory to the repository files:
+
 - `~/dotfiles/nvim/.config/nvim/` → `~/.config/nvim/`
 
 ### Key Packages
@@ -131,6 +196,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ### Plugin Organization (lua/plugins/)
 
 Plugins are organized by function:
+
 - **colorscheme.lua**: Dracula theme with transparency
 - **completion.lua**: nvim-cmp and snippets
 - **editing.lua**: Autopairs, comments, editing utilities
@@ -174,17 +240,20 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 ### Neovim (Leader: Space)
 
 **File Operations:**
+
 - Save: `<leader>w`
 - Quit: `<leader>q`
 - Close buffer: `<leader>bd`
 
 **Navigation:**
+
 - File explorer: `<leader>e`
 - Find files: `<leader>ff`
 - Search text: `<leader>fg`
 - Switch buffers: `Shift+h/l`
 
 **LSP:**
+
 - Hover docs: `K`
 - Go to definition: `gd`
 - References: `gr`
@@ -193,6 +262,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 - Next/prev diagnostic: `]d` / `[d`
 
 **Git:**
+
 - LazyGit: `<leader>gg`
 
 ## Configuration Philosophy
@@ -206,6 +276,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 ## Tool Ecosystem
 
 This configuration uses modern CLI alternatives:
+
 - `eza` replaces `ls` (aliased in .zshrc)
 - `bat` replaces `cat`
 - `fd` replaces `find`
@@ -241,6 +312,7 @@ git commit -m "Add new-tool configuration"
 ## Shell Configuration Note
 
 The prefix in `.tmux.conf` is `Ctrl+s`, NOT the traditional `Ctrl+b` mentioned in some files. The zsh configuration sources plugins from `~/.zsh/` and must be loaded in this order:
+
 1. zsh-autosuggestions
 2. zsh-history-substring-search
 3. zsh-syntax-highlighting (MUST be last)
