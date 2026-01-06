@@ -22,6 +22,7 @@ Documentación detallada de cada herramienta configurada:
 - **[Git](services/git.md)** - Configuración de Git con Delta diff viewer
 - **[Docker](services/docker.md)** - Completions y aliases para Docker
 - **[Claude Code](services/claude.md)** - Framework SuperClaude y agentes especializados
+- **[OpenCode](guides/opencode.md)** - AI coding agent con MCP y SuperClaude
 
 ### 📚 Guías de Usuario
 
