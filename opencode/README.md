@@ -63,16 +63,28 @@ Professional guidelines for production use:
 # List MCP servers
 opencode mcp list
 
-# Verify MCP servers
-opencode mcp list
+# Use custom commands
+/implement user authentication feature
+/analyze src/components --focus security
+/refactor src/utils/helpers.ts
 
-# Create custom agent
-opencode agent create
+# Invoke custom agents
+@backend-architect design REST API for orders
+@security-engineer audit authentication code
 
 # Switch theme
 opencode
 /theme
 ```
+
+## Custom Agents & Commands
+
+See [AGENTS_COMMANDS.md](./AGENTS_COMMANDS.md) for details on:
+- **Backend Architect**: Backend systems design
+- **Security Engineer**: Security audits and compliance
+- **/implement**: Feature implementation
+- **/analyze**: Multi-domain code analysis
+- **/refactor**: Intelligent refactoring
 
 ## Structure
 
