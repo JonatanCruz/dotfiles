@@ -1,18 +1,103 @@
 {
   "$schema": "https://opencode.ai/config.json",
+
+  // ============================================================================
+  // APPEARANCE & UI
+  // ============================================================================
+  
   "theme": "catppuccin",
+  
+  "tui": {
+    "scroll_speed": 3,
+    "scroll_acceleration": {
+      "enabled": true
+    },
+    "diff_style": "auto"
+  },
+
+  // ============================================================================
+  // MODELS & PROVIDERS
+  // ============================================================================
+  
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+  
+  "provider": {
+    "anthropic": {
+      "options": {
+        "timeout": 600000,
+        "setCacheKey": true
+      }
+    }
+  },
+
+  // ============================================================================
+  // AGENTS
+  // ============================================================================
+  
+  "default_agent": "build",
+  
+  "agent": {
+    "build": {
+      "description": "Full development mode with all tools enabled",
+      "mode": "primary",
+      "temperature": 0.3
+    },
+    "plan": {
+      "description": "Analysis and planning without making changes",
+      "mode": "primary",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "write": "deny",
+        "bash": {
+          "*": "ask",
+          "git status": "allow",
+          "git diff": "allow",
+          "git log*": "allow"
+        }
+      }
+    },
+    "review": {
+      "description": "Code review with read-only access",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false
+      }
+    }
+  },
+
+  // ============================================================================
+  // PERMISSIONS
+  // ============================================================================
+  
   "permission": {
     "*": "allow",
     "bash": {
       "*": "allow",
       "rm -rf *": "ask",
-      "sudo *": "ask"
+      "rm -r *": "ask",
+      "sudo *": "ask",
+      "git push --force": "ask",
+      "git push -f": "ask",
+      "npm publish": "ask",
+      "docker rm *": "ask",
+      "docker rmi *": "ask"
     },
     "edit": "allow",
     "read": {
       "*": "allow",
       "*.env": "deny",
       "*.env.*": "deny",
+      "*.env.local": "deny",
+      "*.env.production": "deny",
+      ".env": "deny",
+      "*.key": "deny",
+      "*.pem": "deny",
+      "id_rsa": "deny",
       "*.env.example": "allow"
     },
     "write": "allow",
@@ -26,21 +111,165 @@
     "external_directory": "ask",
     "doom_loop": "ask"
   },
+
+  // ============================================================================
+  // MCP SERVERS
+  // ============================================================================
+  
   "mcp": {
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
-      "enabled": true
+      "enabled": true,
+      "timeout": 10000
     },
     "serena": {
       "type": "local",
-      "command": ["uvx", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"],
-      "enabled": true
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide",
+        "--project-from-cwd"
+      ],
+      "enabled": true,
+      "timeout": 10000
     },
     "playwright": {
       "type": "local",
       "command": ["npx", "-y", "@executeautomation/playwright-mcp-server"],
-      "enabled": true
+      "enabled": true,
+      "timeout": 10000
     }
-  }
+  },
+
+  // ============================================================================
+  // FORMATTERS
+  // ============================================================================
+  
+  "formatter": {
+    "prettier": {
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".md", ".yaml", ".yml"]
+    },
+    "biome": {
+      "command": ["npx", "biome", "format", "--write", "$FILE"],
+      "extensions": [".js", ".ts", ".jsx", ".tsx"]
+    },
+    "ruff": {
+      "command": ["ruff", "format", "$FILE"],
+      "extensions": [".py"]
+    },
+    "rustfmt": {
+      "command": ["rustfmt", "$FILE"],
+      "extensions": [".rs"]
+    },
+    "gofmt": {
+      "command": ["gofmt", "-w", "$FILE"],
+      "extensions": [".go"]
+    }
+  },
+
+  // ============================================================================
+  // LSP SERVERS
+  // ============================================================================
+  
+  "lsp": {
+    "typescript": {
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]
+    },
+    "pyright": {
+      "extensions": [".py", ".pyi"]
+    },
+    "rust": {
+      "extensions": [".rs"]
+    },
+    "gopls": {
+      "extensions": [".go"]
+    },
+    "eslint": {
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue"]
+    }
+  },
+
+  // ============================================================================
+  // CONTEXT MANAGEMENT
+  // ============================================================================
+  
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+
+  // ============================================================================
+  // FILE WATCHER
+  // ============================================================================
+  
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      ".git/**",
+      ".next/**",
+      ".nuxt/**",
+      ".cache/**",
+      "coverage/**",
+      "*.log",
+      ".DS_Store",
+      "*.pyc",
+      "__pycache__/**",
+      ".pytest_cache/**",
+      "target/**",
+      "Cargo.lock",
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      "bun.lockb"
+    ]
+  },
+
+  // ============================================================================
+  // CUSTOM COMMANDS
+  // ============================================================================
+  
+  "command": {
+    "test": {
+      "template": "Run the full test suite with coverage report and show any failures. Focus on the failing tests and suggest fixes.",
+      "description": "Run tests with coverage",
+      "agent": "build"
+    },
+    "review": {
+      "template": "Review the code changes in the current branch. Focus on:\n- Code quality and best practices\n- Potential bugs and edge cases\n- Performance implications\n- Security considerations",
+      "description": "Review code changes",
+      "agent": "review"
+    },
+    "docs": {
+      "template": "Update or create documentation for the code at $ARGUMENTS. Include:\n- Clear explanation of functionality\n- Usage examples\n- Parameter descriptions\n- Return value documentation",
+      "description": "Generate or update documentation"
+    },
+    "optimize": {
+      "template": "Analyze and optimize the code at $ARGUMENTS for:\n- Performance improvements\n- Memory efficiency\n- Code readability\n- Best practices",
+      "description": "Optimize code performance"
+    }
+  },
+
+  // ============================================================================
+  // INSTRUCTIONS & RULES
+  // ============================================================================
+  
+  "instructions": [
+    "CLAUDE.md",
+    "AGENTS.md"
+  ],
+
+  // ============================================================================
+  // SYSTEM SETTINGS
+  // ============================================================================
+  
+  "autoupdate": "notify",
+  "share": "manual"
 }

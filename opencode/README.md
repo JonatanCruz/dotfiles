@@ -4,9 +4,13 @@ OpenCode AI coding agent configuration managed with GNU Stow.
 
 ## Quick Reference
 
-- **Theme**: Catppuccin Mocha
+- **Theme**: Catppuccin Mocha with optimized TUI
+- **Models**: Claude Sonnet 4.5 (main) + Haiku 4.5 (small tasks)
+- **Agents**: Build, Plan, Review with specialized configs
 - **MCP Servers**: Context7, Serena, Playwright
-- **Permissions**: Auto-approved with safety guards
+- **Formatters**: Prettier, Biome, Ruff, rustfmt, gofmt
+- **LSP**: TypeScript, Python, Rust, Go, ESLint
+- **Permissions**: Granular security with sensitive file protection
 - **SuperClaude**: Enabled via `~/.claude/CLAUDE.md`
 
 ## Installation
@@ -30,10 +34,14 @@ For complete documentation, see:
 📖 **[OpenCode Guide](../docs/guides/opencode.md)**
 
 Includes:
-- Theme configuration
-- MCP server setup and usage
-- Permission management
-- Agent configuration
+- Professional configuration features
+- Models and providers setup
+- Agent system (Build, Plan, Review)
+- MCP server setup (Context7, Serena, Playwright)
+- Code formatters (Prettier, Ruff, rustfmt, gofmt)
+- LSP integration
+- Security permissions
+- Custom commands
 - SuperClaude integration
 - Troubleshooting
 

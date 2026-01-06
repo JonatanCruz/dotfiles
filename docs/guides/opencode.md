@@ -4,7 +4,16 @@ Complete guide for OpenCode configuration in dotfiles.
 
 ## Overview
 
-OpenCode is configured through `opencode/.config/opencode/opencode.json` and managed with GNU Stow. This setup includes theme configuration, MCP servers, and permission management.
+OpenCode is configured through `opencode/.config/opencode/opencode.json` and managed with GNU Stow. This professional setup includes:
+
+- **Theme & UI**: Catppuccin Mocha with optimized scroll and diff rendering
+- **Models**: Claude Sonnet 4.5 (main) + Haiku 4.5 (lightweight tasks)
+- **Agents**: Build, Plan, and Review modes with specialized configurations
+- **MCP Servers**: Context7, Serena, and Playwright for extended capabilities
+- **Formatters**: Auto-formatting for TypeScript, Python, Rust, Go, and more
+- **LSP Integration**: Language server support for intelligent code operations
+- **Security**: Granular permissions with sensitive file protection
+- **Custom Commands**: Pre-configured workflows for testing, review, docs, and optimization
 
 ## Theme Configuration
 
@@ -35,6 +44,64 @@ opencode
 
 # Or edit opencode.json directly
 ```
+
+## Professional Configuration Features
+
+This setup includes enterprise-grade configurations following OpenCode community best practices:
+
+### Models & Providers
+
+- **Primary Model**: Claude Sonnet 4.5 for complex tasks
+- **Small Model**: Claude Haiku 4.5 for lightweight operations (title generation, quick queries)
+- **Extended Timeout**: 600s (10 minutes) for long-running operations
+- **Cache Keys**: Enabled for better prompt caching and reduced costs
+
+### Agents System
+
+**Build Agent** (default):
+- Full development capabilities
+- Temperature: 0.3 (balanced creativity)
+- All tools enabled
+
+**Plan Agent**:
+- Read-only analysis mode
+- Temperature: 0.1 (deterministic)
+- File modifications blocked
+- Git read commands allowed
+
+**Review Agent** (subagent):
+- Code review without changes
+- Temperature: 0.1 (focused)
+- All write operations disabled
+
+### Custom Commands
+
+Pre-configured workflows for common tasks:
+
+- `/test` - Run test suite with coverage
+- `/review` - Code review with best practices check
+- `/docs` - Generate or update documentation
+- `/optimize` - Analyze and optimize code performance
+
+### TUI Enhancements
+
+- **Scroll Acceleration**: macOS-style smooth scrolling
+- **Scroll Speed**: 3x multiplier for faster navigation
+- **Diff Style**: Auto-adapts to terminal width
+
+### Context Management
+
+- **Auto Compaction**: Automatically manages context when full
+- **Pruning**: Removes old tool outputs to save tokens
+- **Efficient**: Maximizes available context for code understanding
+
+### File Watcher
+
+Ignores common build artifacts and dependencies:
+- `node_modules/`, `dist/`, `build/`
+- `.next/`, `.nuxt/`, `.cache/`
+- `__pycache__/`, `target/`
+- Lock files and logs
 
 ## MCP Servers
 
@@ -200,6 +267,90 @@ Help me debug this flaky test in tests/auth.spec.ts. use playwright
 
 ---
 
+## Code Formatters
+
+OpenCode automatically formats code after write/edit operations using language-specific formatters.
+
+### Configured Formatters
+
+| Language | Formatter | Extensions | Command |
+|----------|-----------|------------|---------|
+| **JavaScript/TypeScript** | Prettier | .js, .ts, .jsx, .tsx, .json, .md, .yaml | `npx prettier --write` |
+| **JavaScript/TypeScript** | Biome | .js, .ts, .jsx, .tsx | `npx biome format --write` |
+| **Python** | Ruff | .py | `ruff format` |
+| **Rust** | rustfmt | .rs | `rustfmt` |
+| **Go** | gofmt | .go | `gofmt -w` |
+
+### How It Works
+
+1. OpenCode detects file extension after write/edit
+2. Runs appropriate formatter command
+3. Applies formatting automatically
+4. No manual formatting needed
+
+### Requirements
+
+Formatters auto-detect based on:
+- Package dependencies (`prettier`, `biome` in package.json)
+- Config files (`.prettierrc`, `biome.json`)
+- Available commands (`ruff`, `rustfmt`, `gofmt`)
+
+### Disable Formatters
+
+```json
+{
+  "formatter": {
+    "prettier": {
+      "disabled": true
+    }
+  }
+}
+```
+
+---
+
+## LSP Integration
+
+OpenCode integrates with Language Server Protocol for intelligent code operations.
+
+### Enabled LSP Servers
+
+| Language | LSP Server | Features |
+|----------|-----------|----------|
+| **TypeScript/JavaScript** | typescript-language-server | Diagnostics, completions, navigation |
+| **Python** | Pyright | Type checking, completions |
+| **Rust** | rust-analyzer | Full Rust language support |
+| **Go** | gopls | Go language features |
+| **ESLint** | eslint-language-server | Linting for JS/TS/Vue |
+
+### Auto-Installation
+
+LSP servers auto-install when:
+- Matching file extensions detected
+- Required dependencies present
+- First use in project
+
+### Disable LSP
+
+```json
+{
+  "lsp": {
+    "typescript": {
+      "disabled": true
+    }
+  }
+}
+```
+
+Or disable all LSP:
+```json
+{
+  "lsp": false
+}
+```
+
+---
+
 ## Permissions
 
 ### Auto-Approved Operations
@@ -217,17 +368,24 @@ These operations run without asking for confirmation:
 
 These operations will prompt for approval:
 
-- ⚠️ **`rm -rf *`**: Recursive force deletions
+- ⚠️ **`rm -rf *` / `rm -r *`**: Recursive deletions
 - ⚠️ **`sudo *`**: Privileged commands
+- ⚠️ **`git push --force` / `-f`**: Force pushes
+- ⚠️ **`npm publish`**: Package publishing
+- ⚠️ **`docker rm *` / `rmi *`**: Docker container/image removal
 - ⚠️ **External directory access**: Operations outside project
 - ⚠️ **Doom loop**: Repeated identical operations
 
 ### Blocked Operations
 
-These are always denied:
+These are always denied for security:
 
-- 🚫 **`.env` files**: Reading environment files (except `.env.example`)
-- 🚫 **`.env.*` files**: Environment variants
+- 🚫 **`.env` files**: All environment files
+- 🚫 **`.env.local` / `.env.production`**: Environment variants
+- 🚫 **`*.key` files**: Private keys
+- 🚫 **`*.pem` files**: Certificate files
+- 🚫 **`id_rsa`**: SSH private keys
+- ✅ **`.env.example`**: Example files (allowed)
 
 ### Permission Configuration
 
