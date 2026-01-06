@@ -322,11 +322,11 @@ git sp  # Recuperar stash
 git tree
 
 # Output:
-# * 7a3f2e1 - (HEAD -> main) feat: add auth (2 hours ago) <Jonatan>
-# * b4d2c1a - fix: resolve merge conflict (3 hours ago) <Jonatan>
-# | * 9e5f3b2 - (feature/ui) feat: new UI component (1 day ago) <Jonatan>
+# * 7a3f2e1 - (HEAD -> main) feat: add auth (2 hours ago) <Usuario>
+# * b4d2c1a - fix: resolve merge conflict (3 hours ago) <Usuario>
+# | * 9e5f3b2 - (feature/ui) feat: new UI component (1 day ago) <Usuario>
 # |/
-# * c8a1d4b - chore: update dependencies (2 days ago) <Jonatan>
+# * c8a1d4b - chore: update dependencies (2 days ago) <Usuario>
 ```
 
 ### Workflow 5: Clean Up Merged Branches
@@ -454,7 +454,7 @@ git d --name-only main..feature-branch
 git l --grep="feat"
 
 # Buscar commits por autor
-git l --author="Jonatan"
+git l --author="Tu Nombre"
 
 # Buscar commits por fecha
 git l --since="2 weeks ago"

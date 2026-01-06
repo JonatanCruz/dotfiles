@@ -494,7 +494,7 @@ Dotfiles Snapshot
 Label: pre-update
 Created: Mon Jan  6 14:00:22 UTC 2026
 Hostname: my-laptop
-User: jonatan
+User: usuario
 OS: Linux
 
 Contents:

@@ -127,7 +127,7 @@ El script `install.sh` automatiza todo el proceso:
 
 ```bash
 # 1. Clonar repositorio
-git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
+git clone --recurse-submodules https://github.com/tu-usuario/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 # 2. Instalar dependencias

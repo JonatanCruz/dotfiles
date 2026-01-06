@@ -203,6 +203,9 @@ sudo pacman -S ripgrep fd
 # Ubuntu/Debian
 sudo apt install ripgrep fd-find
 
+# macOS
+brew install ripgrep fd
+
 # Verificar desde Neovim
 nvim
 :Telescope find_files
@@ -226,6 +229,9 @@ LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/re
 curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
 tar xf lazygit.tar.gz lazygit
 sudo install lazygit /usr/local/bin
+
+# macOS
+brew install lazygit
 
 # Verificar keybinding en Neovim
 nvim ~/.config/nvim/lua/config/keymaps.lua
@@ -339,6 +345,9 @@ sudo pacman -S zoxide
 # Ubuntu/Debian
 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
 
+# macOS
+brew install zoxide
+
 # Verificar que está en .zshrc
 grep "zoxide init" ~/.config/zsh/.zshrc
 
@@ -448,6 +457,9 @@ sudo pacman -S tmux
 # Ubuntu/Debian (puede requerir PPA)
 sudo apt update
 sudo apt install tmux
+
+# macOS
+brew install tmux
 
 # Si versión sigue antigua, compilar desde fuente
 # Ver: https://github.com/tmux/tmux/wiki/Installing
@@ -691,6 +703,9 @@ sudo pacman -S yazi
 # Ubuntu/Debian (compilar desde fuente)
 cargo install --locked yazi-fm
 
+# macOS
+brew install yazi
+
 # Verificar versión
 yazi --version
 ```
@@ -735,6 +750,9 @@ sudo pacman -S bat ffmpegthumbnailer fd ripgrep fzf poppler imagemagick
 
 # Ubuntu/Debian
 sudo apt install bat fd-find ripgrep fzf poppler-utils imagemagick
+
+# macOS
+brew install bat ffmpegthumbnailer fd ripgrep fzf poppler imagemagick
 
 # Verificar plugins en yazi.toml
 nvim ~/.config/yazi/yazi.toml
@@ -817,6 +835,9 @@ picom --config ~/.config/picom/picom.conf &
 # Agregar a autostart (i3, bspwm, etc.)
 echo "exec --no-startup-id picom" >> ~/.config/i3/config
 
+# macOS: No requiere compositor externo
+# macOS incluye compositor nativo que soporta transparencia automáticamente
+
 # Reiniciar WezTerm
 ```
 
@@ -892,6 +913,9 @@ sudo pacman -S git-delta
 # Ubuntu/Debian
 wget https://github.com/dandavison/delta/releases/download/0.16.5/git-delta_0.16.5_amd64.deb
 sudo dpkg -i git-delta_0.16.5_amd64.deb
+
+# macOS
+brew install git-delta
 
 # Verificar configuración en .gitconfig
 nvim ~/.gitconfig
@@ -1134,12 +1158,13 @@ sudo pacman -S eza bat fd ripgrep zoxide fzf
 
 # Ubuntu/Debian
 sudo apt install bat fd-find ripgrep fzf
-
 # eza (no en repos oficiales Ubuntu)
 cargo install eza
-
 # zoxide
 curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+
+# macOS
+brew install eza bat fd ripgrep zoxide fzf
 
 # Verificar aliases en .zshrc
 grep "eza\|bat" ~/.config/zsh/aliases/tools.zsh
@@ -1213,6 +1238,9 @@ sudo pacman -Syu
 
 # Ubuntu/Debian
 sudo apt update && sudo apt upgrade
+
+# macOS
+brew update && brew upgrade
 ```
 
 ### Problema: Colores se ven mal en todos los servicios

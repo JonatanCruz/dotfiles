@@ -65,7 +65,7 @@ El script `install.sh` automatiza todo el proceso con detección de conflictos y
 ### 1. Clonar Repositorio
 
 ```bash
-git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
+git clone --recurse-submodules https://github.com/tu-usuario/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
@@ -132,7 +132,7 @@ Si prefieres control total sobre el proceso:
 ### 1. Clonar Repositorio
 
 ```bash
-git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
+git clone --recurse-submodules https://github.com/tu-usuario/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 

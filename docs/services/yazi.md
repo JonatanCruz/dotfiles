@@ -277,7 +277,12 @@ git clone https://github.com/usuario/plugin-name.git ~/.config/yazi/plugins/plug
 
 ```bash
 # Instalar Nerd Font
+# Ubuntu/Debian
 sudo apt install fonts-firacode
+
+# macOS
+brew tap homebrew/cask-fonts
+brew install font-jetbrains-mono-nerd-font
 
 # O descargar manualmente
 # https://www.nerdfonts.com/font-downloads
@@ -290,9 +295,13 @@ sudo apt install fonts-firacode
 
 ```bash
 # Instalar herramientas de preview
+# Ubuntu/Debian
 sudo apt install ffmpegthumbnailer poppler-utils
 
-# Para imágenes
+# macOS
+brew install ffmpegthumbnailer poppler
+
+# Para imágenes (Linux only, macOS no soporta ueberzug)
 pip install ueberzug
 ```
 
