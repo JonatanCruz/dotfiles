@@ -17,6 +17,16 @@ readonly CYAN='\033[0;36m'
 readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
+# OS Detection
+detect_os() {
+    case "$(uname -s)" in
+        Linux*) OS="Linux" ;;
+        Darwin*) OS="macOS" ;;
+        *) OS="unknown" ;;
+    esac
+}
+detect_os
+
 # Configuration
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly DOTFILES_DIR
@@ -83,7 +93,8 @@ check_binaries() {
                     version=$(git --version)
                     ;;
                 stow)
-                    version="stow $(stow --version 2>&1 | head -n1 | grep -oP '\d+\.\d+')"
+                    # Portable version extraction (BSD grep doesn't support -P)
+                    version="stow $(stow --version 2>&1 | head -n1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')"
                     ;;
                 *)
                     version=""
@@ -128,7 +139,13 @@ check_symlinks() {
 
         if [ -L "$path" ]; then
             local target
-            target=$(readlink -f "$path" 2>/dev/null || readlink "$path")
+            # Cross-platform canonical path resolution
+            if [[ "$OS" == "macOS" ]]; then
+                # macOS doesn't have readlink -f, use Python for portability
+                target=$(python3 -c "import os; print(os.path.realpath('$path'))" 2>/dev/null)
+            else
+                target=$(readlink -f "$path" 2>/dev/null)
+            fi
             if [[ "$target" == *"$DOTFILES_DIR/$name"* ]]; then
                 check_pass "$(basename "$path") → $name"
             else

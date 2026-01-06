@@ -6,3 +6,6 @@
 
 # Directorio de configuración de zsh
 export ZDOTDIR="${HOME}/.config/zsh"
+
+# opencode
+export PATH=/home/jonatan/.opencode/bin:$PATH
