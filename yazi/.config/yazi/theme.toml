@@ -1,34 +1,34 @@
-# ~/.config/yazi/theme.toml (Dracula Transparente)
+# ~/.config/yazi/theme.toml (Catppuccin Mocha Transparent)
 
 [mgr]
-cwd          = { fg = "#ff79c6", bold = true } # Rosa para la ruta actual
+cwd          = { fg = "#f5c2e7", bold = true } # Pink for current path
 
-# Bordes de la ventana
-border       = { fg = "#6272a4" } # Gris
-border_hover = { fg = "#bd93f9", bold = true } # Púrpura cuando el panel está activo
+# Window borders
+border       = { fg = "#6c7086" } # Overlay0
+border_hover = { fg = "#cba6f7", bold = true } # Mauve when panel is active
 
-# Resaltado de la selección
-hovered      = { fg = "#f8f8f2", bg = "#44475a", bold = true } # Fondo gris oscuro para la selección
-preview_hovered = { bg = "#44475a" }
+# Selection highlight
+hovered      = { fg = "#cdd6f4", bg = "#45475a", bold = true } # Text on Surface1 for selection
+preview_hovered = { bg = "#45475a" }
 
-# Fondo general (transparente)
+# General background (transparent)
 background   = { bg = "none" }
 
-# --- Barra de estado ---
+# --- Status bar ---
 [status]
-separator_fg = "#6272a4"
-background   = { bg = "#282a36" } # Fondo sólido para la barra, para legibilidad
+separator_fg = "#6c7086"
+background   = { bg = "#1e1e2e" } # Base for readability
 
-# Modos (normal, select, etc.)
-mode_normal  = { fg = "#282a36", bg = "#50fa7b", bold = true } # Verde
-mode_select  = { fg = "#282a36", bg = "#ffb86c", bold = true } # Naranja
-mode_unset   = { fg = "#282a36", bg = "#ff79c6", bold = true } # Rosa
+# Modes (normal, select, etc.)
+mode_normal  = { fg = "#1e1e2e", bg = "#a6e3a1", bold = true } # Green
+mode_select  = { fg = "#1e1e2e", bg = "#fab387", bold = true } # Peach
+mode_unset   = { fg = "#1e1e2e", bg = "#f5c2e7", bold = true } # Pink
 
-# Información de progreso
-progress_normal = { fg = "#50fa7b" }
-progress_error  = { fg = "#ff5555" }
+# Progress information
+progress_normal = { fg = "#a6e3a1" }
+progress_error  = { fg = "#f38ba8" }
 
-# --- Pestañas (Tabs) ---
+# --- Tabs ---
 [tab]
-active   = { fg = "#f8f8f2", bg = "#44475a", bold = true }
-inactive = { fg = "#6272a4" }
+active   = { fg = "#cdd6f4", bg = "#45475a", bold = true }
+inactive = { fg = "#6c7086" }

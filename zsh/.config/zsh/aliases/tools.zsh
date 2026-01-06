@@ -26,3 +26,6 @@ alias help='tldr'
 alias grep='grep --color=auto'
 alias ff='fd --hidden'    # Find file con fd
 alias rg='rg -i'          # Ripgrep case-insensitive
+
+# claude code
+alias clauded="set ENABLE_TOOL_SEARCH=true && claude --dangerously-skip-permissions"

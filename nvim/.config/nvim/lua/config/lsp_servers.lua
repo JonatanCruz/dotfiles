@@ -27,7 +27,7 @@ return {
   -- LENGUAJES DE PROGRAMACIÓN
   -- ============================================================================
   "lua_ls",         -- Lua (para configuración de Neovim)
-  -- "pyright",     -- Python
+  "pyright",        -- Python
   -- "gopls",       -- Go
   -- "rust_analyzer", -- Rust
   -- "clangd",      -- C/C++
@@ -43,11 +43,11 @@ return {
   -- ============================================================================
   -- DEVOPS Y HERRAMIENTAS
   -- ============================================================================
-  -- "bashls",      -- Bash
+  "bashls",         -- Bash
   -- "dockerls",    -- Dockerfile
   -- "docker_compose_language_service", -- Docker Compose
-  -- "yamlls",      -- YAML
-  -- "jsonls",      -- JSON
+  "yamlls",         -- YAML
+  "jsonls",         -- JSON
 
   -- ============================================================================
   -- BASES DE DATOS

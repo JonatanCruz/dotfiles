@@ -31,6 +31,7 @@ source "${ZDOTDIR}/aliases/editor.zsh"
 source "${ZDOTDIR}/aliases/utils.zsh"
 source "${ZDOTDIR}/aliases/docker.zsh"
 source "${ZDOTDIR}/aliases/gcloud.zsh"
+source "${ZDOTDIR}/aliases/node.zsh"
 
 # ==============================================================================
 # PLUGINS Y HERRAMIENTAS
@@ -42,5 +43,5 @@ source "${ZDOTDIR}/plugins.zsh"
 # FIN DE LA CONFIGURACIÓN
 # ==============================================================================
 
-# bun completions
-[ -s "/Users/jonatan/.bun/_bun" ] && source "/Users/jonatan/.bun/_bun"
+# bun completions (cross-platform)
+[ -s "${HOME}/.bun/_bun" ] && source "${HOME}/.bun/_bun"

@@ -25,6 +25,8 @@
       "Bash(brew uninstall:*)"
     ]
   },
+  "model": "sonnet",
+  "enableAllProjectMcpServers": true,
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",

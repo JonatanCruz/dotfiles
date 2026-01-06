@@ -7,6 +7,7 @@
 # modelo, directorio actual y rama de git.
 # ==============================================================================
 
+# shellcheck disable=SC2034  # Color variables are used in echo statements
 # Colores ANSI (Catppuccin Mocha)
 RESET="\033[0m"
 BOLD="\033[1m"

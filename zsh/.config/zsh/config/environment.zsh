@@ -18,10 +18,21 @@ elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
-# NVM (Node Version Manager)
+# NVM (Node Version Manager) - Lazy loaded for performance (200-300ms savings)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# Lazy load NVM only when needed
+_lazy_nvm() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+
+# Use 'function' keyword to prevent alias expansion during parsing
+function nvm() { _lazy_nvm; nvm "$@"; }
+function node() { _lazy_nvm; node "$@"; }
+function npm() { _lazy_nvm; npm "$@"; }
+function npx() { _lazy_nvm; npx "$@"; }
 
 # Bun (JavaScript Runtime & Toolkit)
 export BUN_INSTALL="$HOME/.bun"
@@ -47,3 +58,11 @@ export FUNCNEST=1000
 
 # Claude Code - Límite de tokens de salida
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
+
+# Bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# .NET SDK
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"

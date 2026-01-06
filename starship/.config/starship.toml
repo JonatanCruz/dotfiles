@@ -14,6 +14,12 @@ $directory\
 $git_branch\
 $git_status\
 $nodejs\
+$python\
+$rust\
+$golang\
+$dotnet\
+$bun\
+$docker_context\
 $status\
 $cmd_duration\
 $line_break$character"""
@@ -27,18 +33,18 @@ style = "#89b4fa" # Blue Catppuccin Mocha
 format = "[$symbol]($style) "
 
 [os.symbols]
-Macos = ""
-Linux = ""
-Windows = ""
-Ubuntu = ""
-Debian = ""
-Fedora = ""
-Arch = ""
+Macos = ""
+Linux = ""
+Windows = ""
+Ubuntu = ""
+Debian = ""
+Fedora = ""
+Arch = ""
 
 # Hostname: Muestra solo cuando estás en SSH (conexión remota).
 [hostname]
 ssh_only = true
-ssh_symbol = " "
+ssh_symbol = " "
 style = "#f9e2af" # Yellow Catppuccin Mocha
 format = "[$ssh_symbol$hostname]($style) "
 trim_at = "."
@@ -49,12 +55,12 @@ style = "#f5c2e7" # Rosa Catppuccin Mocha
 format = "[$path]($style)[$read_only]($read_only_style) "
 truncation_length = 4
 truncation_symbol = "…/"
-read_only = " "
+read_only = " "
 read_only_style = "#fab387" # Peach Catppuccin Mocha
 
 # Rama de Git: Color púrpura y un ícono simple.
 [git_branch]
-symbol = ""
+symbol = ""
 style = "#cba6f7" # Mauve Catppuccin Mocha
 format = "[$symbol $branch]($style) "
 
@@ -62,7 +68,7 @@ format = "[$symbol $branch]($style) "
 [git_status]
 style = "#cba6f7" # Mauve Catppuccin Mocha
 format = '([$all_status$ahead_behind]($style)) '
-conflicted = ""
+conflicted = ""
 ahead = "⇡${count}"
 behind = "⇣${count}"
 diverged = "⇕"
@@ -75,9 +81,54 @@ deleted = "D"
 
 # Versión de Node.js: Se muestra solo en proyectos de Node. Color verde.
 [nodejs]
-symbol = ""
+symbol = ""
 style = "#a6e3a1" # Green Catppuccin Mocha
-format = '[ $symbol ($version) ]($style)'
+format = '[$symbol ($version) ]($style)'
+
+# Python: Se muestra en proyectos Python
+[python]
+symbol = ""
+style = "#f9e2af" # Yellow Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Rust: Se muestra en proyectos Rust
+[rust]
+symbol = ""
+style = "#fab387" # Peach Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Go: Se muestra en proyectos Go
+[golang]
+symbol = ""
+style = "#89dceb" # Teal Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# .NET: Se muestra en proyectos C#/.NET
+[dotnet]
+symbol = ""
+style = "#cba6f7" # Mauve Catppuccin Mocha
+format = '[$symbol ($version) ]($style)'
+
+# Bun: Runtime JavaScript alternativo
+[bun]
+format = '[$symbol($version) ]($style)'
+symbol = "🍞 "
+style = "#f5c2e7" # Pink Catppuccin Mocha
+
+# Docker: Muestra el contexto activo de Docker
+[docker_context]
+symbol = " "
+style = "#89b4fa" # Blue Catppuccin Mocha
+format = '[$symbol$context ]($style)'
+only_with_files = true
+
+# Status: Muestra código de error solo cuando falla un comando.
+[status]
+disabled = false
+style = "#f38ba8" # Red Catppuccin Mocha
+format = '[$symbol$status ]($style)'
+symbol = "✘"
+# Solo aparece en errores, invisible cuando todo va bien
 
 # Duración del comando: Útil y discreto. Color naranja.
 [cmd_duration]
@@ -90,11 +141,3 @@ style = "#fab387" # Peach Catppuccin Mocha
 success_symbol = "[➜](#a6e3a1)" # Green Catppuccin Mocha
 error_symbol = "[➜](#f38ba8)" # Red Catppuccin Mocha
 vimcmd_symbol = "[❮](#cba6f7)" # Mauve Catppuccin Mocha
-
-# Status: Muestra código de error solo cuando falla un comando.
-[status]
-disabled = false
-style = "#f38ba8" # Red Catppuccin Mocha
-format = '[$symbol$status ]($style)'
-symbol = "✘"
-# Solo aparece en errores, invisible cuando todo va bien

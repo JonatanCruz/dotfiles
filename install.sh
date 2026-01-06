@@ -158,13 +158,8 @@ show_package_menu() {
     print_step "Selecciona los paquetes a instalar"
     echo ""
 
-    local packages=($(get_available_packages))
-    local choices=()
-
-    # Inicializar array de selecciones (todos desmarcados)
-    for i in "${!packages[@]}"; do
-        choices[$i]=0
-    done
+    local packages
+    mapfile -t packages < <(get_available_packages | tr ' ' '\n')
 
     echo -e "${BOLD}Paquetes disponibles:${NC}\n"
 
@@ -212,7 +207,7 @@ show_package_menu() {
 
                 if [ "$valid" = true ] && [ ${#SELECTED_PACKAGES[@]} -gt 0 ]; then
                     # Eliminar duplicados
-                    SELECTED_PACKAGES=($(echo "${SELECTED_PACKAGES[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+                    mapfile -t SELECTED_PACKAGES < <(printf '%s\n' "${SELECTED_PACKAGES[@]}" | sort -u)
                     print_success "${#SELECTED_PACKAGES[@]} paquete(s) seleccionado(s): ${SELECTED_PACKAGES[*]}"
                     return 0
                 fi
@@ -237,31 +232,31 @@ check_conflicts() {
     for pkg in "${SELECTED_PACKAGES[@]}"; do
         case "$pkg" in
             nvim)
-                [ -d "$HOME/.config/nvim" ] && ! [ -L "$HOME/.config/nvim" ] && conflicts+=("~/.config/nvim")
+                [ -d "$HOME/.config/nvim" ] && ! [ -L "$HOME/.config/nvim" ] && conflicts+=("$HOME/.config/nvim")
                 ;;
             zsh)
-                [ -d "$HOME/.config/zsh" ] && ! [ -L "$HOME/.config/zsh" ] && conflicts+=("~/.config/zsh")
+                [ -d "$HOME/.config/zsh" ] && ! [ -L "$HOME/.config/zsh" ] && conflicts+=("$HOME/.config/zsh")
                 ;;
             zsh-plugins)
-                [ -d "$HOME/.zsh" ] && ! [ -L "$HOME/.zsh" ] && conflicts+=("~/.zsh")
+                [ -d "$HOME/.zsh" ] && ! [ -L "$HOME/.zsh" ] && conflicts+=("$HOME/.zsh")
                 ;;
             tmux)
-                [ -f "$HOME/.tmux.conf" ] && ! [ -L "$HOME/.tmux.conf" ] && conflicts+=("~/.tmux.conf")
+                [ -f "$HOME/.tmux.conf" ] && ! [ -L "$HOME/.tmux.conf" ] && conflicts+=("$HOME/.tmux.conf")
                 ;;
             docker)
-                [ -d "$HOME/.docker" ] && ! [ -L "$HOME/.docker" ] && conflicts+=("~/.docker")
+                [ -d "$HOME/.docker" ] && ! [ -L "$HOME/.docker" ] && conflicts+=("$HOME/.docker")
                 ;;
             starship)
-                [ -f "$HOME/.config/starship.toml" ] && ! [ -L "$HOME/.config/starship.toml" ] && conflicts+=("~/.config/starship.toml")
+                [ -f "$HOME/.config/starship.toml" ] && ! [ -L "$HOME/.config/starship.toml" ] && conflicts+=("$HOME/.config/starship.toml")
                 ;;
             yazi)
-                [ -d "$HOME/.config/yazi" ] && ! [ -L "$HOME/.config/yazi" ] && conflicts+=("~/.config/yazi")
+                [ -d "$HOME/.config/yazi" ] && ! [ -L "$HOME/.config/yazi" ] && conflicts+=("$HOME/.config/yazi")
                 ;;
             wezterm)
-                [ -d "$HOME/.config/wezterm" ] && ! [ -L "$HOME/.config/wezterm" ] && conflicts+=("~/.config/wezterm")
+                [ -d "$HOME/.config/wezterm" ] && ! [ -L "$HOME/.config/wezterm" ] && conflicts+=("$HOME/.config/wezterm")
                 ;;
             claude)
-                [ -d "$HOME/.claude" ] && ! [ -L "$HOME/.claude" ] && conflicts+=("~/.claude")
+                [ -d "$HOME/.claude" ] && ! [ -L "$HOME/.claude" ] && conflicts+=("$HOME/.claude")
                 ;;
         esac
     done
@@ -282,7 +277,8 @@ check_conflicts() {
 
         if [[ $REPLY == "1" ]]; then
             for conflict in "${conflicts[@]}"; do
-                local backup="${conflict}.backup.$(date +%Y%m%d_%H%M%S)"
+                local backup
+                backup="${conflict}.backup.$(date +%Y%m%d_%H%M%S)"
                 mv "$conflict" "$backup"
                 print_success "Backup creado: $backup"
             done

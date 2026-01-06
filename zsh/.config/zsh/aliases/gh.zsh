@@ -2,8 +2,8 @@
 # GITHUB CLI - Aliases para gh (GitHub CLI)
 # ==============================================================================
 
-# Comando base
-alias gh='gh'
+# Comando base (no-op alias removed to allow lazy loading in plugins.zsh)
+# alias gh='gh'
 
 # ==============================================================================
 # AUTENTICACIÓN Y CONFIGURACIÓN
