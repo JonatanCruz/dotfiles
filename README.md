@@ -227,10 +227,17 @@ stow -R */  # Restow all packages
 
 ## 📚 Documentation
 
-- [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
-- [Neovim Configuration](nvim/.config/nvim/README.md) - Editor customization
-- [Tmux Guide](docs/TMUX.md) - Multiplexer usage
-- [Scripts Reference](scripts/README.md) - Utility script documentation
+**[📖 Documentation Hub](docs/README.md)** - Complete documentation index and navigation
+
+### Core Documentation
+- **[Installation Guide](docs/INSTALL.md)** - Complete setup instructions for Linux and macOS
+- **[Architecture](docs/ARCHITECTURE.md)** - Project structure and GNU Stow management
+
+### By Category
+- **[Services Documentation](docs/services/)** - Individual service configurations (Neovim, Tmux, Zsh, etc.)
+- **[User Guides](docs/guides/)** - Workflows, keybindings, and customization
+- **[Quick Reference](docs/reference/)** - Aliases, scripts, and troubleshooting
+- **[Advanced Topics](docs/advanced/)** - Deep dives and integrations between services
 
 ## 🐛 Troubleshooting
 
