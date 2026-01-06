@@ -33,7 +33,7 @@ For complete documentation, see:
 
 📖 **[OpenCode Guide](../docs/guides/opencode.md)**
 
-Includes:
+Complete configuration guide including:
 - Professional configuration features
 - Models and providers setup
 - Agent system (Build, Plan, Review)
@@ -44,6 +44,18 @@ Includes:
 - Custom commands
 - SuperClaude integration
 - Troubleshooting
+
+🎯 **[Best Practices & Recommendations](../docs/guides/opencode-best-practices.md)**
+
+Professional guidelines for production use:
+- Configuration management strategies
+- Model selection and optimization
+- Agent usage patterns
+- Security best practices
+- Performance optimization
+- Workflow optimization
+- Team collaboration
+- Monitoring and maintenance
 
 ## Quick Commands
 

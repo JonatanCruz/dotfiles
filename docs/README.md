@@ -23,6 +23,7 @@ Documentación detallada de cada herramienta configurada:
 - **[Docker](services/docker.md)** - Completions y aliases para Docker
 - **[Claude Code](services/claude.md)** - Framework SuperClaude y agentes especializados
 - **[OpenCode](guides/opencode.md)** - AI coding agent con MCP y SuperClaude
+- **[OpenCode Best Practices](guides/opencode-best-practices.md)** - Prácticas profesionales y recomendaciones
 
 ### 📚 Guías de Usuario
 
