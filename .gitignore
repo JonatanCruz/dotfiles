@@ -11,6 +11,7 @@ docker/.docker/.token_seed.lock
 docker/.docker/buildx/
 *.log
 *.cache
+test-results/
 
 # === OS FILES ===
 .DS_Store
