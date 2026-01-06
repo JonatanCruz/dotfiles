@@ -69,6 +69,15 @@
       }
     }
   },
+  
+  // Note: Additional agents defined in ~/.config/opencode/agent/*.md
+  // - backend-architect.md: Backend systems design specialist
+  // - security-engineer.md: Security vulnerabilities and compliance
+  // 
+  // Additional commands defined in ~/.config/opencode/command/*.md
+  // - implement.md: Feature implementation with framework detection
+  // - analyze.md: Comprehensive code analysis
+  // - refactor.md: Intelligent code refactoring
 
   // ============================================================================
   // PERMISSIONS
@@ -241,11 +250,6 @@
       "template": "Run the full test suite with coverage report and show any failures. Focus on the failing tests and suggest fixes.",
       "description": "Run tests with coverage",
       "agent": "build"
-    },
-    "review": {
-      "template": "Review the code changes in the current branch. Focus on:\n- Code quality and best practices\n- Potential bugs and edge cases\n- Performance implications\n- Security considerations",
-      "description": "Review code changes",
-      "agent": "review"
     },
     "docs": {
       "template": "Update or create documentation for the code at $ARGUMENTS. Include:\n- Clear explanation of functionality\n- Usage examples\n- Parameter descriptions\n- Return value documentation",
