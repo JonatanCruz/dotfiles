@@ -17,6 +17,16 @@ readonly CYAN='\033[0;36m'
 readonly BOLD='\033[1m'
 readonly NC='\033[0m'
 
+# OS Detection
+detect_os() {
+    case "$(uname -s)" in
+        Linux*) OS="Linux" ;;
+        Darwin*) OS="macOS" ;;
+        *) OS="unknown" ;;
+    esac
+}
+detect_os
+
 # Configuration
 readonly SNAPSHOT_DIR="$HOME/.dotfiles-snapshots"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -155,7 +165,13 @@ list_snapshots() {
             local size
             size=$(du -h "$snapshot" | cut -f1)
             local date
-            date=$(stat -c %y "$snapshot" 2>/dev/null | cut -d'.' -f1 || stat -f "%Sm" "$snapshot")
+            # Cross-platform stat command
+            if [[ "$OS" == "Linux" ]]; then
+                date=$(stat -c %y "$snapshot" | cut -d'.' -f1)
+            else
+                # macOS uses BSD stat
+                date=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$snapshot")
+            fi
 
             printf "%-5s %-40s %-10s %-20s\n" "$index" "$name" "$size" "$date"
             ((index++))

@@ -100,6 +100,15 @@ install_package_manager() {
         if ! command -v brew &>/dev/null; then
             print_step "Installing Homebrew..."
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+            # Add Homebrew to PATH for current session
+            # Apple Silicon Macs use /opt/homebrew, Intel Macs use /usr/local
+            if [[ $(uname -m) == "arm64" ]]; then
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+            else
+                eval "$(/usr/local/bin/brew shellenv)"
+            fi
+
             print_success "Homebrew installed"
         fi
     fi
