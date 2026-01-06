@@ -66,3 +66,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # .NET SDK
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+
+# opencode
+export PATH=/Users/jonatan/.opencode/bin:$PATH

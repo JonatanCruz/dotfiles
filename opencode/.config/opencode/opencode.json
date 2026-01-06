@@ -185,24 +185,22 @@
   // ============================================================================
   // LSP SERVERS
   // ============================================================================
-  
-  "lsp": {
-    "typescript": {
-      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]
-    },
-    "pyright": {
-      "extensions": [".py", ".pyi"]
-    },
-    "rust": {
-      "extensions": [".rs"]
-    },
-    "gopls": {
-      "extensions": [".go"]
-    },
-    "eslint": {
-      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue"]
-    }
-  },
+
+  // OpenCode incluye 30+ servidores LSP integrados con auto-detección.
+  // No se requiere configuración manual a menos que necesites personalizar
+  // un servidor específico. Para servidores personalizados, incluye:
+  // - command: ["executable", "args"] (obligatorio)
+  // - extensions: [".ext"] (obligatorio)
+  // - initialization: {} (opcional)
+  // - disabled: false (opcional)
+  //
+  // Ejemplo de configuración personalizada:
+  // "lsp": {
+  //   "go": {
+  //     "command": ["gopls"],
+  //     "extensions": [".go"]
+  //   }
+  // }
 
   // ============================================================================
   // CONTEXT MANAGEMENT
