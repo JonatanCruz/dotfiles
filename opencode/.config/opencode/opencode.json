@@ -32,11 +32,10 @@
       "url": "https://mcp.context7.com/mcp",
       "enabled": true
     },
-    "sentry": {
-      "type": "remote",
-      "url": "https://mcp.sentry.dev/mcp",
-      "enabled": true,
-      "oauth": {}
+    "serena": {
+      "type": "local",
+      "command": ["uvx", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"],
+      "enabled": true
     },
     "playwright": {
       "type": "local",

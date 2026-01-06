@@ -5,7 +5,7 @@ OpenCode AI coding agent configuration managed with GNU Stow.
 ## Quick Reference
 
 - **Theme**: Catppuccin Mocha
-- **MCP Servers**: Context7, Sentry, Playwright
+- **MCP Servers**: Context7, Serena, Playwright
 - **Permissions**: Auto-approved with safety guards
 - **SuperClaude**: Enabled via `~/.claude/CLAUDE.md`
 
@@ -43,8 +43,8 @@ Includes:
 # List MCP servers
 opencode mcp list
 
-# Authenticate Sentry
-opencode mcp auth sentry
+# Verify MCP servers
+opencode mcp list
 
 # Create custom agent
 opencode agent create

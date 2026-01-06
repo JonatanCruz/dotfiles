@@ -86,65 +86,73 @@ How do I optimize React components for performance? use context7
 
 ---
 
-### Sentry
+### Serena
 
-**Type:** Remote (OAuth)  
-**Purpose:** Query Sentry projects, issues, and error tracking
+**Type:** Local  
+**Purpose:** Advanced AI coding agent with symbolic tools for code analysis and refactoring
 
 **Configuration:**
 ```json
 {
-  "sentry": {
-    "type": "remote",
-    "url": "https://mcp.sentry.dev/mcp",
-    "enabled": true,
-    "oauth": {}
+  "serena": {
+    "type": "local",
+    "command": ["uvx", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"],
+    "enabled": true
   }
 }
 ```
 
 **Initial Setup:**
-```bash
-# Authenticate with Sentry
-opencode mcp auth sentry
 
-# This will:
-# 1. Open browser for OAuth authorization
-# 2. Store tokens in ~/.local/share/opencode/mcp-auth.json
-# 3. Enable access to your Sentry projects
-```
+Serena will automatically download on first use via `uvx`. No additional installation needed.
 
 **Usage examples:**
 ```
-Show me the latest unresolved issues in my project. use sentry
+Use Serena to analyze the code structure in src/
 
-What are the top errors from the last 24 hours? use sentry
+Help me refactor this class using Serena's symbolic tools. use serena
 
-Get details about issue PROJ-123. use sentry
+Find all usages of this function across the codebase. use serena
 
-List all projects in my Sentry organization. use sentry
+Show me the call hierarchy for this method. use serena
 ```
 
 **Features:**
-- Query issues and events
-- Filter by project, environment, status
-- View stack traces and error details
-- Monitor error trends
+- Symbolic code analysis and navigation
+- Intelligent refactoring suggestions
+- Cross-file code understanding
+- Language server protocol integration
+- Works with multiple programming languages
+
+**Context Configuration:**
+
+Serena uses `--context ide` which:
+- Reduces tool duplication with OpenCode's built-in tools
+- Optimizes for IDE-like workflows
+- Provides symbolic operations for code intelligence
+
+**Project Activation:**
+
+The `--project-from-cwd` flag automatically:
+- Searches up from current directory for `.serena/project.yml` or `.git`
+- Activates current directory as project if neither found
+- Works seamlessly across different projects
 
 **Troubleshooting:**
 ```bash
-# Check authentication status
+# Check if Serena is loaded
 opencode mcp list
 
-# Re-authenticate if needed
-opencode mcp auth sentry
-
 # Debug connection issues
-opencode mcp debug sentry
+opencode mcp debug serena
 
-# Logout (clear credentials)
-opencode mcp logout sentry
+# Check logs
+tail -f ~/.local/share/opencode/logs/mcp.log
 ```
+
+**More Information:**
+- [Serena Documentation](https://oraios.github.io/serena/)
+- [GitHub Repository](https://github.com/oraios/serena)
 
 ---
 
@@ -412,45 +420,25 @@ Output shows:
 - Server name
 - Type (local/remote)
 - Status (enabled/disabled)
-- Authentication status (for OAuth servers)
-
-### Authenticate OAuth MCPs
-
-```bash
-# Authenticate with Sentry
-opencode mcp auth sentry
-
-# Check auth status
-opencode mcp auth list
-```
+- Available tools count
 
 ### Debug MCP Connection
 
 ```bash
-# Test connection and OAuth flow
-opencode mcp debug sentry
+# Test MCP server connection
+opencode mcp debug serena
+opencode mcp debug context7
 
 # Shows:
-# - HTTP connectivity
-# - OAuth discovery
-# - Token status
+# - Server connectivity
 # - Available tools
+# - Configuration status
 ```
 
-### Manage Credentials
-
-```bash
-# Remove stored credentials
-opencode mcp logout sentry
-
-# Re-authenticate
-opencode mcp auth sentry
-```
-
-**Credential storage:**
-- Location: `~/.local/share/opencode/mcp-auth.json`
-- Encrypted: Yes (platform keychain)
-- Per-server: Separate tokens for each MCP
+**MCP Server Logs:**
+- Location: `~/.local/share/opencode/logs/mcp.log`
+- Contains startup and runtime information
+- Useful for debugging connection issues
 
 ---
 
@@ -489,8 +477,8 @@ cd ~/dotfiles
 git pull
 stow opencode
 
-# Authenticate OAuth MCPs
-opencode mcp auth sentry
+# Verify MCP servers are loaded
+opencode mcp list
 ```
 
 ---
@@ -571,15 +559,17 @@ opencode mcp debug playwright
 tail -f ~/.local/share/opencode/logs/mcp.log
 ```
 
-### OAuth Authentication Fails
+### MCP Server Not Responding
 
 ```bash
-# Clear credentials and retry
-opencode mcp logout sentry
-opencode mcp auth sentry
+# Check server status
+opencode mcp list
 
-# Check OAuth configuration
-opencode mcp debug sentry
+# Debug specific server
+opencode mcp debug serena
+
+# Check logs
+tail -f ~/.local/share/opencode/logs/mcp.log
 ```
 
 ### Theme Not Applying
@@ -624,7 +614,7 @@ Temporarily allow all:
    - ❌ `How do I use React hooks?`
 
 2. **Context7**: Best for documentation searches
-3. **Sentry**: Best for error analysis and debugging
+3. **Serena**: Best for code analysis, refactoring, and symbolic operations
 4. **Playwright**: Best for test generation and browser automation
 
 ### Agent Usage
@@ -663,5 +653,6 @@ Temporarily allow all:
 - [OpenCode Documentation](https://opencode.ai/docs/)
 - [MCP Specification](https://modelcontextprotocol.io/)
 - [Context7 Docs](https://context7.com/docs)
-- [Sentry MCP](https://mcp.sentry.dev/)
+- [Serena Documentation](https://oraios.github.io/serena/)
+- [Serena GitHub](https://github.com/oraios/serena)
 - [Playwright MCP](https://github.com/executeautomation/playwright-mcp-server)
