@@ -28,7 +28,7 @@
 | **Terminal** | [WezTerm](https://wezfurlong.org/wezterm/) (macOS), [Starship](https://starship.rs/) prompt |
 | **Git Tools** | [LazyGit](https://github.com/jesseduffield/lazygit), [Delta](https://github.com/dandavison/delta), [GitHub CLI](https://cli.github.com/) |
 | **File Explorer** | [Yazi](https://github.com/sxyazi/yazi), NvimTree |
-| **AI Assistant** | [Claude Code](https://claude.com/claude-code) |
+| **AI Assistant** | [OpenCode](https://opencode.ai/) with SuperClaude, [Claude Code](https://claude.com/claude-code) |
 | **DevOps** | [direnv](https://direnv.net/), [btop](https://github.com/aristocratos/btop), [tldr](https://github.com/tldr-pages/tldr) |
 
 ## 🚀 Quick Start
@@ -108,6 +108,8 @@ dotfiles/
 │   └── snapshot.sh       # Configuration backup
 ├── nvim/                  # Neovim configuration
 │   └── .config/nvim/     # Modular Lua config with lazy.nvim
+├── opencode/              # OpenCode AI agent config
+│   └── .config/opencode/ # Theme, MCP servers, permissions
 ├── claude/                # Claude Code global config
 │   └── .claude/          # SuperClaude framework
 ├── tmux/                  # Tmux multiplexer
@@ -169,6 +171,7 @@ GitHub Actions workflow validates:
 - Neovim (`mocha` flavor with transparency)
 - Tmux (`catppuccin/tmux` plugin)
 - WezTerm (60% transparency with blur)
+- OpenCode (AI coding agent)
 - Git Delta (Mocha syntax highlighting)
 - Starship (Mocha color palette)
 
@@ -228,6 +231,7 @@ stow -R */  # Restow all packages
 ## 📚 Documentation
 
 - [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
+- [OpenCode Guide](docs/guides/opencode.md) - AI agent with MCP servers
 - [Neovim Configuration](nvim/.config/nvim/README.md) - Editor customization
 - [Tmux Guide](docs/TMUX.md) - Multiplexer usage
 - [Scripts Reference](scripts/README.md) - Utility script documentation
