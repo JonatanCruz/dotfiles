@@ -1,504 +1,284 @@
-# 💻 Mi Entorno de Desarrollo (`dotfiles`)
+# 💻 Dotfiles - Professional Development Environment
 
-![Catppuccin Theme Banner](https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/macchiato.png)
+[![CI/CD](https://github.com/JonatanCruz/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/JonatanCruz/dotfiles/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/JonatanCruz/dotfiles)
+[![GNU Stow](https://img.shields.io/badge/managed_by-GNU_Stow-orange.svg)](https://www.gnu.org/software/stow/)
 
-Este repositorio contiene mi configuración personal para un entorno de desarrollo en **Linux y macOS**, gestionado con **GNU Stow** y **Git**. La filosofía detrás de esta configuración es crear un ambiente **rápido, coherente, minimalista y estéticamente agradable**, centrado en la navegación con el teclado al estilo Vim.
+> Modern, keyboard-driven development environment with unified Catppuccin Mocha theming and transparent backgrounds. Optimized for Linux and macOS.
 
-Toda la configuración sigue una paleta de colores unificada **Catppuccin Mocha** y está diseñada para tener un fondo **transparente**.
+![Catppuccin Mocha Theme](https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/mocha.png)
 
----
+## ✨ Features
 
-## 🛠️ Componentes Principales
+- 🎨 **Unified Theme**: Catppuccin Mocha across all tools
+- ⌨️ **Vim-Style Navigation**: Keyboard-first workflow
+- 🔄 **GNU Stow Management**: Modular, version-controlled configuration
+- 🚀 **Modern CLI Tools**: Fast alternatives to traditional Unix tools
+- 🤖 **AI Integration**: Claude Code configuration included
+- 🔧 **Automated Setup**: Interactive installer with conflict detection
+- ✅ **CI/CD Pipeline**: Automated testing and validation via GitHub Actions
 
-| Herramienta              | Propósito                               |
-| ------------------------ | --------------------------------------- |
-| **Gestor de Dotfiles** | [GNU Stow](https://www.gnu.org/software/stow/)      |
-| **Terminal Emulator** | [WezTerm](https://wezfurlong.org/wezterm/) (macOS)  |
-| **Terminal Multiplexer** | [Tmux](https://github.com/tmux/tmux)                |
-| **Shell** | [Zsh](https://www.zsh.org/)                         |
-| **Prompt** | [Starship](https://starship.rs/)                    |
-| **Editor de Código** | [Neovim](https://neovim.io/)                        |
-| **AI Code Assistant** | [Claude Code](https://claude.com/claude-code)       |
-| **Explorador de Archivos** | [Yazi](https://github.com/sxyazi/yazi) & NvimTree |
-| **Navegación Rápida** | [Zoxide](https://github.com/ajeetdsouza/zoxide)     |
+## 🛠️ Stack
 
-### Herramientas CLI Modernas
-- **`ls` Alternativa:** [Eza](https://github.com/eza-community/eza)
-- **`cat` Alternativa:** [Bat](https://github.com/sharkdp/bat)
-- **`find` Alternativa:** [fd](https://github.com/sharkdp/fd)
-- **`grep` Alternativa:** [ripgrep (rg)](https://github.com/BurntSushi/ripgrep)
-- **Git UI:** [LazyGit](https://github.com/jesseduffield/lazygit)
-- **Git Diff:** [Delta](https://github.com/dandavison/delta)
-- **GitHub CLI:** [gh](https://cli.github.com/)
+| Category | Tools |
+|----------|-------|
+| **Core** | [GNU Stow](https://www.gnu.org/software/stow/), [Neovim](https://neovim.io/), [Tmux](https://github.com/tmux/tmux), [Zsh](https://www.zsh.org/) |
+| **Modern CLI** | [eza](https://github.com/eza-community/eza), [bat](https://github.com/sharkdp/bat), [fd](https://github.com/sharkdp/fd), [ripgrep](https://github.com/BurntSushi/ripgrep), [zoxide](https://github.com/ajeetdsouza/zoxide) |
+| **Terminal** | [WezTerm](https://wezfurlong.org/wezterm/) (macOS), [Starship](https://starship.rs/) prompt |
+| **Git Tools** | [LazyGit](https://github.com/jesseduffield/lazygit), [Delta](https://github.com/dandavison/delta), [GitHub CLI](https://cli.github.com/) |
+| **File Explorer** | [Yazi](https://github.com/sxyazi/yazi), NvimTree |
+| **AI Assistant** | [Claude Code](https://claude.com/claude-code) |
+| **DevOps** | [direnv](https://direnv.net/), [btop](https://github.com/aristocratos/btop), [tldr](https://github.com/tldr-pages/tldr) |
 
-### Herramientas de Desarrollo
-- **Monitor de Sistema:** [btop](https://github.com/aristocratos/btop)
-- **Ayuda Rápida:** [tldr](https://github.com/tldr-pages/tldr)
-- **Variables de Entorno:** [direnv](https://direnv.net/)
-- **Python Version Manager:** [pyenv](https://github.com/pyenv/pyenv)
-- **Node Version Manager:** [nvm](https://github.com/nvm-sh/nvm)
+## 🚀 Quick Start
 
----
+### Automated Installation (Recommended)
 
-## 🚀 Instalación Rápida
-
-Para replicar este entorno en una nueva máquina:
-
-### Opción 1: Script de Instalación Automático (Recomendado)
-
-**1. Clona este repositorio:**
 ```bash
+# Clone repository with submodules
 git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
 cd ~/dotfiles
-```
 
-**2. Ejecuta el instalador interactivo:**
-```bash
+# Run interactive installer
 ./install.sh
 ```
 
-El script te permitirá:
-- ✓ Detectar automáticamente tu sistema operativo (Linux/macOS)
-- ✓ Verificar dependencias (stow, git)
-- ✓ Seleccionar qué paquetes instalar (nvim, zsh, tmux, docker, etc.)
-- ✓ Detectar y resolver conflictos con archivos existentes
-- ✓ Crear backups automáticos si es necesario
-- ✓ Instalar todo con GNU Stow
+The installer will:
+- ✓ Detect OS (Linux/macOS)
+- ✓ Verify dependencies
+- ✓ Let you select packages
+- ✓ Detect conflicts
+- ✓ Create backups
+- ✓ Apply configurations
 
-**3. Sigue las instrucciones post-instalación que muestra el script**
+### Manual Installation
 
----
+<details>
+<summary><b>Click to expand manual installation steps</b></summary>
 
-### Opción 2: Instalación Manual
+**1. Prerequisites**
 
-**1. Clona este repositorio:**
+```bash
+# Linux (Ubuntu/Debian)
+sudo apt install stow git
+
+# macOS
+brew install stow git
+```
+
+**2. Clone and Setup**
+
 ```bash
 git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
-**2. Instala GNU Stow:**
+**3. Install Dependencies**
 
-<details>
-<summary><b>Linux</b></summary>
+For detailed dependency installation, see [docs/INSTALL.md](docs/INSTALL.md)
 
-```bash
-# Ubuntu/Debian
-sudo apt install stow
-
-# Arch Linux
-sudo pacman -S stow
-
-# Fedora
-sudo dnf install stow
-```
-</details>
-
-<details>
-<summary><b>macOS</b></summary>
+**4. Apply Configurations**
 
 ```bash
-# Instala Homebrew si no lo tienes
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Instala Stow
-brew install stow
-```
-</details>
-
-**3. Instala las dependencias principales:**
-
-<details>
-<summary><b>Linux (Ubuntu/Debian)</b></summary>
-
-```bash
-# Tmux
-sudo apt install tmux
-
-# Zsh
-sudo apt install zsh
-
-# Neovim (última versión)
-sudo add-apt-repository ppa:neovim-ppa/unstable
-sudo apt update
-sudo apt install neovim
-
-# Starship
-curl -sS https://starship.rs/install.sh | sh
-
-# Yazi
-cargo install --locked yazi-fm yazi-cli
-
-# Zoxide
-curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-
-# Herramientas CLI modernas
-sudo apt install eza bat fd-find ripgrep
-
-# LazyGit
-LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-tar xf lazygit.tar.gz lazygit
-sudo install lazygit /usr/local/bin
-```
-</details>
-
-<details>
-<summary><b>macOS</b></summary>
-
-```bash
-# Dependencias principales
-brew install tmux zsh neovim starship yazi zoxide eza bat fd ripgrep lazygit
-
-# Herramientas de Git
-brew install git-delta gh
-
-# Herramientas de desarrollo
-brew install btop tlrc direnv pyenv
-
-# Instala WezTerm (terminal recomendado para macOS)
-brew install --cask wezterm
-
-# Instala las Nerd Fonts (recomendado para iconos)
-brew tap homebrew/cask-fonts
-brew install --cask font-jetbrains-mono-nerd-font
-```
-</details>
-
-**4. Aplica las configuraciones con Stow:**
-
-⚠️ **Importante:** Respalda tus configuraciones existentes antes de continuar.
-
-```bash
-# Aplicar todas las configuraciones
+# Apply all configurations
 stow */
 
-# O aplicar configuraciones específicas:
-stow git
-stow nvim
-stow tmux
-stow zsh
-stow zsh-plugins
-stow starship
-stow yazi
-stow claude  # Configuración global de Claude Code
-
-# Solo en macOS:
-stow wezterm
+# Or selectively:
+stow nvim zsh tmux starship
 ```
 
-**5. Cambia el shell a Zsh (opcional):**
+**5. Set Zsh as Default Shell**
+
 ```bash
 chsh -s $(which zsh)
 ```
 
-Cierra sesión y vuelve a entrar para aplicar los cambios.
+</details>
 
----
-
-## 📂 Estructura del Repositorio
+## 📂 Repository Structure
 
 ```
 dotfiles/
-├── git/
-│   └── .gitconfig             # Configuración de Git con delta
-├── nvim/
-│   └── .config/nvim/          # Configuración de Neovim
-├── claude/
-│   └── .claude/               # Configuración global de Claude Code
-├── tmux/
-│   └── .tmux.conf             # Configuración de tmux
-├── zsh/
-│   └── .zshrc                 # Configuración de ZSH
-├── zsh-plugins/
-│   └── .zsh/                  # Plugins adicionales de ZSH
-├── starship/
-│   └── .config/starship.toml  # Configuración del prompt Starship
-├── yazi/
-│   └── .config/yazi/          # Configuración de Yazi
-└── wezterm/
-    └── .config/wezterm/       # Configuración de WezTerm (macOS)
+├── .github/workflows/      # CI/CD automation
+│   └── ci.yml             # Linting, testing, security scans
+├── scripts/               # Utility scripts
+│   ├── bootstrap.sh      # Fresh system setup
+│   ├── health-check.sh   # Environment validation
+│   └── snapshot.sh       # Configuration backup
+├── nvim/                  # Neovim configuration
+│   └── .config/nvim/     # Modular Lua config with lazy.nvim
+├── claude/                # Claude Code global config
+│   └── .claude/          # SuperClaude framework
+├── tmux/                  # Tmux multiplexer
+├── zsh/                   # Zsh shell config
+├── zsh-plugins/           # Zsh plugins (submodules)
+├── starship/              # Starship prompt
+├── yazi/                  # Yazi file manager
+├── wezterm/               # WezTerm (macOS)
+├── docker/                # Docker completion
+└── git/                   # Git configuration
 ```
 
-### Notas sobre la estructura
+## 🔧 Utility Scripts
 
-- **Branch `main`:** Configuración optimizada para Linux
-- **Branch `mac`:** Incluye adaptaciones y herramientas específicas para macOS (como WezTerm)
+| Script | Description | Usage |
+|--------|-------------|-------|
+| `bootstrap.sh` | Fresh system setup | `./scripts/bootstrap.sh` |
+| `health-check.sh` | Validate environment | `./scripts/health-check.sh` |
+| `snapshot.sh` | Backup configurations | `./scripts/snapshot.sh create backup-name` |
 
----
+## ⚙️ Key Technologies
 
-## 🔧 Cómo Funciona GNU Stow
+### Neovim Configuration
 
-GNU Stow es un gestor de enlaces simbólicos que permite mantener los dotfiles organizados en un repositorio mientras las aplicaciones los leen desde sus ubicaciones esperadas.
+- **Plugin Manager**: [lazy.nvim](https://github.com/folke/lazy.nvim) (lazy loading)
+- **LSP**: Mason for automatic server installation
+- **Completion**: nvim-cmp with intelligent snippets
+- **Fuzzy Finder**: Telescope
+- **Git Integration**: LazyGit, Gitsigns
+- **Theme**: Catppuccin with transparency
 
-### Concepto Básico
+**Structure**: Modular Lua configuration in `lua/config/` and `lua/plugins/`
 
-Cuando ejecutas `stow nvim` desde `~/dotfiles`, Stow crea enlaces simbólicos:
+### GNU Stow Management
 
-```
-~/.config/nvim → ~/dotfiles/nvim/.config/nvim
-```
-
-### Comandos Útiles
+Stow creates symlinks from repository to home directory:
 
 ```bash
-# Instalar configuración
-stow nvim
-
-# Reinstalar configuración (útil después de actualizaciones)
-stow -R nvim
-
-# Desinstalar configuración
-stow -D nvim
-
-# Simular instalación (ver qué haría sin aplicar cambios)
-stow -n nvim
-
-# Instalar todo
-stow */
-
-# Desinstalar todo
-stow -D */
+stow nvim      # Link ~/.config/nvim → ~/dotfiles/nvim/.config/nvim
+stow -R nvim   # Restow (update links)
+stow -D nvim   # Unlink configuration
+stow -n nvim   # Dry-run (preview changes)
 ```
 
-### Resolución de Conflictos
+### CI/CD Pipeline
 
-Si encuentras errores como:
-```
-WARNING! stowing nvim would cause conflicts:
-  * existing target is neither a link nor a directory: .config/nvim
-```
+GitHub Actions workflow validates:
+- ✓ ShellCheck linting (Bash scripts)
+- ✓ Luacheck linting (Neovim configs)
+- ✓ Stow dry-run tests (all packages)
+- ✓ Neovim config validation
+- ✓ Security scanning (TruffleHog)
+- ✓ Health check execution
+- ✓ Bootstrap script testing
 
-**Solución:**
-```bash
-# Respalda la configuración existente
-mv ~/.config/nvim ~/.config/nvim.backup
+## 🎨 Theming
 
-# Aplica la nueva configuración
-stow nvim
-```
+**Catppuccin Mocha** unified across:
+- Neovim (`mocha` flavor with transparency)
+- Tmux (`catppuccin/tmux` plugin)
+- WezTerm (60% transparency with blur)
+- Git Delta (Mocha syntax highlighting)
+- Starship (Mocha color palette)
 
----
+**Color Palette**: [View Catppuccin Mocha](https://github.com/catppuccin/catppuccin#-palette)
 
-## 🎨 Personalización
+## ⌨️ Essential Keybindings
 
-### Tema Unificado: Catppuccin Mocha
+<details>
+<summary><b>Tmux (Prefix: Ctrl+a)</b></summary>
 
-Todas las herramientas están configuradas con el tema **[Catppuccin Mocha](https://github.com/catppuccin/catppuccin)** para una armonía visual completa:
+| Key | Action |
+|-----|--------|
+| `Prefix + \|` | Horizontal split |
+| `Prefix + -` | Vertical split |
+| `Prefix + h/j/k/l` | Navigate panes |
+| `Prefix + H/J/K/L` | Resize panes |
+| `Prefix + r` | Reload config |
 
-**Terminal y Shell:**
-- **WezTerm:** `Catppuccin Mocha` - Transparencia al 60%
-- **Tmux:** Plugin `catppuccin/tmux` con mocha flavor
-- **Starship:** Colores Catppuccin Mocha personalizados
+</details>
 
-**Editor y Herramientas:**
-- **Neovim:** Plugin `catppuccin/nvim` (mocha flavor)
-- **Git Delta:** Syntax theme Catppuccin Mocha con colores oficiales
-- **Yazi:** Compatible con tema Catppuccin
+<details>
+<summary><b>Neovim (Leader: Space)</b></summary>
 
-**Paleta de Colores Catppuccin Mocha:**
-- Base: `#1e1e2e`
-- Mantle: `#181825`
-- Crust: `#11111b`
-- Text: `#cdd6f4`
-- Subtext0: `#a6adc8`
-- Overlay0: `#6c7086`
-- Surface0: `#313244`
-- Mauve (Purple): `#cba6f7`
-- Pink: `#f5c2e7`
-- Sky (Cyan): `#89dceb`
-- Green: `#a6e3a1`
-- Peach (Orange): `#fab387`
-- Red: `#f38ba8`
-- Yellow: `#f9e2af`
+| Key | Action |
+|-----|--------|
+| `<leader>w` | Save file |
+| `<leader>q` | Quit |
+| `<leader>e` | File explorer |
+| `<leader>ff` | Find files |
+| `<leader>fg` | Search text |
+| `<leader>gg` | LazyGit |
+| `gd` | Go to definition |
+| `gr` | References |
+| `K` | Hover docs |
 
-**¿Por qué Catppuccin Mocha?**
-- Menos fatiga visual durante largas sesiones de programación
-- Paleta de colores suaves y bien balanceados
-- Excelente contraste sin ser agresivo
-- Más de 200 integraciones con herramientas de desarrollo
-- Comunidad activa y bien documentado
+</details>
 
-### Transparencia
+<details>
+<summary><b>Yazi (Vim-style)</b></summary>
 
-El fondo transparente está configurado en:
-- Neovim (`nvim/.config/nvim/lua/plugins/colorscheme.lua`)
-- Tmux (`.tmux.conf`)
-- WezTerm (`wezterm/.config/wezterm/wezterm.lua`) - 60% opacidad con blur
+| Key | Action |
+|-----|--------|
+| `h/j/k/l` | Navigate |
+| `Enter` | Open file |
+| `Esc` or `q` | Exit |
 
-Asegúrate de que tu emulador de terminal soporte transparencia.
+</details>
 
----
-
-## 🔄 Actualización
-
-Para actualizar las configuraciones después de hacer cambios:
+## 🔄 Updates
 
 ```bash
 cd ~/dotfiles
-git pull
-stow -R */  # Re-aplicar todos los paquetes
+git pull --recurse-submodules
+stow -R */  # Restow all packages
 ```
 
----
+## 📚 Documentation
 
-## ➕ Agregar Nuevas Configuraciones
+- [Installation Guide](docs/INSTALL.md) - Detailed setup instructions
+- [Neovim Configuration](nvim/.config/nvim/README.md) - Editor customization
+- [Tmux Guide](docs/TMUX.md) - Multiplexer usage
+- [Scripts Reference](scripts/README.md) - Utility script documentation
 
-1. Crea un directorio para la nueva herramienta:
-   ```bash
-   mkdir -p nueva-app/.config/nueva-app
-   ```
+## 🐛 Troubleshooting
 
-2. Agrega tus archivos de configuración dentro
+### Stow Conflicts
 
-3. Aplica con Stow:
-   ```bash
-   stow nueva-app
-   ```
-
-4. Haz commit de los cambios:
-   ```bash
-   git add nueva-app/
-   git commit -m "Add nueva-app configuration"
-   git push
-   ```
-
----
-
-## 🛠️ Nuevas Herramientas y Aliases
-
-### Git Delta
-Visualizador de diffs mejorado con syntax highlighting. Se activa automáticamente con:
 ```bash
-git diff
-git log -p
-git show <commit>
+# Backup existing config
+mv ~/.config/nvim ~/.config/nvim.backup
+
+# Apply dotfiles
+stow nvim
 ```
 
-### GitHub CLI (gh)
-| Alias | Comando | Descripción |
-|-------|---------|-------------|
-| `ghpr` | `gh pr create` | Crear Pull Request |
-| `ghprl` | `gh pr list` | Listar PRs |
-| `ghprv` | `gh pr view` | Ver PR |
-| `ghis` | `gh issue list` | Listar issues |
-| `ghrc` | `gh repo clone` | Clonar repositorio |
-| `ghrv` | `gh repo view --web` | Ver repo en navegador |
+### Neovim Plugins Not Loading
 
-### Monitor de Sistema
-| Alias | Comando | Descripción |
-|-------|---------|-------------|
-| `top` | `btop` | Monitor visual de sistema |
-| `monitor` | `btop` | Monitor visual de sistema |
-
-### Ayuda Rápida
-| Alias | Comando | Descripción |
-|-------|---------|-------------|
-| `help` | `tldr` | Ayuda rápida con ejemplos |
-
-**Ejemplo:**
 ```bash
-help tar     # Ver ejemplos de uso de tar
-help docker  # Ver ejemplos de uso de docker
-help git-rebase  # Ver ejemplos de git rebase
+# Open Neovim and sync plugins
+nvim
+:Lazy sync
 ```
 
-### Direnv
-Carga automáticamente variables de entorno al entrar a un directorio:
-```bash
-# En tu proyecto, crea un archivo .envrc
-echo 'export DATABASE_URL="postgres://localhost/mydb"' > .envrc
-direnv allow .
+### Zsh Not Default Shell
 
-# Al entrar al directorio, las variables se cargan automáticamente
-# Al salir, se descargan
-```
-
-### Pyenv
-Gestiona múltiples versiones de Python:
-```bash
-pyenv install 3.11.0    # Instalar Python 3.11
-pyenv global 3.11.0     # Usar 3.11 globalmente
-pyenv local 3.9.0       # Usar 3.9 en el proyecto actual
-pyenv versions          # Ver versiones instaladas
-```
-
----
-
-## 📝 Atajos de Teclado Principales
-
-### WezTerm (macOS)
-- Pantalla completa: `Ctrl+F`
-- Abrir enlaces: `Ctrl+Click`
-- Nueva pestaña: `Cmd+T`
-- Cerrar pestaña: `Cmd+W`
-
-### Tmux
-- **Prefix:** `Ctrl+a`
-- Split horizontal: `Prefix + |`
-- Split vertical: `Prefix + -`
-- Navegar entre paneles: `Prefix + h/j/k/l`
-
-### Neovim
-- **Leader:** `<space>`
-- Explorador de archivos: `Leader + e`
-- Búsqueda de archivos: `Leader + f`
-- Abrir LazyGit: `Leader + gg`
-- Navegación estilo Vim: `h/j/k/l`
-
-### Yazi
-- Navegar: `h/j/k/l` o flechas
-- Abrir archivo: `Enter`
-- Volver: `Esc` o `q`
-
----
-
-## 🐛 Solución de Problemas
-
-### Stow falla con "conflicts"
-**Causa:** Archivos existentes en la ubicación destino
-
-**Solución:** Respalda y elimina los archivos existentes antes de ejecutar Stow.
-
-### Plugins de Neovim no se instalan
-**Causa:** Gestor de plugins no inicializado
-
-**Solución:** Abre Neovim y ejecuta `:Lazy sync`
-
-### Zsh no carga configuración
-**Causa:** Shell por defecto no es Zsh
-
-**Solución:**
 ```bash
 chsh -s $(which zsh)
-```
-Cierra sesión y vuelve a entrar.
-
-### Starship no aparece
-**Causa:** No está en el PATH
-
-**Solución:** Agrega a `.zshrc`:
-```bash
-eval "$(starship init zsh)"
+# Logout and login again
 ```
 
+## 🤝 Contributing
+
+Issues and pull requests are welcome. For major changes, please open an issue first.
+
+## 📜 License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- [Catppuccin](https://github.com/catppuccin/catppuccin) - Soothing pastel theme
+- [GNU Stow](https://www.gnu.org/software/stow/) - Symlink management
+- [Dotfiles Community](https://dotfiles.github.io/) - Best practices and inspiration
+
 ---
 
-## 📜 Licencia
+<div align="center">
 
-Configuración personal - Úsala libremente y modifícala según tus necesidades.
+**[⬆ Back to Top](#-dotfiles---professional-development-environment)**
 
----
+Made with ❤️ by [JonatanCruz](https://github.com/JonatanCruz)
 
-## 🤝 Contribuir
-
-Si encuentras algún problema o tienes sugerencias de mejora, no dudes en abrir un issue o pull request.
-
----
-
-## 📚 Referencias
-
-- [GNU Stow Documentation](https://www.gnu.org/software/stow/manual/stow.html)
-- [Catppuccin Theme](https://github.com/catppuccin/catppuccin)
-- [Dotfiles Guide](https://dotfiles.github.io/)
-- [Managing Dotfiles with GNU Stow](https://systemcrafters.net/managing-your-dotfiles/using-gnu-stow/)
+</div>
