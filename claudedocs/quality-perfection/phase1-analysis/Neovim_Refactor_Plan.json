@@ -1,0 +1,208 @@
+{
+  "project": "neovim-config",
+  "analyzed_at": "2026-01-06T00:00:00Z",
+  "structure_quality": 8,
+  "summary": {
+    "total_files_analyzed": 38,
+    "total_plugins": 37,
+    "config_files": 8,
+    "utility_files": 5,
+    "test_files": 1
+  },
+  "issues_found": [
+    {
+      "type": "duplication",
+      "severity": "high",
+      "file": "lua/plugins/debug/dap.lua + lua/plugins/tools/dap.lua",
+      "line": "entire files",
+      "description": "CRITICAL: Two separate DAP (Debug Adapter Protocol) configuration files exist with overlapping functionality. This creates confusion and potential conflicts.",
+      "recommendation": "MERGE: Consolidate both files into a single lua/plugins/debug/dap.lua. The tools/dap.lua appears to be older/simpler, while debug/dap.lua is more complete. Keep debug/dap.lua and DELETE tools/dap.lua after verifying all unique configurations are preserved.",
+      "impact": "Plugin conflicts, maintenance overhead, unclear which config is active"
+    },
+    {
+      "type": "dead_code",
+      "severity": "medium",
+      "file": "test_aerial.lua",
+      "line": "1-114",
+      "description": "Test file exists in root config directory instead of a dedicated test folder. Only one test file exists for the entire configuration.",
+      "recommendation": "MOVE: Relocate to lua/plugins/test/test_aerial.lua OR create a dedicated tests/ directory. ADD: More test files for critical plugins (LSP, completion, telescope).",
+      "impact": "Poor test organization, incomplete test coverage"
+    },
+    {
+      "type": "duplication",
+      "severity": "medium",
+      "file": "Multiple plugin files",
+      "line": "keymap setup patterns",
+      "description": "Keymap setup pattern is duplicated across multiple files with slight variations: lua/plugins/lsp.lua (vim.tbl_extend pattern), lua/plugins/ui/tree.lua (opts function), lua/plugins/git/gitsigns.lua (map function). Each uses a different helper pattern.",
+      "recommendation": "STANDARDIZE: Create a shared keymap helper in lua/utils/keymaps.lua with a consistent API. Example: utils.buf_keymap(bufnr, mode, lhs, rhs, desc). This already exists in lua/utils/init.lua as buf_map() but is not being used consistently.",
+      "impact": "Code inconsistency, harder maintenance, learning curve for contributors"
+    },
+    {
+      "type": "duplication",
+      "severity": "low",
+      "file": "lua/config/constants.lua + lua/config/lazy.lua",
+      "line": "constants.lua:135-144 vs lazy.lua:76-85",
+      "description": "List of disabled builtin plugins is duplicated in two places: M.disabled_builtin_plugins in constants.lua and performance.rtp.disabled_plugins in lazy.lua.",
+      "recommendation": "REFACTOR: Import from constants in lazy.lua: performance = { rtp = { disabled_plugins = require('config.constants').disabled_builtin_plugins } }",
+      "impact": "Maintenance overhead, risk of inconsistency"
+    },
+    {
+      "type": "hardcoded",
+      "severity": "low",
+      "file": "lua/config/constants.lua",
+      "line": "23",
+      "description": "Background color hardcoded as #000000 in transparency configuration.",
+      "recommendation": "EXTRACT: Move to lua/utils/colors.lua as colors.background or make it configurable via environment variable for users who prefer different backgrounds.",
+      "impact": "Limited customization for users"
+    },
+    {
+      "type": "missing_docs",
+      "severity": "low",
+      "file": "lua/utils/transparency.lua",
+      "line": "entire file",
+      "description": "Transparency utility is referenced in multiple plugins but file content was not analyzed. Need to verify if it has proper documentation.",
+      "recommendation": "VERIFY: Check if lua/utils/transparency.lua has JSDoc-style comments explaining its API and usage. Add examples if missing.",
+      "impact": "Unclear usage for contributors"
+    },
+    {
+      "type": "inconsistency",
+      "severity": "low",
+      "file": "lua/snippets/*.lua",
+      "line": "multiple",
+      "description": "Snippet files contain TODO placeholders as part of snippet templates (e.g., i(3, '// TODO')). These are intentional but trigger TODO searches, creating noise in quality audits.",
+      "recommendation": "DOCUMENT: Add a comment at the top of snippet files explaining that TODO strings are template placeholders, not actual TODOs. Consider using a different marker like PLACEHOLDER or FILL_ME.",
+      "impact": "False positives in quality scans"
+    },
+    {
+      "type": "organization",
+      "severity": "low",
+      "file": "lua/plugins/lsp/",
+      "line": "directory structure",
+      "description": "LSP-related plugins are split between lua/plugins/lsp.lua (main LSP config) and lua/plugins/lsp/ subdirectory (linting, diagnostics-ui, neodev). Inconsistent with other plugin categories.",
+      "recommendation": "CONSIDER: Either move all LSP configs into lua/plugins/lsp/ subdirectory OR keep main lsp.lua and only use subdirectory for extensions. Current hybrid approach works but could be clearer.",
+      "impact": "Minor confusion about where to add new LSP-related configs"
+    },
+    {
+      "type": "missing_feature",
+      "severity": "medium",
+      "file": "lua/utils/error_handler.lua",
+      "line": "entire file",
+      "description": "Error handler provides safe_require, try, and safe_call but lacks logging/telemetry for tracking recurring errors.",
+      "recommendation": "ENHANCE: Add optional error logging to a file (e.g., ~/.local/state/nvim/errors.log) with timestamps and stack traces. Add a :ShowErrors command to review recent errors.",
+      "impact": "Difficult to debug issues reported by users"
+    }
+  ],
+  "strengths": [
+    "Excellent modular structure with clear separation: config/, plugins/, utils/, snippets/",
+    "Consistent use of lazy loading (event, cmd, keys) for fast startup",
+    "Comprehensive documentation headers in most plugin files with links to upstream docs",
+    "Centralized constants in lua/config/constants.lua for easy customization",
+    "Error handling wrapper (utils/error_handler.lua) used consistently in core modules",
+    "Well-organized plugin categories: ui/, editor/, coding/, lsp/, git/, tools/, debug/",
+    "Consistent Dracula theme and transparency applied across all UI components",
+    "Detailed keybinding descriptions for which-key integration",
+    "No hardcoded absolute paths (no /home/, /Users/, C:\\ found)",
+    "No commented-out code blocks (clean codebase)",
+    "Comprehensive LSP configuration with clear keymap organization (g* for navigation, <leader>x for diagnostics)",
+    "Good use of Vim conventions (h/j/k/l navigation in nvim-tree, aerial, etc.)"
+  ],
+  "refactoring_priorities": [
+    {
+      "priority": 1,
+      "task": "CRITICAL: Resolve DAP duplication",
+      "action": "Merge lua/plugins/tools/dap.lua into lua/plugins/debug/dap.lua and delete the duplicate",
+      "estimated_effort": "30 minutes",
+      "risk": "medium - verify all keybindings and adapters are preserved"
+    },
+    {
+      "priority": 2,
+      "task": "Standardize keymap helpers",
+      "action": "Refactor all plugin keymaps to use lua/utils/init.lua:buf_map() consistently",
+      "estimated_effort": "2 hours",
+      "risk": "low - mechanical refactor, easy to test"
+    },
+    {
+      "priority": 3,
+      "task": "Deduplicate disabled plugins list",
+      "action": "Import disabled_builtin_plugins from constants.lua in lazy.lua",
+      "estimated_effort": "5 minutes",
+      "risk": "very low"
+    },
+    {
+      "priority": 4,
+      "task": "Improve test coverage",
+      "action": "Move test_aerial.lua to proper location and add tests for LSP, completion, telescope",
+      "estimated_effort": "4 hours",
+      "risk": "low - new code, no breaking changes"
+    },
+    {
+      "priority": 5,
+      "task": "Enhance error handler",
+      "action": "Add error logging and :ShowErrors command to utils/error_handler.lua",
+      "estimated_effort": "1 hour",
+      "risk": "low - additive feature"
+    },
+    {
+      "priority": 6,
+      "task": "Extract hardcoded colors",
+      "action": "Move background color to colors.lua or make configurable",
+      "estimated_effort": "15 minutes",
+      "risk": "very low"
+    },
+    {
+      "priority": 7,
+      "task": "Document snippet TODOs",
+      "action": "Add explanatory comments to snippet files about placeholder TODOs",
+      "estimated_effort": "10 minutes",
+      "risk": "none"
+    }
+  ],
+  "architecture_analysis": {
+    "follows_ddd": false,
+    "follows_solid": true,
+    "pattern_consistency": "high",
+    "notes": "Configuration follows a functional/modular pattern rather than DDD (which is appropriate for Neovim configs). Each plugin is self-contained with clear dependencies. SOLID principles are well-applied: Single Responsibility (each file has one purpose), Open/Closed (easy to add new plugins without modifying core), Dependency Inversion (plugins depend on abstractions like utils/error_handler)."
+  },
+  "testing_status": {
+    "unit_tests": 1,
+    "integration_tests": 0,
+    "coverage_estimate": "5%",
+    "recommendation": "Add tests for: LSP on_attach behavior, completion sources, telescope pickers, snippet expansion, error_handler edge cases"
+  },
+  "documentation_quality": {
+    "score": 9,
+    "inline_comments": "excellent - clear section headers and explanations",
+    "api_docs": "good - most utils have JSDoc-style comments",
+    "user_docs": "excellent - docs/ folder with STRUCTURE.md, SNIPPETS.md, CONTRIBUTING.md",
+    "missing": "Architecture decision records (ADRs) for why certain plugins were chosen"
+  },
+  "performance_considerations": {
+    "lazy_loading": "excellent - all plugins use event/cmd/keys",
+    "startup_time_estimate": "< 50ms (based on lazy loading patterns)",
+    "potential_bottlenecks": [
+      "Treesitter ensure_installed could slow first launch",
+      "Mason auto-install of LSP servers on first run"
+    ],
+    "recommendations": [
+      "Consider adding a :ProfileStartup command using vim.loader.enable() stats",
+      "Document expected first-run vs subsequent startup times"
+    ]
+  },
+  "security_audit": {
+    "hardcoded_credentials": "none found",
+    "hardcoded_paths": "none found",
+    "unsafe_eval": "none found",
+    "external_dependencies": "all from trusted sources (GitHub official repos)",
+    "recommendation": "Add .luacheckrc rules to prevent accidental credential commits"
+  },
+  "next_steps": [
+    "Execute Priority 1-3 refactorings (DAP merge, keymap standardization, deduplication)",
+    "Run :checkhealth after changes to verify no regressions",
+    "Create tests for critical paths (LSP, completion, telescope)",
+    "Document architecture decisions in docs/ARCHITECTURE.md",
+    "Add performance profiling command",
+    "Consider adding pre-commit hooks for Lua linting (luacheck/stylua)"
+  ],
+  "quality_gate_verdict": "PASS_WITH_MINOR_ISSUES",
+  "overall_assessment": "This is a high-quality Neovim configuration with excellent structure, documentation, and consistency. The main issue is the DAP duplication (Priority 1) which should be resolved immediately. Other issues are minor and can be addressed incrementally. The codebase demonstrates strong engineering practices and would serve as a good reference for others. Estimated time to reach 'Gold Standard': 4-6 hours of focused refactoring."
+}

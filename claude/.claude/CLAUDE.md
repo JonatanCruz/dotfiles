@@ -25,7 +25,19 @@ The SuperClaude framework components will be automatically imported below.
 @MODE_Orchestration.md
 @MODE_Task_Management.md
 @MODE_Token_Efficiency.md
-- SUPERCLAUDE V4.5: CODE_QUALITY_PERFECTION_PROTOCOL
+
+# ===================================================
+# OpenCode Adaptations
+# ===================================================
+
+# OpenCode Quality Protocol (Adapted from SuperClaude)
+@OPENCODE_QUALITY_PROTOCOL.md
+
+# OpenCode Slash Commands
+@OPENCODE_SLASH_COMMANDS.md
+
+# DEPRECATED: Original SuperClaude Protocol (replaced by OpenCode adaptation)
+# - SUPERCLAUDE V4.5: CODE_QUALITY_PERFECTION_PROTOCOL
 # MODE: ASYNC_SWARM_EXECUTION (3 Parallel Lanes)
 # CONTEXT: Functional Microservices. Pre-Launch Phase.
 # OBJECTIVE: Elevate code to "Enterprise Gold Standard". No Technical Debt allowed.

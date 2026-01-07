@@ -1,0 +1,417 @@
+{
+  "project": "dotfiles-scripts",
+  "analyzed_at": "2026-01-06T10:30:00Z",
+  "scripts_analyzed": [
+    "scripts/bootstrap.sh",
+    "scripts/health-check.sh",
+    "scripts/snapshot.sh",
+    "install.sh"
+  ],
+  "quality_score": 8,
+  "summary": {
+    "overall_assessment": "Scripts are well-structured with excellent error handling, but have significant code duplication and lack a shared library for common functions. Strong adherence to bash best practices (set -euo pipefail, readonly vars, quoted variables).",
+    "strengths": [
+      "Excellent error handling with 'set -euo pipefail' in all scripts",
+      "Consistent use of readonly for constants",
+      "Comprehensive documentation and help messages",
+      "Good variable quoting to prevent word splitting",
+      "Cross-platform compatibility (Linux/macOS) well implemented",
+      "Organized into logical functions",
+      "Informative logging with colored output"
+    ],
+    "critical_issues": [
+      "Massive code duplication (color definitions, utility functions, OS detection)",
+      "No shared library (lib.sh) for common functionality",
+      "install.sh uses weaker error handling (set -e without -u -o pipefail)"
+    ]
+  },
+  "issues_found": [
+    {
+      "script": "ALL",
+      "type": "duplication",
+      "severity": "high",
+      "line": "12-20 (bootstrap), 12-18 (health-check), 12-18 (snapshot), 13-20 (install)",
+      "description": "Color definitions duplicated across all 4 scripts - exact same 9 lines of readonly color variables",
+      "recommendation": "Extract to shared lib.sh: source \"$(dirname \"${BASH_SOURCE[0]}\")/lib.sh\""
+    },
+    {
+      "script": "ALL",
+      "type": "duplication",
+      "severity": "high",
+      "line": "40-60 (various)",
+      "description": "Utility functions (print_success, print_error, print_warning, print_info, print_step) duplicated across all scripts with identical implementations",
+      "recommendation": "Move all print_* functions to lib.sh as they are identical across scripts"
+    },
+    {
+      "script": "ALL",
+      "type": "duplication",
+      "severity": "high",
+      "line": "21-28 (health-check), 21-28 (snapshot), 61-78 (install), 65-92 (bootstrap)",
+      "description": "OS detection logic duplicated 4 times with varying complexity. bootstrap.sh has most complete version with distro detection",
+      "recommendation": "Consolidate into single detect_os() function in lib.sh with distro detection capability"
+    },
+    {
+      "script": "ALL",
+      "type": "duplication",
+      "severity": "medium",
+      "line": "23-24 (bootstrap), 31-32 (health-check), 23 (install)",
+      "description": "DOTFILES_DIR calculation duplicated in 3 scripts with slight variations",
+      "recommendation": "Define DOTFILES_DIR in lib.sh or use consistent pattern"
+    },
+    {
+      "script": "install.sh",
+      "type": "error_handling",
+      "severity": "high",
+      "line": "10",
+      "description": "Uses 'set -e' only, missing 'set -u' (unset variable detection) and 'set -o pipefail' (pipeline error propagation)",
+      "recommendation": "Change to 'set -euo pipefail' to match other scripts and prevent silent failures"
+    },
+    {
+      "script": "install.sh",
+      "type": "missing_validation",
+      "severity": "medium",
+      "line": "23",
+      "description": "DOTFILES_DIR not declared as readonly like in other scripts",
+      "recommendation": "Add 'readonly DOTFILES_DIR' after assignment to prevent accidental modification"
+    },
+    {
+      "script": "health-check.sh",
+      "type": "hardcoded",
+      "severity": "low",
+      "line": "127-134",
+      "description": "Hardcoded symlink paths and package names in array",
+      "recommendation": "Could extract to configuration variable at top of file for easier maintenance"
+    },
+    {
+      "script": "snapshot.sh",
+      "type": "hardcoded",
+      "severity": "low",
+      "line": "36-44",
+      "description": "Hardcoded snapshot target directories",
+      "recommendation": "Extract to readonly array variable at top of file or shared config"
+    },
+    {
+      "script": "bootstrap.sh",
+      "type": "hardcoded",
+      "severity": "low",
+      "line": "32-34",
+      "description": "Hardcoded dependency arrays defined as readonly at top level (good), but duplicates concept from install.sh",
+      "recommendation": "Consider if these should be shared constants"
+    },
+    {
+      "script": "health-check.sh",
+      "type": "portability",
+      "severity": "medium",
+      "line": "96-97",
+      "description": "BSD grep compatibility workaround using sed for version extraction",
+      "recommendation": "Good pattern, but could be extracted to a get_version() helper function"
+    },
+    {
+      "script": "health-check.sh",
+      "type": "portability",
+      "severity": "low",
+      "line": "143-148",
+      "description": "Python3 used as fallback for macOS readlink -f (which doesn't exist on BSD)",
+      "recommendation": "Well-handled, but could be centralized in lib.sh as portable_realpath() function"
+    },
+    {
+      "script": "snapshot.sh",
+      "type": "portability",
+      "severity": "low",
+      "line": "168-174",
+      "description": "Conditional stat command for Linux vs macOS",
+      "recommendation": "Extract to portable_stat() function in lib.sh"
+    },
+    {
+      "script": "install.sh",
+      "type": "duplication",
+      "severity": "medium",
+      "line": "128-141",
+      "description": "Package descriptions hardcoded in associative array, similar concept to bootstrap.sh dependency lists",
+      "recommendation": "Consider if package metadata should be centralized"
+    },
+    {
+      "script": "bootstrap.sh",
+      "type": "missing_validation",
+      "severity": "low",
+      "line": "246",
+      "description": "git submodule command lacks error handling for when .gitmodules exists but is corrupted",
+      "recommendation": "Add validation of .gitmodules format before running submodule command"
+    },
+    {
+      "script": "snapshot.sh",
+      "type": "error_handling",
+      "severity": "low",
+      "line": "97-101",
+      "description": "cp command failure is caught but continues processing other items, no final summary of failures",
+      "recommendation": "Add exit code check at end to fail if critical items failed to backup"
+    },
+    {
+      "script": "install.sh",
+      "type": "missing_validation",
+      "severity": "low",
+      "line": "301",
+      "description": "cd to DOTFILES_DIR without checking if directory exists (though unlikely to fail)",
+      "recommendation": "Add: cd \"$DOTFILES_DIR\" || { print_error \"Cannot access dotfiles directory\"; exit 1; }"
+    },
+    {
+      "script": "bootstrap.sh",
+      "type": "duplication",
+      "severity": "low",
+      "line": "259-278",
+      "description": "apply_stow_packages() in bootstrap.sh very similar to install_packages() in install.sh",
+      "recommendation": "Consider unifying stow application logic between bootstrap and install scripts"
+    },
+    {
+      "script": "health-check.sh",
+      "type": "documentation",
+      "severity": "low",
+      "line": "1-8",
+      "description": "Good header comment, but missing usage examples unlike other scripts",
+      "recommendation": "Add usage() function like bootstrap.sh and snapshot.sh for consistency"
+    },
+    {
+      "script": "ALL",
+      "type": "missing_validation",
+      "severity": "low",
+      "line": "various",
+      "description": "No validation that script is being run from expected location (inside dotfiles repo)",
+      "recommendation": "Add check for .git directory or known file to validate execution context"
+    }
+  ],
+  "shared_logic_candidates": [
+    {
+      "function_name": "color_constants",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:12-20",
+        "health-check.sh:12-18",
+        "snapshot.sh:12-18",
+        "install.sh:13-20"
+      ],
+      "lines_duplicated": 36,
+      "extraction_type": "readonly variables",
+      "description": "9 color constants (RED, GREEN, YELLOW, BLUE, CYAN, MAGENTA, BOLD, NC) identical across all scripts"
+    },
+    {
+      "function_name": "print_success",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:46",
+        "health-check.sh:54-57",
+        "snapshot.sh:56",
+        "install.sh:37-39"
+      ],
+      "lines_duplicated": 4,
+      "extraction_type": "function",
+      "description": "Print success message with green checkmark"
+    },
+    {
+      "function_name": "print_error",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:47",
+        "health-check.sh:59-62",
+        "snapshot.sh:57",
+        "install.sh:41-43"
+      ],
+      "lines_duplicated": 4,
+      "extraction_type": "function",
+      "description": "Print error message with red X"
+    },
+    {
+      "function_name": "print_warning",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:48",
+        "health-check.sh:64-67",
+        "snapshot.sh:58",
+        "install.sh:45-47"
+      ],
+      "lines_duplicated": 4,
+      "extraction_type": "function",
+      "description": "Print warning message with yellow triangle"
+    },
+    {
+      "function_name": "print_info",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:49",
+        "snapshot.sh:59",
+        "install.sh:49-51"
+      ],
+      "lines_duplicated": 3,
+      "extraction_type": "function",
+      "description": "Print info message with blue icon"
+    },
+    {
+      "function_name": "print_step",
+      "priority": 1,
+      "current_locations": [
+        "bootstrap.sh:50",
+        "snapshot.sh:60",
+        "install.sh:53-55"
+      ],
+      "lines_duplicated": 3,
+      "extraction_type": "function",
+      "description": "Print section header with arrow"
+    },
+    {
+      "function_name": "detect_os",
+      "priority": 2,
+      "current_locations": [
+        "bootstrap.sh:65-92",
+        "health-check.sh:21-28",
+        "snapshot.sh:21-28",
+        "install.sh:61-78"
+      ],
+      "lines_duplicated": 60,
+      "extraction_type": "function",
+      "description": "OS detection with optional distro detection. bootstrap.sh has most complete version"
+    },
+    {
+      "function_name": "calculate_dotfiles_dir",
+      "priority": 2,
+      "current_locations": [
+        "bootstrap.sh:23",
+        "health-check.sh:31",
+        "install.sh:23"
+      ],
+      "lines_duplicated": 3,
+      "extraction_type": "function",
+      "description": "Calculate absolute path to dotfiles directory from script location"
+    },
+    {
+      "function_name": "portable_realpath",
+      "priority": 3,
+      "current_locations": ["health-check.sh:143-148"],
+      "lines_duplicated": 6,
+      "extraction_type": "function",
+      "description": "Cross-platform realpath implementation (Linux readlink -f vs macOS python3)"
+    },
+    {
+      "function_name": "portable_stat_time",
+      "priority": 3,
+      "current_locations": ["snapshot.sh:168-174"],
+      "lines_duplicated": 7,
+      "extraction_type": "function",
+      "description": "Get file modification time portably (GNU stat vs BSD stat)"
+    },
+    {
+      "function_name": "print_header",
+      "priority": 3,
+      "current_locations": [
+        "bootstrap.sh:40-44",
+        "health-check.sh:43-47",
+        "snapshot.sh:50-54",
+        "install.sh:31-35"
+      ],
+      "lines_duplicated": 20,
+      "extraction_type": "function",
+      "description": "Print fancy ASCII box header with different titles. Could be parameterized"
+    },
+    {
+      "function_name": "confirm",
+      "priority": 4,
+      "current_locations": ["bootstrap.sh:52-59"],
+      "lines_duplicated": 8,
+      "extraction_type": "function",
+      "description": "Interactive yes/no confirmation with INTERACTIVE mode check. Reusable for other scripts"
+    }
+  ],
+  "refactoring_priorities": [
+    "1. Create lib.sh with all shared utility functions and color constants (eliminates ~100 lines of duplication)",
+    "2. Fix install.sh error handling: change 'set -e' to 'set -euo pipefail'",
+    "3. Make install.sh readonly variables consistent with other scripts",
+    "4. Extract OS detection to lib.sh using bootstrap.sh's complete version as base",
+    "5. Create portable utility functions (portable_realpath, portable_stat_time) in lib.sh",
+    "6. Standardize DOTFILES_DIR calculation across all scripts",
+    "7. Add usage() function to health-check.sh for consistency",
+    "8. Add repository context validation to all scripts (check for .git directory)",
+    "9. Consider creating shared configuration file for package lists and metadata",
+    "10. Add comprehensive error handling for edge cases (corrupted .gitmodules, missing directories)"
+  ],
+  "proposed_lib_structure": {
+    "file": "scripts/lib.sh",
+    "sections": [
+      {
+        "name": "Color Constants",
+        "content": "readonly RED, GREEN, YELLOW, BLUE, CYAN, MAGENTA, BOLD, NC"
+      },
+      {
+        "name": "Print Functions",
+        "content": "print_success(), print_error(), print_warning(), print_info(), print_step(), print_header(title)"
+      },
+      {
+        "name": "OS Detection",
+        "content": "detect_os() - sets OS and DISTRO variables, based on bootstrap.sh version"
+      },
+      {
+        "name": "Path Functions",
+        "content": "get_dotfiles_dir() - returns absolute dotfiles path"
+      },
+      {
+        "name": "Portable Utilities",
+        "content": "portable_realpath(path), portable_stat_time(file), portable_get_version(command)"
+      },
+      {
+        "name": "Interactive Functions",
+        "content": "confirm(message) - yes/no prompts with INTERACTIVE mode support"
+      },
+      {
+        "name": "Validation Functions",
+        "content": "validate_in_dotfiles_repo(), validate_command(cmd)"
+      }
+    ],
+    "estimated_reduction": "~120-150 lines of duplicated code eliminated"
+  },
+  "metrics": {
+    "total_lines": 1556,
+    "duplicated_lines": 142,
+    "duplication_percentage": 9.1,
+    "functions_per_script": {
+      "bootstrap.sh": 14,
+      "health-check.sh": 11,
+      "snapshot.sh": 7,
+      "install.sh": 10
+    },
+    "average_function_length": 18,
+    "scripts_using_set_euo_pipefail": 3,
+    "scripts_using_readonly": 4,
+    "cross_platform_compatibility": "excellent"
+  },
+  "recommendations": {
+    "immediate_actions": [
+      "Create scripts/lib.sh with shared functions",
+      "Fix install.sh error handling (set -euo pipefail)",
+      "Update all scripts to source lib.sh"
+    ],
+    "short_term": [
+      "Add usage() to health-check.sh",
+      "Standardize variable declarations (readonly)",
+      "Add repository validation to all scripts"
+    ],
+    "long_term": [
+      "Consider creating scripts/config.sh for shared constants (package lists, paths)",
+      "Add unit tests for lib.sh functions",
+      "Consider adding --dry-run mode to all scripts for safety"
+    ]
+  },
+  "code_examples": {
+    "lib_sh_structure": {
+      "description": "Proposed lib.sh structure",
+      "code": "#!/usr/bin/env bash\n# Common library for dotfiles scripts\n\n# Color Constants\nreadonly RED='\\033[0;31m'\nreadonly GREEN='\\033[0;32m'\n# ... etc\n\n# Print Functions\nprint_success() { echo -e \"${GREEN}✓${NC} $1\"; }\n# ... etc\n\n# OS Detection\ndetect_os() {\n  case \"$(uname -s)\" in\n    Linux*) OS=\"Linux\" ;;\n    Darwin*) OS=\"macOS\" ;;\n  esac\n  # distro detection if Linux...\n}\n\n# Portable utilities\nportable_realpath() {\n  local path=\"$1\"\n  if [[ \"$OS\" == \"macOS\" ]]; then\n    python3 -c \"import os; print(os.path.realpath('$path'))\"\n  else\n    readlink -f \"$path\"\n  fi\n}"
+    },
+    "script_sourcing_pattern": {
+      "description": "How scripts should source lib.sh",
+      "code": "#!/usr/bin/env bash\n\nset -euo pipefail\n\n# Source common library\nSCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\nsource \"$SCRIPT_DIR/lib.sh\"\n\n# Script-specific code..."
+    }
+  },
+  "security_notes": [
+    "All scripts properly quote variables to prevent word splitting - GOOD",
+    "No usage of eval or unquoted command substitution - GOOD",
+    "All scripts use absolute paths via $HOME and calculated DOTFILES_DIR - GOOD",
+    "sudo usage is minimal and only where necessary (bootstrap.sh package installation) - GOOD",
+    "No hardcoded credentials or sensitive data - GOOD"
+  ]
+}
