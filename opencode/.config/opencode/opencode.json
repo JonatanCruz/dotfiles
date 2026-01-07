@@ -80,43 +80,102 @@
   // - refactor.md: Intelligent code refactoring
 
   // ============================================================================
-  // PERMISSIONS
+  // PERMISSIONS - MINIMAL PROMPTS FOR REMOTE SERVER
   // ============================================================================
+  // Configuración optimizada para servidor remoto:
+  // - Lectura/escritura/edición: AUTOMÁTICA (sin permisos)
+  // - Comandos destructivos: REQUIEREN CONFIRMACIÓN
+  // - Archivos sensibles: BLOQUEADOS
 
   "permission": {
     "*": "allow",
     "bash": {
       "*": "allow",
-      "rm -rf *": "ask",
+      // Comandos destructivos de archivos - REQUIEREN CONFIRMACIÓN
+      "rm *": "ask",
+      "rm -f *": "ask",
       "rm -r *": "ask",
+      "rm -rf *": "ask",
+      "rmdir *": "ask",
+      "unlink *": "ask",
+      "shred *": "ask",
+      "dd *": "ask",
+      // Git destructivo - REQUIEREN CONFIRMACIÓN
+      "git push --force*": "ask",
+      "git push -f*": "ask",
+      "git reset --hard*": "ask",
+      "git clean -fd*": "ask",
+      "git branch -D*": "ask",
+      // Sistema - REQUIEREN CONFIRMACIÓN
       "sudo *": "ask",
-      "git push --force": "ask",
-      "git push -f": "ask",
-      "npm publish": "ask",
+      "chmod -R *": "ask",
+      "chown -R *": "ask",
+      // Package managers - REQUIEREN CONFIRMACIÓN
+      "npm publish*": "ask",
+      "yarn publish*": "ask",
+      "pnpm publish*": "ask",
+      // Docker destructivo - REQUIEREN CONFIRMACIÓN
       "docker rm *": "ask",
-      "docker rmi *": "ask"
+      "docker rmi *": "ask",
+      "docker system prune*": "ask",
+      "docker volume rm*": "ask",
+      // Comandos seguros - AUTOMÁTICOS
+      "git status": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git branch": "allow",
+      "git add*": "allow",
+      "git commit*": "allow",
+      "git push": "allow",
+      "git pull": "allow",
+      "git fetch*": "allow",
+      "npm install*": "allow",
+      "npm run*": "allow",
+      "npm test*": "allow",
+      "docker ps*": "allow",
+      "docker logs*": "allow",
+      "docker exec*": "allow"
     },
+    // Operaciones de archivos - AUTOMÁTICAS (sin permisos)
     "edit": "allow",
+    "write": "allow",
     "read": {
       "*": "allow",
+      // Archivos sensibles - BLOQUEADOS
       "*.env": "deny",
       "*.env.*": "deny",
       "*.env.local": "deny",
       "*.env.production": "deny",
+      "*.env.development": "deny",
       ".env": "deny",
+      ".env.*": "deny",
       "*.key": "deny",
       "*.pem": "deny",
+      "*.crt": "deny",
+      "*.p12": "deny",
+      "*.pfx": "deny",
       "id_rsa": "deny",
-      "*.env.example": "allow"
+      "id_rsa.*": "deny",
+      "id_ed25519": "deny",
+      "*.asc": "deny",
+      "*.gpg": "deny",
+      "credentials*": "deny",
+      "secrets*": "deny",
+      // Archivos de ejemplo - PERMITIDOS
+      "*.env.example": "allow",
+      ".env.example": "allow"
     },
-    "write": "allow",
+    // Herramientas de búsqueda - AUTOMÁTICAS
     "glob": "allow",
     "grep": "allow",
     "list": "allow",
+    // Task management - AUTOMÁTICO
     "task": "allow",
     "todoread": "allow",
     "todowrite": "allow",
+    // Web - AUTOMÁTICO
     "webfetch": "allow",
+    // Seguridad
     "external_directory": "ask",
     "doom_loop": "ask"
   },
