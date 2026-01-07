@@ -7,75 +7,14 @@
 # Soporta Linux y macOS
 # ==============================================================================
 
-set -e  # Exit on error
-
-# Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m' # No Color
+# Source shared library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib.sh
+source "$SCRIPT_DIR/scripts/lib.sh"
 
 # Variables globales
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OS=""
+readonly DOTFILES_DIR="$SCRIPT_DIR"
 SELECTED_PACKAGES=()
-
-# ==============================================================================
-# FUNCIONES DE UTILIDAD
-# ==============================================================================
-
-print_header() {
-    echo -e "\n${CYAN}${BOLD}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}${BOLD}║${NC}  ${MAGENTA}${BOLD}DOTFILES INSTALLER${NC}                                          ${CYAN}${BOLD}║${NC}"
-    echo -e "${CYAN}${BOLD}╚════════════════════════════════════════════════════════════════╝${NC}\n"
-}
-
-print_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}✗${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠${NC}  $1"
-}
-
-print_info() {
-    echo -e "${BLUE}ℹ${NC}  $1"
-}
-
-print_step() {
-    echo -e "\n${BOLD}${BLUE}→${NC} ${BOLD}$1${NC}"
-}
-
-# ==============================================================================
-# DETECCIÓN DE SISTEMA OPERATIVO
-# ==============================================================================
-
-detect_os() {
-    print_step "Detectando sistema operativo..."
-
-    case "$(uname -s)" in
-        Linux*)
-            OS="Linux"
-            print_success "Sistema detectado: Linux"
-            ;;
-        Darwin*)
-            OS="macOS"
-            print_success "Sistema detectado: macOS"
-            ;;
-        *)
-            print_error "Sistema operativo no soportado: $(uname -s)"
-            exit 1
-            ;;
-    esac
-}
 
 # ==============================================================================
 # VERIFICACIÓN DE DEPENDENCIAS
@@ -87,12 +26,12 @@ check_dependencies() {
     local missing_deps=()
 
     # Verificar stow
-    if ! command -v stow &> /dev/null; then
+    if ! check_command stow; then
         missing_deps+=("stow")
     fi
 
     # Verificar git
-    if ! command -v git &> /dev/null; then
+    if ! check_command git; then
         missing_deps+=("git")
     fi
 
@@ -104,11 +43,11 @@ check_dependencies() {
     print_warning "Faltan las siguientes dependencias: ${missing_deps[*]}"
     echo -e "\n${BOLD}Instrucciones de instalación:${NC}"
 
-    if [[ "$OS" == "Linux" ]]; then
+    if is_linux; then
         echo -e "  Ubuntu/Debian: ${CYAN}sudo apt install ${missing_deps[*]}${NC}"
         echo -e "  Fedora/RHEL:   ${CYAN}sudo dnf install ${missing_deps[*]}${NC}"
         echo -e "  Arch:          ${CYAN}sudo pacman -S ${missing_deps[*]}${NC}"
-    elif [[ "$OS" == "macOS" ]]; then
+    elif is_macos; then
         echo -e "  Homebrew:      ${CYAN}brew install ${missing_deps[*]}${NC}"
     fi
 
@@ -177,7 +116,7 @@ show_package_menu() {
     echo ""
 
     while true; do
-        read -p "Selecciona opción: " selection
+        read -r -p "Selecciona opción: " selection
 
         case "$selection" in
             a|A)
@@ -298,7 +237,10 @@ check_conflicts() {
 install_packages() {
     print_step "Instalando paquetes con GNU Stow..."
 
-    cd "$DOTFILES_DIR"
+    cd "$DOTFILES_DIR" || {
+        print_error "No se pudo acceder al directorio: $DOTFILES_DIR"
+        exit 1
+    }
 
     local success_count=0
     local fail_count=0
@@ -391,9 +333,11 @@ post_install_notes() {
 # ==============================================================================
 
 main() {
-    print_header
+    print_header "DOTFILES INSTALLER"
 
-    detect_os
+    print_step "Detectando sistema operativo..."
+    print_success "Sistema detectado: $OS"
+    
     check_dependencies
     show_package_menu
 
