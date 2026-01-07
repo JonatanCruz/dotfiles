@@ -68,4 +68,4 @@ export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
 
 # opencode
-export PATH=/Users/jonatan/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
