@@ -1,14 +1,41 @@
 -- ===================================================================
 -- nvim-dap: Debug Adapter Protocol para Neovim
 -- ===================================================================
--- Plugin principal de debugging con configuraciones para Node.js/TS
+-- Plugin principal de debugging con configuraciones para múltiples lenguajes
 -- Lazy load: se activa con keybindings bajo <leader>d
+--
+-- FUSIÓN COMPLETA: debug/dap.lua + tools/dap.lua
+-- Incluye: DAP Core, DAP UI, Virtual Text, Mason Integration
+-- Lenguajes: Node.js, TypeScript, React, Python
 
 return {
   -- Plugin principal de DAP
   {
     "mfussenegger/nvim-dap",
     dependencies = {
+      -- UI visual para debugging
+      {
+        "rcarriga/nvim-dap-ui",
+        dependencies = { "nvim-neotest/nvim-nio" },
+        opts = {},
+        config = function(_, opts)
+          local dap = require("dap")
+          local dapui = require("dapui")
+          dapui.setup(opts)
+          
+          -- Auto-abrir/cerrar UI en eventos de debug
+          dap.listeners.after.event_initialized["dapui_config"] = function()
+            dapui.open({})
+          end
+          dap.listeners.before.event_terminated["dapui_config"] = function()
+            dapui.close({})
+          end
+          dap.listeners.before.event_exited["dapui_config"] = function()
+            dapui.close({})
+          end
+        end,
+      },
+      
       -- Virtual text para mostrar valores inline
       {
         "theHamsta/nvim-dap-virtual-text",
@@ -24,11 +51,31 @@ return {
           virt_text_pos = "eol", -- Posición: 'eol' | 'overlay' | 'right_align'
         },
       },
+      
+      -- Mason integration para auto-instalación de adapters
+      {
+        "jay-babu/mason-nvim-dap.nvim",
+        dependencies = { "mason.nvim" },
+        cmd = { "DapInstall", "DapUninstall" },
+        opts = {
+          automatic_installation = true,
+          handlers = {},
+          ensure_installed = {
+            "debugpy",           -- Python debugging
+            "codelldb",          -- Rust/C/C++ debugging
+            "js-debug-adapter",  -- JavaScript/TypeScript debugging
+          },
+        },
+      },
+      
       -- Dependencia requerida
       "nvim-neotest/nvim-nio",
     },
+    
     keys = {
-      -- Toggle breakpoint
+      -- ===============================================================
+      -- BREAKPOINTS
+      -- ===============================================================
       {
         "<leader>db",
         function()
@@ -36,7 +83,6 @@ return {
         end,
         desc = "🔴 Toggle Breakpoint",
       },
-      -- Breakpoint condicional
       {
         "<leader>dB",
         function()
@@ -44,7 +90,10 @@ return {
         end,
         desc = "🟡 Conditional Breakpoint",
       },
-      -- Continue/Start
+      
+      -- ===============================================================
+      -- CONTROL DE EJECUCIÓN
+      -- ===============================================================
       {
         "<leader>dc",
         function()
@@ -52,31 +101,34 @@ return {
         end,
         desc = "▶️  Continue/Start",
       },
-      -- Step into
       {
-        "<leader>di",
+        "<leader>da",
         function()
-          require("dap").step_into()
+          require("dap").continue({ before = get_args })
         end,
-        desc = "⬇️  Step Into",
+        desc = "▶️  Continue with Args",
       },
-      -- Step over
       {
-        "<leader>do",
+        "<leader>dC",
         function()
-          require("dap").step_over()
+          require("dap").run_to_cursor()
         end,
-        desc = "➡️  Step Over",
+        desc = "⏭️  Run to Cursor",
       },
-      -- Step out
       {
-        "<leader>dO",
+        "<leader>dl",
         function()
-          require("dap").step_out()
+          require("dap").run_last()
         end,
-        desc = "⬆️  Step Out",
+        desc = "🔁 Run Last",
       },
-      -- Terminate
+      {
+        "<leader>dp",
+        function()
+          require("dap").pause()
+        end,
+        desc = "⏸️  Pause",
+      },
       {
         "<leader>dt",
         function()
@@ -84,7 +136,67 @@ return {
         end,
         desc = "⏹️  Terminate",
       },
-      -- REPL
+      
+      -- ===============================================================
+      -- STEPPING
+      -- ===============================================================
+      {
+        "<leader>di",
+        function()
+          require("dap").step_into()
+        end,
+        desc = "⬇️  Step Into",
+      },
+      {
+        "<leader>dO",
+        function()
+          require("dap").step_over()
+        end,
+        desc = "➡️  Step Over",
+      },
+      {
+        "<leader>do",
+        function()
+          require("dap").step_out()
+        end,
+        desc = "⬆️  Step Out",
+      },
+      {
+        "<leader>dg",
+        function()
+          require("dap").goto_()
+        end,
+        desc = "🎯 Go to Line (no execute)",
+      },
+      
+      -- ===============================================================
+      -- STACK NAVIGATION
+      -- ===============================================================
+      {
+        "<leader>dk",
+        function()
+          require("dap").up()
+        end,
+        desc = "⬆️  Stack Up",
+      },
+      {
+        "<leader>dj",
+        function()
+          require("dap").down()
+        end,
+        desc = "⬇️  Stack Down",
+      },
+      
+      -- ===============================================================
+      -- UI & INSPECTION
+      -- ===============================================================
+      {
+        "<leader>du",
+        function()
+          require("dapui").toggle({})
+        end,
+        desc = "🖥️  Toggle DAP UI",
+      },
       {
         "<leader>dr",
         function()
@@ -92,16 +204,30 @@ return {
         end,
         desc = "💬 Toggle REPL",
       },
-      -- Evaluate expression
       {
         "<leader>de",
         function()
-          require("dap.ui.widgets").hover()
+          require("dapui").eval()
         end,
         mode = { "n", "v" },
         desc = "🔍 Eval Expression",
       },
+      {
+        "<leader>dw",
+        function()
+          require("dap.ui.widgets").hover()
+        end,
+        desc = "🔍 Hover Widgets",
+      },
+      {
+        "<leader>ds",
+        function()
+          require("dap").session()
+        end,
+        desc = "📋 Session Info",
+      },
     },
+    
     config = function()
       local dap = require("dap")
 
@@ -169,6 +295,13 @@ return {
         },
       }
 
+      -- Python (debugpy)
+      dap.adapters.python = {
+        type = "executable",
+        command = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python",
+        args = { "-m", "debugpy.adapter" },
+      }
+
       -- ===============================================================
       -- CONFIGURACIONES DE DEBUG
       -- ===============================================================
@@ -210,8 +343,21 @@ return {
       -- JavaScript React (JSX)
       dap.configurations.javascriptreact = dap.configurations.typescriptreact
 
+      -- Python
+      dap.configurations.python = {
+        {
+          type = "python",
+          request = "launch",
+          name = "🐍 Launch Python File",
+          program = "${file}",
+          pythonPath = function()
+            return "python3"
+          end,
+        },
+      }
+
       -- ===============================================================
-      -- AUTOCOMANDOS
+      -- AUTOCOMANDOS Y LISTENERS
       -- ===============================================================
 
       -- Notificaciones con nvim-notify (si está disponible)
