@@ -9,7 +9,7 @@ OpenCode AI coding agent configuration managed with GNU Stow.
 - **Agents**: Build, Plan, Review with specialized configs
 - **MCP Servers**: Context7, Serena, Playwright
 - **Formatters**: Prettier, Biome, Ruff, rustfmt, gofmt
-- **LSP**: TypeScript, Python, Rust, Go, ESLint
+- **LSP**: 30+ integrated servers with auto-detection (TypeScript, Python, Rust, Go, etc.)
 - **Permissions**: Granular security with sensitive file protection
 - **SuperClaude**: Enabled via `~/.claude/CLAUDE.md`
 
@@ -34,6 +34,7 @@ For complete documentation, see:
 📖 **[OpenCode Guide](../docs/guides/opencode.md)**
 
 Complete configuration guide including:
+
 - Professional configuration features
 - Models and providers setup
 - Agent system (Build, Plan, Review)
@@ -48,6 +49,7 @@ Complete configuration guide including:
 🎯 **[Best Practices & Recommendations](../docs/guides/opencode-best-practices.md)**
 
 Professional guidelines for production use:
+
 - Configuration management strategies
 - Model selection and optimization
 - Agent usage patterns
@@ -80,6 +82,7 @@ opencode
 ## Custom Agents & Commands
 
 See [AGENTS_COMMANDS.md](./AGENTS_COMMANDS.md) for details on:
+
 - **Backend Architect**: Backend systems design
 - **Security Engineer**: Security audits and compliance
 - **/implement**: Feature implementation
