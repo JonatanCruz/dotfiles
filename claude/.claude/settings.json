@@ -4,8 +4,6 @@
   "includeCoAuthoredBy": true,
   "permissions": {
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
       "Read(./secrets/**)",
       "Read(./**/*.key)",
       "Read(./**/*.pem)",
@@ -13,11 +11,13 @@
       "Read(./**/*password*)",
       "Read(./.aws/**)",
       "Read(./.ssh/**)",
-      "Write(./.env)",
-      "Write(./.env.*)",
       "Write(./secrets/**)"
     ],
     "ask": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Write(./.env)",
+      "Write(./.env.*)",
       "Bash(rm :*)",
       "Bash(git push --force:*)",
       "Bash(git reset --hard:*)",
@@ -25,7 +25,6 @@
       "Bash(brew uninstall:*)"
     ]
   },
-  "model": "sonnet",
   "enableAllProjectMcpServers": true,
   "statusLine": {
     "type": "command",
@@ -57,7 +56,9 @@
     "stripe@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true
+    "lua-lsp@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": false,
+    "kotlin-lsp@claude-plugins-official": true
   },
   "outputStyle": "catppuccin-dev",
   "alwaysThinkingEnabled": true

@@ -21,6 +21,21 @@ shell-snapshots/
 statsig/
 todos/
 downloads/
+cache/
+plans/
+telemetry/
+paste-cache/
+
+# Ignorar credenciales y archivos sensibles
+.credentials.json
+*.key
+*.pem
+
+# Ignorar plugins (se regeneran automáticamente)
+plugins/
+
+# Ignorar estadísticas
+stats-cache.json
 
 # Ignorar backups de SuperClaude
 backups/
