@@ -1,0 +1,459 @@
+# 🚀 Configuración Rápida - Ubuntu 24.04 LTS
+
+Guía paso a paso para configurar completamente tu entorno de desarrollo en Ubuntu 24.04.
+
+## ⚡ Opción 1: Instalación Automática (Recomendada)
+
+### Una sola línea - Bootstrap completo
+
+```bash
+cd ~/dotfiles && ./scripts/bootstrap.sh -y
+```
+
+Esto instalará:
+- ✅ Todas las dependencias del sistema
+- ✅ Herramientas CLI modernas
+- ✅ Configuraciones con Stow
+- ✅ Submodules de Git
+- ✅ Zsh como shell por defecto
+
+**Tiempo estimado:** 5-10 minutos
+
+---
+
+## 🎯 Opción 2: Instalación Paso a Paso (Control Total)
+
+### Paso 1: Instalar Dependencias del Sistema
+
+```bash
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar dependencias básicas
+sudo apt install -y \
+    git \
+    stow \
+    curl \
+    wget \
+    build-essential \
+    software-properties-common
+```
+
+### Paso 2: Instalar Zsh y Starship
+
+```bash
+# Instalar Zsh
+sudo apt install -y zsh
+
+# Instalar Starship (prompt)
+curl -sS https://starship.rs/install.sh | sh
+
+# Verificar instalación
+zsh --version
+starship --version
+```
+
+### Paso 3: Instalar Neovim (Última Versión)
+
+```bash
+# Opción A: AppImage (recomendado - última versión)
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x nvim.appimage
+sudo mv nvim.appimage /usr/local/bin/nvim
+
+# Opción B: Desde repositorio (puede ser versión antigua)
+sudo apt install -y neovim
+
+# Verificar versión (debe ser >= 0.9.0)
+nvim --version
+```
+
+### Paso 4: Instalar Tmux
+
+```bash
+sudo apt install -y tmux
+
+# Verificar instalación
+tmux -V
+```
+
+### Paso 5: Instalar Herramientas CLI Modernas
+
+```bash
+# ripgrep (búsqueda rápida)
+sudo apt install -y ripgrep
+
+# fd (find alternativo)
+sudo apt install -y fd-find
+
+# bat (cat con syntax highlighting)
+sudo apt install -y bat
+
+# fzf (fuzzy finder)
+sudo apt install -y fzf
+
+# eza (ls moderno)
+# Nota: eza requiere añadir repositorio
+sudo mkdir -p /etc/apt/keyrings
+wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+sudo apt update
+sudo apt install -y eza
+
+# zoxide (navegación inteligente de directorios)
+curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+```
+
+### Paso 6: Instalar Yazi (File Manager)
+
+```bash
+# Descargar última versión
+curl -LO https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf yazi-x86_64-unknown-linux-gnu.tar.gz
+sudo mv yazi-x86_64-unknown-linux-gnu/yazi /usr/local/bin/
+rm -rf yazi-x86_64-unknown-linux-gnu*
+
+# Verificar instalación
+yazi --version
+```
+
+### Paso 7: Instalar Node.js y Python (para LSP servers)
+
+```bash
+# Node.js (vía NodeSource)
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Python 3 y pip (generalmente ya viene instalado)
+sudo apt install -y python3 python3-pip python3-venv
+
+# Verificar instalaciones
+node --version
+npm --version
+python3 --version
+```
+
+### Paso 8: Instalar Fuente Nerd Font (IMPORTANTE)
+
+```bash
+# Crear directorio de fuentes
+mkdir -p ~/.local/share/fonts
+
+# Descargar JetBrainsMono Nerd Font
+cd ~/.local/share/fonts
+wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
+unzip JetBrainsMono.zip
+rm JetBrainsMono.zip
+
+# Actualizar cache de fuentes
+fc-cache -fv
+
+# Volver al directorio de dotfiles
+cd ~/dotfiles
+```
+
+**⚠️ IMPORTANTE:** Configura tu terminal para usar "JetBrainsMono Nerd Font" o tendrás símbolos rotos.
+
+### Paso 9: Inicializar Submodules de Git
+
+```bash
+cd ~/dotfiles
+
+# Inicializar plugins de Zsh
+git submodule update --init --recursive
+```
+
+### Paso 10: Aplicar Configuraciones con Stow
+
+```bash
+cd ~/dotfiles
+
+# Opción A: Usar el instalador interactivo
+./install.sh
+
+# Opción B: Instalar todo manualmente
+stow nvim
+stow zsh
+stow zsh-plugins
+stow tmux
+stow starship
+stow yazi
+stow docker
+stow claude
+stow git
+```
+
+### Paso 11: Configurar Zsh como Shell por Defecto
+
+```bash
+# Añadir zsh a shells permitidas (si no está)
+if ! grep -q "$(which zsh)" /etc/shells; then
+    echo "$(which zsh)" | sudo tee -a /etc/shells
+fi
+
+# Cambiar shell por defecto
+chsh -s $(which zsh)
+
+# Cerrar sesión y volver a iniciar
+# O ejecutar: exec zsh
+```
+
+### Paso 12: Instalar TPM (Tmux Plugin Manager)
+
+```bash
+# Clonar TPM
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+# Iniciar tmux
+tmux
+
+# Dentro de tmux, presionar: Ctrl+s (prefix) + Shift+I
+# Esto instalará todos los plugins definidos en .tmux.conf
+```
+
+### Paso 13: Configurar Neovim
+
+```bash
+# Abrir Neovim (primera vez)
+nvim
+
+# lazy.nvim se instalará automáticamente
+# Los plugins comenzarán a instalarse
+# Espera a que termine (1-2 minutos)
+
+# Comandos útiles en Neovim:
+# :Lazy sync      - Sincronizar plugins
+# :Mason          - Instalar LSP servers
+# :checkhealth    - Verificar salud de la configuración
+```
+
+### Paso 14: Instalar LazyGit (opcional pero recomendado)
+
+```bash
+# Añadir repositorio
+LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+tar xf lazygit.tar.gz lazygit
+sudo install lazygit /usr/local/bin
+rm lazygit lazygit.tar.gz
+
+# Verificar
+lazygit --version
+```
+
+### Paso 15: Verificar Instalación
+
+```bash
+# Ejecutar health check
+cd ~/dotfiles
+./scripts/health-check.sh
+```
+
+---
+
+## 🔧 Post-Instalación
+
+### Configurar Git
+
+Edita tu configuración de Git:
+
+```bash
+nvim ~/.config/git/config
+```
+
+Añade tu información:
+
+```ini
+[user]
+    name = Tu Nombre
+    email = tu@email.com
+
+[github]
+    user = tu-usuario
+```
+
+### Recargar Configuración
+
+```bash
+# Reiniciar shell
+exec zsh
+
+# O cerrar sesión y volver a iniciar sesión
+```
+
+### Configurar Terminal
+
+**Si usas GNOME Terminal o Tilix:**
+
+1. Abrir Preferencias → Perfiles → Editar perfil actual
+2. Fuente: "JetBrainsMono Nerd Font" (tamaño 11-12)
+3. Colores: Personalizado con tema Catppuccin Mocha (opcional)
+
+---
+
+## 🎨 Temas y Colores
+
+Tu configuración usa **Catppuccin Mocha** (no Dracula):
+
+- Neovim: Tema aplicado automáticamente
+- Tmux: Plugin catppuccin/tmux instalado
+- Starship: Configuración en `~/.config/starship.toml`
+
+---
+
+## ⌨️ Atajos de Teclado Esenciales
+
+### Tmux (Prefix: Ctrl+s)
+
+| Atajo | Acción |
+|-------|--------|
+| `Ctrl+s` + `\|` | Split horizontal |
+| `Ctrl+s` + `-` | Split vertical |
+| `Ctrl+s` + `h/j/k/l` | Navegar entre paneles |
+| `Ctrl+s` + `r` | Recargar configuración |
+
+### Neovim (Leader: Espacio)
+
+| Atajo | Acción |
+|-------|--------|
+| `<Space>w` | Guardar archivo |
+| `<Space>q` | Salir |
+| `<Space>e` | Explorador de archivos |
+| `<Space>ff` | Buscar archivos |
+| `<Space>fg` | Buscar texto en proyecto |
+| `<Space>gg` | Abrir LazyGit |
+| `gd` | Ir a definición |
+| `K` | Mostrar documentación |
+
+---
+
+## 🐛 Solución de Problemas Comunes
+
+### Símbolos rotos en terminal
+
+**Problema:** Ves cuadrados � o símbolos extraños
+
+**Solución:**
+```bash
+# Instalar Nerd Font (ver Paso 8)
+# Configurar terminal para usar JetBrainsMono Nerd Font
+```
+
+### Neovim no carga plugins
+
+**Problema:** Neovim se abre sin colores ni plugins
+
+**Solución:**
+```bash
+# Limpiar cache
+rm -rf ~/.local/share/nvim ~/.cache/nvim
+
+# Abrir Neovim y dejar que reinstale
+nvim
+:Lazy sync
+```
+
+### Tmux plugins no se instalan
+
+**Problema:** `Ctrl+s + I` no hace nada
+
+**Solución:**
+```bash
+# Verificar que TPM está instalado
+ls ~/.tmux/plugins/tpm
+
+# Si no existe, instalarlo
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+# Reiniciar tmux
+tmux kill-server
+tmux
+```
+
+### Zsh no es el shell por defecto
+
+**Problema:** Al abrir terminal sigue usando bash
+
+**Solución:**
+```bash
+# Verificar shell actual
+echo $SHELL
+
+# Cambiar a zsh
+chsh -s $(which zsh)
+
+# Cerrar sesión completamente y volver a iniciar
+```
+
+### Comandos como `bat` o `fd` no funcionan
+
+**Problema:** Ubuntu instala como `batcat` y `fdfind`
+
+**Solución:**
+```bash
+# Crear alias en .zshrc (ya debería estar configurado)
+# Si no, añade manualmente:
+echo 'alias bat="batcat"' >> ~/.zshrc
+echo 'alias fd="fdfind"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+---
+
+## 📊 Verificación Final
+
+Ejecuta estos comandos para verificar que todo está instalado:
+
+```bash
+# Verificar versiones
+zsh --version          # >= 5.8
+nvim --version         # >= 0.9.0
+tmux -V                # >= 3.0
+starship --version     # >= 1.0
+git --version          # >= 2.0
+node --version         # >= 18.0
+python3 --version      # >= 3.10
+
+# Verificar herramientas CLI
+which eza ripgrep bat fd fzf zoxide yazi lazygit
+
+# Verificar symlinks
+ls -la ~/.config/nvim     # Debe apuntar a ~/dotfiles/nvim/.config/nvim
+ls -la ~/.config/tmux     # Debe apuntar a ~/dotfiles/tmux/.config/tmux
+
+# Ejecutar health check completo
+cd ~/dotfiles
+./scripts/health-check.sh
+```
+
+---
+
+## 🚀 Siguiente Paso
+
+Una vez todo instalado y verificado:
+
+```bash
+# Reiniciar sesión completa
+# Logout → Login
+
+# Abrir nueva terminal y disfrutar tu entorno configurado!
+```
+
+Tu terminal ahora tendrá:
+- ✅ Prompt Starship con tema Catppuccin
+- ✅ Autosuggestions y syntax highlighting en Zsh
+- ✅ Neovim con LSP, autocompletado, y más
+- ✅ Tmux con plugins y tema
+- ✅ Herramientas CLI modernas
+
+---
+
+## 📚 Recursos Adicionales
+
+- [Documentación completa](../README.md)
+- [Arquitectura del proyecto](ARCHITECTURE.md)
+- [Guías de usuario](guides/)
+- [Referencia de atajos](reference/)
+
+**¿Problemas?** → Consulta [Troubleshooting](reference/troubleshooting.md)

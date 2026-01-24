@@ -4,10 +4,14 @@ Bienvenido al centro de documentación del proyecto Dotfiles. Esta documentació
 
 ## 🗂️ Estructura de Documentación
 
-### 📖 Guías Generales
+### ⚡ Instalación Rápida
 
-- **[Instalación](INSTALL.md)** - Guía completa de instalación y configuración inicial
-- **[Arquitectura](ARCHITECTURE.md)** - Estructura del proyecto y funcionamiento de GNU Stow
+**¿Nuevo usuario? Empieza aquí:**
+
+- **[Quick Setup Ubuntu 24.04](QUICK_SETUP_UBUNTU.md)** - ⚡ Instalación automática optimizada (5-10 min)
+- **[Checklist de Instalación](CHECKLIST_INSTALACION.md)** - ✅ Verificación paso a paso completa
+- **[Guía de Instalación Completa](INSTALL.md)** - 📖 Manual detallado multi-plataforma
+- **[Arquitectura](ARCHITECTURE.md)** - 🏗️ Estructura del proyecto y funcionamiento de GNU Stow
 
 ### 🛠️ Documentación por Servicio
 
@@ -54,6 +58,14 @@ Personalización y configuración avanzada:
 
 Si eres nuevo en este proyecto, te recomendamos seguir este orden:
 
+### Ubuntu 24.04 LTS (Instalación Rápida)
+```bash
+cd ~/dotfiles
+./scripts/quick-setup-ubuntu.sh
+```
+Luego sigue el **[Checklist de Instalación](CHECKLIST_INSTALACION.md)** para verificar todo.
+
+### Otras Plataformas
 1. Lee **[Arquitectura](ARCHITECTURE.md)** para entender cómo funciona el proyecto
 2. Sigue **[Instalación](INSTALL.md)** para configurar tu sistema
 3. Consulta **[Primeros Pasos](guides/getting-started.md)** para comenzar a usar el entorno
@@ -65,4 +77,4 @@ Para contribuir al proyecto, consulta la documentación de desarrollo y las guí
 
 ---
 
-**Última actualización**: 2026-01-06
+**Última actualización**: 2026-01-15

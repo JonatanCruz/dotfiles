@@ -9,6 +9,21 @@
 
 ![Catppuccin Mocha Theme](https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/mocha.png)
 
+## ⚡ Quick Setup - Ubuntu 24.04 LTS
+
+**One-command installation:**
+
+```bash
+cd ~/dotfiles
+./scripts/quick-setup-ubuntu.sh
+```
+
+**What it does:** Installs everything (Neovim, Tmux, Zsh, Starship, CLI tools, fonts) in 5-10 minutes.
+
+**Step-by-step guide:** See [docs/QUICK_SETUP_UBUNTU.md](docs/QUICK_SETUP_UBUNTU.md) and [docs/CHECKLIST_INSTALACION.md](docs/CHECKLIST_INSTALACION.md)
+
+---
+
 ## ✨ Features
 
 - 🎨 **Unified Theme**: Catppuccin Mocha across all tools
@@ -229,9 +244,11 @@ stow -R */  # Restow all packages
 
 **[📖 Documentation Hub](docs/README.md)** - Complete documentation index and navigation
 
-### Core Documentation
-- **[Installation Guide](docs/INSTALL.md)** - Complete setup instructions for Linux and macOS
-- **[Architecture](docs/ARCHITECTURE.md)** - Project structure and GNU Stow management
+### Installation Guides
+- **[Quick Setup Ubuntu 24.04](docs/QUICK_SETUP_UBUNTU.md)** - ⚡ Fast setup guide for Ubuntu
+- **[Installation Checklist](docs/CHECKLIST_INSTALACION.md)** - ✅ Step-by-step verification
+- **[Complete Installation Guide](docs/INSTALL.md)** - 📖 Detailed multi-platform instructions
+- **[Architecture](docs/ARCHITECTURE.md)** - 🏗️ Project structure and GNU Stow management
 
 ### By Category
 - **[Services Documentation](docs/services/)** - Individual service configurations (Neovim, Tmux, Zsh, etc.)
