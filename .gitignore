@@ -13,6 +13,28 @@ docker/.docker/buildx/
 *.cache
 test-results/
 
+# === BINARIES & ARCHIVES ===
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bz2
+*.xz
+
+# Binary executables
+*.exe
+*.dll
+*.so
+*.dylib
+*.AppImage
+
+# Package files
+*.deb
+*.rpm
+*.snap
+
 # === OS FILES ===
 .DS_Store
 Thumbs.db
