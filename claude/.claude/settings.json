@@ -61,5 +61,6 @@
     "kotlin-lsp@claude-plugins-official": true
   },
   "outputStyle": "catppuccin-dev",
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "model": "sonnet"
 }
