@@ -315,5 +315,6 @@ The prefix in `.tmux.conf` is `Ctrl+s`, NOT the traditional `Ctrl+b` mentioned i
 
 1. zsh-autosuggestions
 2. zsh-history-substring-search
-3. zsh-syntax-highlighting (MUST be last)
-4. Starship init (MUST be very last line)
+3. zsh-you-should-use
+4. zsh-syntax-highlighting (MUST be last plugin before tools)
+5. Starship init (MUST be very last line)

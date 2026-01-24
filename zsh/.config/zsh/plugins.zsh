@@ -3,11 +3,11 @@
 # ==============================================================================
 # El orden de carga importa: zsh-syntax-highlighting DEBE SER EL ÚLTIMO
 
-# Plugins de Zsh
+# Plugins de Zsh (orden crítico: syntax-highlighting DEBE ser el último plugin)
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
 source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh  # MUST BE LAST PLUGIN
 
 # Integración de herramientas
 source <(fzf --zsh)              # FZF (keep immediate - essential for interactive use)
