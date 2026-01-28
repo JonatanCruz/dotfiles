@@ -69,3 +69,20 @@ export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
 
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"
+
+# Android SDK - detecta macOS o Linux automáticamente
+if [ "$(uname)" = "Darwin" ]; then
+  # macOS - ubicación estándar de Android Studio
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+else
+  # Linux - ubicación estándar de Android SDK
+  export ANDROID_HOME="$HOME/Android/Sdk"
+fi
+
+# Agregar herramientas de Android al PATH si el SDK existe
+if [ -d "$ANDROID_HOME" ]; then
+  export PATH="$ANDROID_HOME/emulator:$PATH"
+  export PATH="$ANDROID_HOME/platform-tools:$PATH"
+  export PATH="$ANDROID_HOME/tools:$PATH"
+  export PATH="$ANDROID_HOME/tools/bin:$PATH"
+fi
