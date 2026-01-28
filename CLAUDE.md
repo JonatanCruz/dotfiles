@@ -68,7 +68,7 @@ Usa Serena automáticamente cuando el usuario:
 
 ## Repository Overview
 
-This is a **dotfiles repository** for a Linux development environment, managed with **GNU Stow** and Git. The configuration follows the Dracula color scheme throughout, emphasizing keyboard-driven navigation (Vim-style) and transparent backgrounds.
+This is a **dotfiles repository** for a macOS/Linux development environment, managed with **GNU Stow** and Git. The configuration follows the **Catppuccin Mocha** color scheme throughout, emphasizing keyboard-driven navigation (Vim-style) and transparent backgrounds.
 
 ## Architecture
 
@@ -197,7 +197,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 Plugins are organized by function:
 
-- **colorscheme.lua**: Dracula theme with transparency
+- **colorscheme.lua**: Catppuccin Mocha theme with transparency
 - **completion.lua**: nvim-cmp and snippets
 - **editing.lua**: Autopairs, comments, editing utilities
 - **lsp.lua**: Mason, LSP configuration, Treesitter
@@ -270,8 +270,9 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 1. **Vim-style navigation**: All tools use h/j/k/l navigation
 2. **Lazy loading**: Neovim plugins load on-demand for fast startup
 3. **Transparency**: Background set to transparent in Neovim, Tmux
-4. **Dracula theme**: Consistent purple/cyan color scheme
+4. **Catppuccin Mocha theme**: Consistent pastel color scheme (blue: #89b4fa, mauve: #cba6f7, pink: #f5c2e7)
 5. **Modular structure**: Easy to add/remove components independently
+6. **Performance-focused**: Optimized configurations for minimal startup time
 
 ## Tool Ecosystem
 
@@ -318,3 +319,51 @@ The prefix in `.tmux.conf` is `Ctrl+s`, NOT the traditional `Ctrl+b` mentioned i
 3. zsh-you-should-use
 4. zsh-syntax-highlighting (MUST be last plugin before tools)
 5. Starship init (MUST be very last line)
+
+## OpenCode Integration
+
+This dotfiles repository is designed to work seamlessly with OpenCode. To ensure OpenCode adapts to your terminal configuration:
+
+### Recommended OpenCode Configuration
+
+Create or edit `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "system"
+}
+```
+
+The `system` theme ensures OpenCode:
+
+- ✅ Respects terminal transparency and opacity
+- ✅ Uses your Catppuccin Mocha ANSI colors
+- ✅ Maintains visual consistency with Neovim, Tmux, and Starship
+- ✅ Adapts to your terminal's font configuration
+
+### Verify Truecolor Support
+
+Ensure your terminal supports 24-bit color for proper theme rendering:
+
+```bash
+# Check truecolor support
+echo $COLORTERM
+# Should output: truecolor or 24bit
+
+# If not set, add to your shell config
+export COLORTERM=truecolor
+```
+
+### Quick Commands
+
+```bash
+# Change OpenCode theme (inside OpenCode)
+/theme
+
+# Initialize OpenCode for a project
+/init
+
+# Share a conversation
+/share
+```

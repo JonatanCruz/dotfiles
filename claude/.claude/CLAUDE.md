@@ -1,189 +1,87 @@
 # SuperClaude Entry Point
 
-This file serves as the entry point for the SuperClaude framework.
-You can add your own custom instructions and configurations here.
+Central configuration for the SuperClaude framework. Custom instructions can be added above the framework imports.
 
-The SuperClaude framework components will be automatically imported below.
-
-# ===================================================
-# SuperClaude Framework Components
-# ===================================================
-
-# Core Framework
-@BUSINESS_PANEL_EXAMPLES.md
-@BUSINESS_SYMBOLS.md
+## Core Framework
 @FLAGS.md
 @PRINCIPLES.md
-@RESEARCH_CONFIG.md
 @RULES.md
 
-# Behavioral Modes
-@MODE_Brainstorming.md
-@MODE_Business_Panel.md
-@MODE_DeepResearch.md
-@MODE_Introspection.md
-@MODE_Orchestration.md
-@MODE_Task_Management.md
-@MODE_Token_Efficiency.md
+## Behavioral Modes
+Load on demand based on context:
+- @MODE_Introspection.md - Meta-cognitive analysis and self-reflection
+- @MODE_Orchestration.md - Intelligent tool selection and routing
+- @MODE_Task_Management.md - Hierarchical task organization with persistent memory
+- @MODE_Token_Efficiency.md - Symbol-enhanced communication for token reduction
 
-# ===================================================
-# OpenCode Adaptations
-# ===================================================
+Optional (load on demand):
+- MODE_Brainstorming.md - Requirements discovery through Socratic dialogue
+- MODE_Business_Panel.md - Multi-expert business analysis (9 thought leaders)
+- MODE_DeepResearch.md - Systematic investigation with evidence-based reasoning
+- RESEARCH_CONFIG.md - Deep research configuration and strategies
+- BUSINESS_PANEL_REFERENCE.md - Business panel quick reference (consolidated)
 
-# OpenCode Quality Protocol (Adapted from SuperClaude)
+## OpenCode Adaptations
 @OPENCODE_QUALITY_PROTOCOL.md
-
-# OpenCode Slash Commands
 @OPENCODE_SLASH_COMMANDS.md
 
-# DEPRECATED: Original SuperClaude Protocol (replaced by OpenCode adaptation)
-# - SUPERCLAUDE V4.5: CODE_QUALITY_PERFECTION_PROTOCOL
-# MODE: ASYNC_SWARM_EXECUTION (3 Parallel Lanes)
-# CONTEXT: Functional Microservices. Pre-Launch Phase.
-# OBJECTIVE: Elevate code to "Enterprise Gold Standard". No Technical Debt allowed.
-# SAFETY: "Validate compilation/tests after EVERY major refactor."
+---
 
-# --- 1. LOS 7 PILARES DE CALIDAD (CRITERIOS DE ACEPTACIÓN) ---
-STANDARDS:
-  1_ARCHITECTURE:
-    - "DDD Strictness: Domain logic MUST be pure (no infra dependencies)."
-    - "SOLID: Classes must have Single Responsibility. Interfaces must be segregated."
-    - "Pattern Match: Ensure all services use the exact same layering (Controller -> Service -> Domain -> Repo)."
-  
-  2_STANDARDIZATION:
-    - "Naming Convention: Enforce strict PascalCase/camelCase per language standard."
-    - "Folder Structure: `src/domain`, `src/application`, `src/infrastructure`, `src/presentation` MUST exist in all."
-  
-  3_LEGACY_PURGE:
-    - "Dead Code: If a function/class has 0 references (AST Scan), DELETE IT."
-    - "Comments: Remove commented-out code blocks."
-  
-  4_TESTING:
-    - "Coverage: Logic classes must have corresponding Unit Tests."
-    - "Mocks: No external calls in Unit Tests."
-  
-  5_CLEANLINESS:
-    - "Vacuum: Recursively delete empty directories and 0-byte files."
-    - "Linting: Fix unused imports and variable shadowing."
-  
-  6_DOCUMENTATION:
-    - "Code: Add JSDoc/Docstrings to all Public Methods explaining 'Why', not 'What'."
-    - "API: Add Swagger/OpenAPI Examples (Request/Response) for every Endpoint."
-  
-  7_SHARED_STRICTNESS:
-    - "VIOLATION: Any code in `src/shared` or `src/common` inside a service."
-    - "ACTION: Move to `@packages` or delete if duplicate."
+## 🤖 Serena MCP - Automatic Usage (CRITICAL)
 
-# --- 2. ASIGNACIÓN DE AGENTES (MODELOS ESPECIALIZADOS) ---
-AGENTS:
-  # ORQUESTADOR (Opus 4.5)
-  @QualityLead:
-    engine: claude-4.5-opus
-    role: LEAD_ARCHITECT
-    task: "Coordinate the 3 streams and enforce cross-language consistency."
+### Golden Rule: Always Use Serena MCP
 
-  # ESCUADRÓN NODE (Sonnet 4.5)
-  @NodeSurgeon:
-    engine: claude-4.5-sonnet
-    context: NODE_SHARD
-    role: SENIOR_DEV
-    task: "Refactor NestJS services one by one. Enforce DDD modules."
+**MANDATORY**: Use Serena MCP instead of grep/glob/ls for code analysis.
 
-  # ESCUADRÓN PYTHON (Sonnet 4.5)
-  @PythonSurgeon:
-    engine: claude-4.5-sonnet
-    context: PYTHON_SHARD
-    role: SENIOR_DEV
-    task: "Refactor FastAPI services. Enforce Pydantic strictness and Type Hints."
+#### When to Use Serena (Always when possible)
 
-  # ESCUADRÓN .NET (Sonnet 4.5)
-  @DotNetSurgeon:
-    engine: claude-4.5-sonnet
-    context: DOTNET_SHARD
-    role: SENIOR_DEV
-    task: "Refactor C# Solutions. Enforce Clean Architecture projects."
+**Symbol Search** → `serena_find_symbol()`
+- ❌ NO: `grep -r "function name"`
+- ✅ YES: `serena_find_symbol(name_path_pattern="name", include_body=true)`
 
-# --- 3. FLUJO DE TRABAJO (PARALELO POR STACK, SERIAL POR SERVICIO) ---
-WORKFLOW:
+**Structure Analysis** → `serena_get_symbols_overview()`
+- ❌ NO: `ls -la` + manual reading
+- ✅ YES: `serena_get_symbols_overview(relative_path="dir", depth=1)`
 
-  # FASE 1: ANÁLISIS Y EXTRACCIÓN (NO DESTRUCTIVO)
-  STAGE_1_DEEP_SCAN:
-    concurrency: TRUE
-    tasks:
-      - STREAM_NODE (@NodeSurgeon):
-          ITERATE: `services/node/*`
-          ACTION: "Identify Shared Logic violation. Identify Dead Code. Check DDD Layers."
-          OUTPUT: "Node_Refactor_Plan.json"
-      
-      - STREAM_PYTHON (@PythonSurgeon):
-          ITERATE: `services/python/*`
-          ACTION: "Identify Shared Logic violation. Check Type Hints coverage."
-          OUTPUT: "Python_Refactor_Plan.json"
+**Find References** → `serena_find_referencing_symbols()`
+- ❌ NO: `grep -r "functionName"`
+- ✅ YES: `serena_find_referencing_symbols(name_path="functionName")`
 
-      - STREAM_DOTNET (@DotNetSurgeon):
-          ITERATE: `services/dotnet/*`
-          ACTION: "Identify Shared Logic. Check Project Reference cycles."
-          OUTPUT: "DotNet_Refactor_Plan.json"
+**Safe Refactoring** → `serena_rename_symbol()`
+- ❌ NO: Manual find and replace
+- ✅ YES: `serena_rename_symbol(name_path="old", new_name="new")`
 
-  # FASE 2: MIGRACIÓN DE COMPARTIDOS (STRICT SHARED)
-  STAGE_2_SHARED_MIGRATION:
-    dependency: STAGE_1_DEEP_SCAN
-    concurrency: TRUE
-    tasks:
-      - ALL_STREAMS:
-          ACTION: "Move any identified `service/shared` code to `packages/`."
-          VALIDATION: "Update imports. Verify compilation. DELETE local shared folder."
+#### Mandatory Workflow
 
-  # FASE 3: CIRUGÍA MAYOR (REFACTORING & CLEANUP)
-  STAGE_3_SURGICAL_REFACTOR:
-    dependency: STAGE_2_SHARED_MIGRATION
-    concurrency: TRUE
-    tasks:
-      
-      # PROCESAMIENTO SERIE: NODE
-      - STREAM_NODE (@NodeSurgeon):
-          FOREACH Service IN `services/node`:
-            1. **Structure:** Align folders to `Domain/App/Infra`.
-            2. **Clean:** Delete unused files/folders.
-            3. **Docs:** Add Swagger `@ApiProperty` examples.
-            4. **Test:** Generate missing `.spec.ts` skeletons.
-            5. **Verify:** Run `npm run build` (Must Pass).
+**BEFORE editing code**:
+1. `serena_get_symbols_overview()` → Understand structure
+2. `serena_find_symbol()` → Find specific symbol
+3. `serena_find_referencing_symbols()` → See where it's used
+4. Edit with confidence
 
-      # PROCESAMIENTO SERIE: PYTHON
-      - STREAM_PYTHON (@PythonSurgeon):
-          FOREACH Service IN `services/python`:
-            1. **Structure:** Enforce `routers`, `schemas`, `services`, `models`.
-            2. **Clean:** Remove `pass` blocks and unused imports (Ruff/Black).
-            3. **Docs:** Add docstrings to Endpoints for OpenAPI.
-            4. **Verify:** Run `mypy .` (Must Pass).
+**AFTER major changes**:
+1. `serena_write_memory()` → Save discovered patterns
+2. Update session memory
 
-      # PROCESAMIENTO SERIE: .NET
-      - STREAM_DOTNET (@DotNetSurgeon):
-          FOREACH Service IN `services/dotnet`:
-            1. **Structure:** Ensure `.csproj` separation (API, Application, Domain, Infra).
-            2. **Clean:** Remove empty namespaces/classes.
-            3. **Docs:** Add XML Comments `/// <summary>` for Swagger.
-            4. **Verify:** Run `dotnet build` (Must Pass).
+#### Automatic Triggers
 
-  # FASE 4: VALIDACIÓN DE CALIDAD FINAL
-  STAGE_4_QUALITY_GATE:
-    agent: @QualityLead
-    actions:
-      - AUDIT: Randomly sample 1 file from each layer in each language.
-      - CHECK: Does it follow SOLID? Is it documented? Is it clean?
-      - VERDICT: "CERTIFIED_GOLD_STANDARD" or "NEEDS_REVISION".
+Use Serena automatically when user:
+- Asks "where is X" → `serena_find_symbol()`
+- Requests "search X" → `serena_find_symbol()` or `serena_search_for_pattern()`
+- Wants "rename X" → `serena_rename_symbol()`
+- Needs "see references of X" → `serena_find_referencing_symbols()`
+- Says "analyze structure" → `serena_get_symbols_overview()`
+- Requests "refactor X" → Complete workflow with Serena
 
-# --- COMANDO DE EJECUCIÓN ---
-EXECUTE:
-  - START_PERFECTION_PROTOCOL
-  - DELETE_DEAD_CODE: TRUE
-  - ENFORCE_DOCS: TRUE
-  - SAFETY_FIRST: "Dry Run deletion first, then confirm."
+#### Automatic Memory
 
+- **Session Start**: Read `serena_read_memory(memory_file_name="project_patterns")`
+- **Session End**: Save `serena_write_memory(memory_file_name="session_YYYY-MM-DD")`
+- **Discoveries**: Save important patterns immediately
 
+#### Serena Resources
 
-
-
-
-
-
+- **Complete Guide**: `docs/guides/serena-mcp-guide.md`
+- **Quick Commands**: `.serena-config.md`
+- **Auto Configuration**: `opencode/.config/opencode/SERENA_AUTO_CONFIG.md`
+- **Best Practices**: Memory `serena_mcp_best_practices`
