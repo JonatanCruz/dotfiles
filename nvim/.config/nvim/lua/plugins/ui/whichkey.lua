@@ -1,95 +1,86 @@
 -- ============================================================================
--- Which-key - Mostrar keybindings disponibles
+-- Which-key - Guía de keybindings con íconos
 -- ============================================================================
--- Muestra sugerencias de keybindings mientras escribes con íconos personalizados.
--- Documentación: https://github.com/folke/which-key.nvim
--- ============================================================================
-
-local icons = require("utils.icons")
-local colors = require("utils.colors")
 
 return {
   "folke/which-key.nvim",
   event = "VeryLazy",
-  init = function()
-    vim.o.timeout = true
-    vim.o.timeoutlen = 300
-  end,
   opts = {
     plugins = {
       marks = true,
       registers = true,
-      spelling = {
-        enabled = true,
-        suggestions = 20,
-      },
+      spelling = { enabled = true, suggestions = 20 },
       presets = {
-        operators = true,
-        motions = true,
-        text_objects = true,
-        windows = true,
-        nav = true,
-        z = true,
-        g = true,
+        operators = true, motions = true, text_objects = true,
+        windows = true, nav = true, z = true, g = true,
       },
     },
     win = {
       border = "rounded",
-      padding = { 2, 2, 2, 2 },
+      padding = { 1, 2 },
     },
-    sort_by_description = false,
     icons = {
-      breadcrumb = icons.separators.breadcrumb,
-      separator = icons.separators.arrow,
-      group = "",
+      breadcrumb = "»",
+      separator  = "➜",
+      group      = " ",
+      rules = false, -- usar íconos manuales de los grupos
     },
+    show_help = true,
+    show_keys = true,
   },
   config = function(_, opts)
     local wk = require("which-key")
     wk.setup(opts)
 
-    -- Transparencia y colores personalizados
-    -- La transparencia base la maneja utils/transparency.lua
-    -- Aquí solo configuramos los colores específicos
+    -- Colores integrados con el tema
+    local colors = require("utils.colors")
     local transparency = require("utils.transparency")
     transparency.set_transparent("WhichKeyFloat")
     transparency.set_transparent("WhichKeyBorder", { fg = colors.primary })
     transparency.set_transparent("WhichKeyNormal")
-    transparency.set_transparent("WhichKeyTitle", { fg = colors.primary })
+    transparency.set_transparent("WhichKeyTitle",  { fg = colors.primary })
     vim.api.nvim_set_hl(0, "WhichKeyGroup", { fg = colors.secondary, bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyDesc", { fg = colors.fg, bg = "none" })
-    vim.api.nvim_set_hl(0, "WhichKeyIcon", { fg = colors.primary, bg = "none" })
+    vim.api.nvim_set_hl(0, "WhichKeyDesc",  { fg = colors.fg,        bg = "none" })
+    vim.api.nvim_set_hl(0, "WhichKeyIcon",  { fg = colors.primary,   bg = "none" })
 
-    -- Registrar grupos de keybindings con descripciones e íconos
+    -- =====================================================================
+    -- GRUPOS DE KEYBINDINGS
+    -- =====================================================================
     wk.add({
-      -- Buffers y Archivos
-      { "<leader>b", group = "Buffers", icon = icons.whichkey.buffer },
-      { "<leader>f", group = "Find (Telescope)", icon = icons.whichkey.search },
+      -- Top-level
+      { "<leader>w",  group = "Windows / Splits",  icon = "󰯌" },
+      { "<leader>b",  group = "Buffers",            icon = "󰓩" },
+      { "<leader>c",  group = "Código / LSP",       icon = "" },
+      { "<leader>d",  group = "Debug (DAP)",         icon = "" },
+      { "<leader>e",  group = "Explorer",            icon = "󰙅" },
+      { "<leader>f",  group = "Find / Telescope",   icon = "󰍉" },
+      { "<leader>g",   group = "Git",                icon = "󰊢" },
+      { "<leader>gh",  group = "Hunks",             icon = "" },
+      { "<leader>gf",  group = "File History",      icon = "󰋚" },
+      { "<leader>gt",  group = "Toggles Git",       icon = "󰔡" },
+      { "<leader>o",  group = "Outline",            icon = "󰘦" },
+      { "<leader>p",  group = "Packages",           icon = "󰏖" },
+      { "<leader>q",  group = "Quit / Sesión",      icon = "󰗼" },
+      { "<leader>r",  group = "Refactor",           icon = "" },
+      { "<leader>s",  group = "Search / Replace",   icon = "󰛔" },
+      { "<leader>t",  group = "Tests",              icon = "" },
+      { "<leader>u",  group = "UI Toggles",         icon = "󰔡" },
+      { "<leader>x",  group = "Diagnósticos",       icon = "󱖫" },
+      { "<leader>z",  group = "Zen / Focus",        icon = "󰰶" },
 
-      -- Git (grupos relacionados)
-      { "<leader>g", group = "Git (Diffview/LazyGit)", icon = icons.whichkey.git },
-      { "<leader>h", group = "Git Hunks (Gitsigns)", icon = icons.whichkey.hunk },
+      -- Navegación git
+      { "]",  group = "Siguiente →",  icon = "󰒭" },
+      { "[",  group = "← Anterior",   icon = "󰒮" },
 
-      -- Código y LSP
-      { "<leader>o", group = "Outline (Aerial)", icon = icons.whichkey.outline },
-      { "<leader>x", group = "Diagnostics (Trouble)", icon = icons.whichkey.diagnostics },
-      { "<leader>l", group = "Linting", icon = icons.whichkey.lint },
-
-      -- Debugging y Testing
-      { "<leader>d", group = "Debug (DAP)", icon = "" },
-      { "<leader>t", group = "Testing (Neotest)", icon = "" },
-
-      -- Refactoring y Documentación
-      { "<leader>r", group = "Refactor/Rename", icon = "" },
-      { "<leader>n", group = "Generate Docs (Neogen)", icon = "" },
-
-      -- Swap y Messages
-      { "<leader>s", group = "Swap Params (Treesitter)", icon = "" },
-      { "<leader>m", group = "Messages (Noice)", icon = "" },
-
-      -- Sistema y Paquetes
-      { "<leader>p", group = "Packages (Lazy/Mason)", icon = icons.whichkey.packages },
-      { "<leader>q", group = "Quit/Session", icon = "󰗼" },
+      -- g* (LSP navigation — documentado para which-key)
+      { "g",   group = "Go to / LSP", icon = "" },
+      { "gd",  desc  = "Ir a definición",     icon = "" },
+      { "gD",  desc  = "Ir a declaración",    icon = "" },
+      { "gi",  desc  = "Ir a implementación", icon = "" },
+      { "gt",  desc  = "Ir a tipo",           icon = "" },
+      { "gr",  desc  = "Referencias",         icon = "" },
+      { "gR",  desc  = "Referencias (Trouble)", icon = "󱖫" },
+      { "gK",  desc  = "Firma de función",    icon = "" },
     })
   end,
 }

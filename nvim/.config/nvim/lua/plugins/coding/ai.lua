@@ -83,7 +83,7 @@ return {
       condition = function()
         -- No activar en archivos muy grandes (>1MB para mejor rendimiento)
         local max_filesize = 1024 * 1024 -- 1 MB
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(0))
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(0))
         if ok and stats and stats.size > max_filesize then
           return false
         end
