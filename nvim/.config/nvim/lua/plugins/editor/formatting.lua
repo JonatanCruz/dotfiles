@@ -27,7 +27,7 @@ return {
     },
     format_on_save = {
       timeout_ms = constants.formatting.timeout_ms,
-      lsp_fallback = constants.formatting.lsp_fallback,
+      lsp_format = constants.formatting.lsp_format,
     },
   },
 }

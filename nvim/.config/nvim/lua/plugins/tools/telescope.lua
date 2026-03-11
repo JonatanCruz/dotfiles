@@ -5,11 +5,21 @@ return {
     dependencies = { 'nvim-lua/plenary.nvim' },
     cmd = { 'Telescope' },  -- Cargar cuando se ejecute el comando :Telescope
     keys = {
-      { '<leader>ff', desc = 'Buscar archivos' },
-      { '<leader>fg', desc = 'Buscar texto en proyecto' },
-      { '<leader>fb', desc = 'Buscar en buffers abiertos' },
-      { '<leader>fh', desc = 'Buscar en la ayuda de Nvim' },
-      { '<leader>ft', desc = 'Buscar TODOs' },
+      { '<leader>ff', desc = ' Archivos' },
+      { '<leader>fg', desc = '󰍉 Buscar texto' },
+      { '<leader>fb', desc = '󰓩 Buffers' },
+      { '<leader>fr', desc = '󰋚 Recientes' },
+      { '<leader>fw', desc = '󰍉 Palabra' },
+      { '<leader>fh', desc = ' Ayuda' },
+      { '<leader>fk', desc = '󰌌 Keymaps' },
+      { '<leader>fc', desc = '󰘳 Comandos' },
+      { '<leader>fm', desc = '󰉀 Marks' },
+      { '<leader>fd', desc = '󰙅 Diagnósticos' },
+      { '<leader>fo', desc = ' Símbolos' },
+      { '<leader>fO', desc = ' Símbolos WS' },
+      { '<leader>gf', desc = ' Archivos Git' },
+      { '<leader>gl', desc = '󰊢 Log' },
+      { '<leader>gs', desc = ' Status' },
     },
     config = function()
       local telescope = require('telescope')
@@ -89,10 +99,28 @@ return {
       local builtin = require('telescope.builtin')
       local keymap = vim.keymap.set
 
-      keymap('n', '<leader>ff', builtin.find_files, { desc = 'Buscar archivos' })
-      keymap('n', '<leader>fg', builtin.live_grep, { desc = 'Buscar texto en proyecto' })
-      keymap('n', '<leader>fb', builtin.buffers, { desc = 'Buscar en buffers abiertos' })
-      keymap('n', '<leader>fh', builtin.help_tags, { desc = 'Buscar en la ayuda de Nvim' })
+      -- Búsquedas principales
+      keymap('n', '<leader>ff', builtin.find_files,  { desc = ' Archivos' })
+      keymap('n', '<leader>fg', builtin.live_grep,   { desc = '󰍉 Buscar texto' })
+      keymap('n', '<leader>fb', builtin.buffers,     { desc = '󰓩 Buffers' })
+      keymap('n', '<leader>fr', builtin.oldfiles,    { desc = '󰋚 Archivos recientes' })
+      keymap('n', '<leader>fw', builtin.grep_string, { desc = '󰍉 Palabra bajo cursor' })
+
+      -- Neovim
+      keymap('n', '<leader>fh', builtin.help_tags,   { desc = ' Ayuda Neovim' })
+      keymap('n', '<leader>fk', builtin.keymaps,     { desc = '󰌌 Keymaps' })
+      keymap('n', '<leader>fc', builtin.commands,    { desc = '󰘳 Comandos' })
+      keymap('n', '<leader>fm', builtin.marks,       { desc = '󰉀 Marks' })
+
+      -- Git
+      keymap('n', '<leader>gf', builtin.git_files,   { desc = ' Archivos Git' })
+      keymap('n', '<leader>gl', builtin.git_commits, { desc = '󰊢 Log commits' })
+      keymap('n', '<leader>gs', builtin.git_status,  { desc = ' Git status' })
+
+      -- LSP
+      keymap('n', '<leader>fd', builtin.diagnostics, { desc = '󰙅 Diagnósticos' })
+      keymap('n', '<leader>fo', builtin.lsp_document_symbols,  { desc = ' Símbolos documento' })
+      keymap('n', '<leader>fO', builtin.lsp_workspace_symbols, { desc = ' Símbolos workspace' })
     end
   }
 }
