@@ -61,13 +61,21 @@
     "greptile@claude-plugins-official": true,
     "kotlin-lsp@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": false,
-    "engram@engram": true
+    "engram@engram": true,
+    "firecrawl@claude-plugins-official": true,
+    "ruby-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "engram": {
       "source": {
         "source": "github",
         "repo": "Gentleman-Programming/engram"
+      }
+    },
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code"
       }
     }
   },
