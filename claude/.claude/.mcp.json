@@ -35,8 +35,8 @@
     },
     "engram": {
       "type": "stdio",
-      "command": "/opt/homebrew/bin/engram",
-      "args": ["mcp"]
+      "command": "/bin/sh",
+      "args": ["${HOME}/.claude/engram-mcp.sh"]
     },
     "magic": {
       "command": "npx",
