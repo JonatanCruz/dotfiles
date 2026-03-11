@@ -55,7 +55,7 @@ Este repositorio dotfiles representa un **estándar de excelencia** en la gesti�
 3. **Conflicto de Prefix en Tmux**: README.md dice `Ctrl+a` pero el real es `Ctrl+s` (CLAUDE.md correcto)
    - **Fix**: Actualizar README.md línea 180 a `Ctrl+s`
 
-4. **Tema Inconsistente**: README menciona "Catppuccin Mocha", CLAUDE.md menciona "Dracula"
+4. **Tema Inconsistente**: README menciona "Catppuccin Mocha", CLAUDE.md menciona "Catppuccin Mocha"
    - **Fix**: Actualizar CLAUDE.md a Catppuccin Mocha
 
 5. **Dual Claude Directory**: `./claude/.claude/` y `./.claude/` pueden confundir
@@ -79,7 +79,7 @@ Este repositorio dotfiles representa un **estándar de excelencia** en la gesti�
 **Impacto**: Alto | **Esfuerzo**: Bajo (1-2 horas)
 
 - [ ] ✅ VERIFICADO: Prefix es `Ctrl+s` - actualizar README.md línea 180
-- [ ] Actualizar CLAUDE.md: Dracula → Catppuccin Mocha
+- [ ] Actualizar CLAUDE.md: Catppuccin Mocha → Catppuccin Mocha
 - [ ] Estandarizar `zsh-plugins/README.md`
 - [ ] Aclarar dual Claude directories en ARCHITECTURE.md
 

@@ -128,7 +128,7 @@ Todos los comandos de debugging comienzan con `<leader>d` (Space + d):
 
 ## Características Visuales
 
-### Icons (Dracula Theme)
+### Icons (Catppuccin Mocha Theme)
 - 🔴 Breakpoint normal
 - 🟡 Breakpoint condicional
 - ❌ Breakpoint rechazado
