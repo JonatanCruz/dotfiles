@@ -60,7 +60,16 @@
     "lua-lsp@claude-plugins-official": true,
     "greptile@claude-plugins-official": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": false
+    "ralph-loop@claude-plugins-official": false,
+    "engram@engram": true
+  },
+  "extraKnownMarketplaces": {
+    "engram": {
+      "source": {
+        "source": "github",
+        "repo": "Gentleman-Programming/engram"
+      }
+    }
   },
   "outputStyle": "catppuccin-dev",
   "alwaysThinkingEnabled": false,
