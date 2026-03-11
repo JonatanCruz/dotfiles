@@ -190,7 +190,7 @@ config.color_scheme = "Catppuccin Frappe"  -- Oscuro suave
 config.color_scheme = "Catppuccin Macchiato" -- Oscuro medio
 
 -- Otros temas populares:
-config.color_scheme = "Dracula (Official)"
+config.color_scheme = "Catppuccin Mocha"
 config.color_scheme = "Tokyo Night"
 config.color_scheme = "Gruvbox Dark"
 ```

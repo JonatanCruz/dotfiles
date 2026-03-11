@@ -45,10 +45,10 @@ Two DAP configuration files existed in different directories:
 **Strengths:**
 
 - ✅ Detailed nvim-dap-virtual-text configuration (10+ options)
-- ✅ Custom emoji icons (🔴🟡▶️) with Dracula theme integration
+- ✅ Custom emoji icons (🔴🟡▶️) with Catppuccin Mocha theme integration
 - ✅ Complete Node.js/TypeScript/React debugging setup
 - ✅ nvim-notify integration for debugging events
-- ✅ Custom highlight groups matching Dracula colors
+- ✅ Custom highlight groups matching Catppuccin Mocha colors
 - ✅ Clean, well-documented structure
 
 **Gaps:**
@@ -85,7 +85,7 @@ Two DAP configuration files existed in different directories:
 1. **Best of Both Worlds**: Combine all unique features
 2. **No Feature Loss**: Preserve every capability
 3. **No Duplication**: Merge overlapping configurations
-4. **Consistency**: Use emoji icons and Dracula theme throughout
+4. **Consistency**: Use emoji icons and Catppuccin Mocha theme throughout
 5. **Clarity**: Organize keybindings logically with comments
 
 ### Components Merged
@@ -97,7 +97,7 @@ Two DAP configuration files existed in different directories:
 | nvim-dap-virtual-text   | File 1 | **KEPT** (detailed config)  |
 | mason-nvim-dap          | File 2 | **ADDED** to File 1         |
 | Custom Icons            | File 1 | **KEPT** (emojis preferred) |
-| Highlight Groups        | File 1 | **KEPT** (Dracula theme)    |
+| Highlight Groups        | File 1 | **KEPT** (Catppuccin Mocha theme)    |
 | Keybindings             | Both   | **MERGED** (17 total)       |
 | Node.js/TS/React Config | File 1 | **KEPT**                    |
 | Python Config           | File 2 | **ADDED** to File 1         |
@@ -275,7 +275,7 @@ $ grep -r "plugins/tools/dap" nvim/.config/nvim
 ### What Was Kept (from debug/dap.lua)
 
 1. **Emoji icons** (🔴🟡▶️❌📝)
-2. **Dracula theme** highlight groups
+2. **Catppuccin Mocha theme** highlight groups
 3. **nvim-dap-virtual-text** detailed config (10 options)
 4. **Node.js/TypeScript/React** complete setup
 5. **nvim-notify** integration
@@ -375,7 +375,7 @@ SOLUTION:
 - Added mason-nvim-dap for auto-installation
 - Added Python debugging support
 - Expanded keybindings from 8 to 17
-- Preserved emoji icons and Dracula theme
+- Preserved emoji icons and Catppuccin Mocha theme
 
 IMPACT:
 - Single source of truth for debugging
@@ -403,7 +403,7 @@ The DAP configuration duplication has been successfully resolved. The new unifie
 - Preserves 100% of functionality from both files
 - Adds 9 new keybindings for advanced debugging
 - Includes auto-UI and auto-installation features
-- Maintains the beautiful emoji icons and Dracula theme
+- Maintains the beautiful emoji icons and Catppuccin Mocha theme
 - Reduces cognitive load (single file to remember)
 
 **Quality Score**: 10/10  
