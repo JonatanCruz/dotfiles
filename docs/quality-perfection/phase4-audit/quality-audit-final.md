@@ -640,7 +640,7 @@ DESPUÉS:
 - ✅ Python debugging support
 - ✅ Node.js/TypeScript/React debugging
 - ✅ 17 keybindings organizados
-- ✅ Emoji icons + Dracula theme
+- ✅ Emoji icons + Catppuccin Mocha theme
 - ✅ nvim-notify integration
 
 **Impacto**:

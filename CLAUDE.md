@@ -435,3 +435,21 @@ export COLORTERM=truecolor
 # Share a conversation
 /share
 ```
+
+## Bootstrap: Engram Plugin
+
+Engram es el sistema de memoria persistente. El `settings.json` lo habilita automáticamente vía Stow, pero el plugin debe instalarse una vez en cada nuevo servidor:
+
+```bash
+# Instalar Engram (correr desde cualquier directorio, una sola vez por servidor)
+claude plugin install engram@engram
+```
+
+Esto descarga el plugin desde `Gentleman-Programming/engram` (ya registrado como marketplace en `settings.json`).
+
+### Verificar instalación
+
+```bash
+# Verificar que Engram aparece como plugin instalado
+claude plugin list
+```
