@@ -249,7 +249,7 @@ nvim/.config/nvim/lua/plugins/
 | Dependencies   | 20           | 54           | 66           | +12 (added mason) |
 | Keybindings    | 73           | 21           | 153          | +59 (expanded)    |
 | Config (signs) | 35           | 5            | 36           | +1 (kept emoji)   |
-| Highlights     | 7            | 0            | 7            | 0 (kept dracula)  |
+| Highlights     | 7            | 0            | 7            | 0 (kept Catppuccin Mocha)  |
 | Adapters       | 14           | 7            | 22           | +1 (added python) |
 | Configurations | 36           | 12           | 49           | +1 (added python) |
 | Listeners      | 32           | 0            | 32           | 0 (kept notify)   |
@@ -266,7 +266,7 @@ nvim/.config/nvim/lua/plugins/
 | nvim-dap-virtual-text (detailed) | ✅            | ❌            | ✅             |
 | mason-nvim-dap                   | ❌            | ✅            | ✅             |
 | Emoji icons                      | ✅            | ❌            | ✅             |
-| Dracula theme                    | ✅            | ❌            | ✅             |
+| Catppuccin Mocha theme                    | ✅            | ❌            | ✅             |
 | nvim-notify                      | ✅            | ❌            | ✅             |
 | Node.js/TS                       | ✅            | ❌            | ✅             |
 | React (JSX/TSX)                  | ✅            | ❌            | ✅             |

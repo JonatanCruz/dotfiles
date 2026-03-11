@@ -129,7 +129,7 @@ claudedocs/quality-perfection/
    - ✅ mason-nvim-dap añadido (auto-install)
    - ✅ Python debugging añadido
    - ✅ 17 keybindings organizados
-   - ✅ Emoji icons + Dracula theme
+   - ✅ Emoji icons + Catppuccin Mocha theme
 
 2. **install.sh Refactoring**:
    - ⚠️ Propuesto pero no implementado (bootstrap.sh es suficiente)
