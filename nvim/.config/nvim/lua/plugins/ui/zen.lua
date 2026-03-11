@@ -11,7 +11,7 @@ return {
     "folke/zen-mode.nvim",
     cmd = "ZenMode",
     keys = {
-      { "<leader>z", "<cmd>ZenMode<cr>", desc = "Zen Mode (concentración)" },
+      { "<leader>zz", "<cmd>ZenMode<cr>", desc = "󰰶 Zen Mode" },
     },
     opts = {
       window = {
@@ -55,7 +55,7 @@ return {
     "folke/twilight.nvim",
     cmd = { "Twilight", "TwilightEnable", "TwilightDisable" },
     keys = {
-      { "<leader>tw", "<cmd>Twilight<cr>", desc = "Toggle Twilight" },
+      { "<leader>zt", "<cmd>Twilight<cr>", desc = "󰰶 Toggle Twilight" },
     },
     opts = {
       dimming = {

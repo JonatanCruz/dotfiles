@@ -52,16 +52,24 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Resaltar texto copiado"
 })
 
--- Elimina espacios en blanco al final de las líneas al guardar
+-- Elimina espacios en blanco al final de las líneas al guardar.
+-- Excluye filetypes manejados por conform/prettier para evitar conflicto en BufWritePre.
 vim.api.nvim_create_autocmd("BufWritePre", {
   group = editing_group,
   pattern = "*",
   callback = function()
+    local ft = vim.bo.filetype
+    local conform_managed = {
+      javascript = true, typescript = true, javascriptreact = true,
+      typescriptreact = true, css = true, html = true, json = true,
+      yaml = true, markdown = true, lua = true,
+    }
+    if conform_managed[ft] then return end
     local save_cursor = vim.fn.getpos(".")
     vim.cmd([[%s/\s\+$//e]])
     vim.fn.setpos(".", save_cursor)
   end,
-  desc = "Eliminar espacios en blanco al final de líneas"
+  desc = "Eliminar espacios en blanco al final de líneas (no-conform filetypes)"
 })
 
 -- ============================================================================

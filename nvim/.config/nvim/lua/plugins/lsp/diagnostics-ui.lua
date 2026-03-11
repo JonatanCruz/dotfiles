@@ -53,8 +53,10 @@ return {
       require("lsp_lines").setup()
 
       -- Desactivar por defecto, usar solo cuando sea necesario
+      -- virtual_text = false: tiny-inline-diagnostic ya maneja el virtual text
+      -- Evita doble renderizado de diagnósticos
       vim.diagnostic.config({
-        virtual_text = true,
+        virtual_text = false,
         virtual_lines = false,
       })
     end,
