@@ -46,5 +46,9 @@ Thumbs.db
 *.swo
 *~
 
+# === NEOVIM ===
+# lazy-lock.json es específico de cada servidor (versiones de plugins/LSP)
+nvim/.config/nvim/lazy-lock.json
+
 # === SERENA MEMORY (session-only memories) ===
 .serena/
