@@ -63,9 +63,9 @@ export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# .NET SDK
-export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+# .NET SDK - system install (/usr/bin/dotnet → /usr/lib/dotnet)
+export DOTNET_ROOT="/usr/lib/dotnet"
+export PATH="$PATH:$HOME/.dotnet/tools"
 
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"

@@ -184,6 +184,40 @@ return {
               },
             })
           end,
+
+          -- TypeScript/JavaScript con soporte para Vue (hybrid mode)
+          ["ts_ls"] = function()
+            local vue_plugin_path = vim.fn.expand(
+              "$HOME/.local/share/nvim/mason/packages/vue-language-server/node_modules/@vue/language-server"
+            )
+            lspconfig.ts_ls.setup({
+              on_attach = on_attach,
+              capabilities = capabilities,
+              init_options = {
+                plugins = {
+                  {
+                    name = "@vue/typescript-plugin",
+                    location = vue_plugin_path,
+                    languages = { "vue" },
+                  },
+                },
+              },
+              filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+            })
+          end,
+
+          -- Vue.js (hybrid mode: ts_ls maneja TypeScript, vue_ls maneja templates)
+          ["vue_ls"] = function()
+            lspconfig.vue_ls.setup({
+              on_attach = on_attach,
+              capabilities = capabilities,
+              init_options = {
+                vue = {
+                  hybridMode = true,
+                },
+              },
+            })
+          end,
         },
       })
     end,
