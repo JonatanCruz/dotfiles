@@ -5,8 +5,6 @@
 -- Documentación: https://github.com/nvim-treesitter/nvim-treesitter
 -- ============================================================================
 
-local constants = require("config.constants")
-
 return {
   "nvim-treesitter/nvim-treesitter",
   build = ":TSUpdate",
@@ -14,8 +12,9 @@ return {
   dependencies = {
     "nvim-treesitter/nvim-treesitter-textobjects",
   },
-  config = function()
-    require("nvim-treesitter.configs").setup({
+  opts = function()
+    local constants = require("config.constants")
+    return {
       ensure_installed = constants.treesitter.ensure_installed,
       highlight = { enable = true },
       indent = { enable = true },
@@ -33,7 +32,6 @@ return {
           enable = true,
           lookahead = true,
           keymaps = {
-            -- Selección de text objects
             ["af"] = "@function.outer",
             ["if"] = "@function.inner",
             ["ac"] = "@class.outer",
@@ -46,7 +44,7 @@ return {
         },
         move = {
           enable = true,
-          set_jumps = true, -- Añadir a jumplist con Ctrl-o/Ctrl-i
+          set_jumps = true,
           goto_next_start = {
             ["]m"] = "@function.outer",
             ["]c"] = "@class.outer",
@@ -78,6 +76,6 @@ return {
           },
         },
       },
-    })
+    }
   end,
 }
