@@ -16,12 +16,12 @@ return {
     "DiffviewFileHistory",
   },
   keys = {
-    { "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Open Diff View" },
-    { "<leader>gD", "<cmd>DiffviewClose<cr>", desc = "Close Diff View" },
-    { "<leader>gh", "<cmd>DiffviewFileHistory<cr>", desc = "File History (all)" },
-    { "<leader>gH", "<cmd>DiffviewFileHistory %<cr>", desc = "File History (current)" },
-    { "<leader>gm", "<cmd>DiffviewOpen HEAD<cr>", desc = "Merge Conflicts" },
-    { "<leader>gc", "<cmd>DiffviewOpen HEAD~1<cr>", desc = "Last Commit" },
+    { "<leader>gd",  "<cmd>DiffviewOpen<cr>",              desc = " Abrir Diffview" },
+    { "<leader>gD",  "<cmd>DiffviewClose<cr>",             desc = " Cerrar Diffview" },
+    { "<leader>gfh", "<cmd>DiffviewFileHistory<cr>",       desc = "󰋚 Historial (todo)" },
+    { "<leader>gff", "<cmd>DiffviewFileHistory %<cr>",     desc = "󰋚 Historial (archivo actual)" },
+    { "<leader>gm",  "<cmd>DiffviewOpen HEAD<cr>",         desc = " Conflictos merge" },
+    { "<leader>gc",  "<cmd>DiffviewOpen HEAD~1<cr>",       desc = "󰊢 Último commit" },
   },
   opts = {
     diff_binaries = false,
