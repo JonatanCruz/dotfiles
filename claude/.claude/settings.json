@@ -63,6 +63,6 @@
     "ralph-loop@claude-plugins-official": false
   },
   "outputStyle": "catppuccin-dev",
-  "alwaysThinkingEnabled": true,
+  "alwaysThinkingEnabled": false,
   "skipDangerousModePermissionPrompt": true
 }
