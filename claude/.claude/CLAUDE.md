@@ -85,3 +85,16 @@ Use Serena automatically when user:
 - **Quick Commands**: `.serena-config.md`
 - **Auto Configuration**: `opencode/.config/opencode/SERENA_AUTO_CONFIG.md`
 - **Best Practices**: Memory `serena_mcp_best_practices`
+
+# ===================================================
+# SuperClaude Framework Components
+# ===================================================
+
+# MCP Documentation
+@MCP_Context7.md
+@MCP_Magic.md
+@MCP_Morphllm.md
+@MCP_Playwright.md
+@MCP_Sequential.md
+@MCP_Serena.md
+@MCP_Tavily.md
