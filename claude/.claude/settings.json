@@ -25,6 +25,7 @@
       "Bash(brew uninstall:*)"
     ]
   },
+  "model": "sonnet",
   "enableAllProjectMcpServers": true,
   "statusLine": {
     "type": "command",
@@ -63,5 +64,5 @@
   },
   "outputStyle": "catppuccin-dev",
   "alwaysThinkingEnabled": true,
-  "model": "sonnet"
+  "skipDangerousModePermissionPrompt": true
 }

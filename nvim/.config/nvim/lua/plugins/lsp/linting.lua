@@ -20,7 +20,7 @@ return {
         sass = { 'stylelint' },
         less = { 'stylelint' },
         python = { 'pylint' },
-        lua = { 'luacheck' },
+        lua = { 'selene' },
         markdown = { 'markdownlint' },
         yaml = { 'yamllint' },
         json = { 'jsonlint' },

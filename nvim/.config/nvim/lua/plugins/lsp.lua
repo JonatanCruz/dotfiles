@@ -60,6 +60,29 @@ return {
         },
       })
 
+      -- TypeScript/JavaScript con soporte para Vue (hybrid mode)
+      vim.lsp.config("ts_ls", {
+        init_options = {
+          plugins = {
+            {
+              name = "@vue/typescript-plugin",
+              location = vim.fn.expand(
+                "$HOME/.local/share/nvim/mason/packages/vue-language-server/node_modules/@vue/language-server"
+              ),
+              languages = { "vue" },
+            },
+          },
+        },
+        filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+      })
+
+      -- Vue.js (hybrid mode: ts_ls maneja TypeScript, vue_ls maneja templates)
+      vim.lsp.config("vue_ls", {
+        init_options = {
+          vue = { hybridMode = true },
+        },
+      })
+
       -- ================================================================
       -- KEYMAPS LSP - Se aplican a CUALQUIER LSP que se conecte al buffer
       -- Usando LspAttach es el patrón moderno (Neovim 0.10+) que funciona
