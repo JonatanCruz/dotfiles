@@ -92,8 +92,8 @@ M.formatting = {
   -- Timeout para formateo
   timeout_ms = 500,
 
-  -- Usar LSP como fallback
-  lsp_fallback = true,
+  -- Usar LSP como fallback (conform.nvim >= 2024, reemplaza lsp_fallback)
+  lsp_format = "fallback",
 
   -- Formateo asíncrono
   async = false,

@@ -1,150 +1,182 @@
 -- ============================================================================
 -- KEYMAPS GLOBALES
 -- ============================================================================
--- Atajos de teclado que no dependen de ningún plugin específico
--- Los keymaps específicos de plugins están en sus respectivos archivos
+-- Jerarquía de prefijos (convención LazyVim/comunidad):
+--
+--   Sin prefijo   → Navegación LSP (gd, gr, gi, K...)
+--   [/]           → Navegación entre elementos (diagnósticos, hunks, tabs)
+--   <leader>b     → Buffers
+--   <leader>c     → Código / LSP actions
+--   <leader>d     → Debug (DAP)
+--   <leader>e     → Explorer (árbol de archivos)
+--   <leader>f     → Find / Telescope
+--   <leader>g     → Git
+--   <leader>o     → Outline (Aerial)
+--   <leader>p     → Packages (Lazy, Mason)
+--   <leader>q     → Quit / Session
+--   <leader>s     → Search / Replace
+--   <leader>t     → Tests
+--   <leader>u     → UI Toggles
+--   <leader>w     → Windows / Splits
+--   <leader>x     → Diagnósticos (Trouble + Quickfix)
+--   <leader>z     → Zen / Focus
+-- ============================================================================
 
-local keymap = vim.keymap.set
+local map = vim.keymap.set
 
 -- ============================================================================
--- GESTIÓN DE ARCHIVOS Y BUFFERS
+-- EDITOR CORE — Guardar / Salir
 -- ============================================================================
 
-keymap('n', '<leader>w', ':w<CR>', { desc = 'Guardar archivo' })
-keymap('n', '<leader>q', ':q<CR>', { desc = 'Cerrar ventana' })
-keymap('n', '<leader>Q', ':qa!<CR>', { desc = 'Salir sin guardar' })
-keymap('n', '<leader>x', ':x<CR>', { desc = 'Guardar y salir' })
+map("n", "<leader>w",  "<cmd>w<cr>",   { desc = " Guardar archivo" })
+map("n", "<leader>W",  "<cmd>wa<cr>",  { desc = " Guardar todos" })
+map("n", "<leader>q",  "<cmd>confirm q<cr>", { desc = "󰗼 Cerrar ventana" })
+map("n", "<leader>Q",  "<cmd>qa!<cr>", { desc = "󰗼 Salir sin guardar" })
 
 -- ============================================================================
--- NAVEGACIÓN Y GESTIÓN DE BUFFERS
+-- NAVEGACIÓN ENTRE VENTANAS
 -- ============================================================================
 
--- Navegación rápida entre buffers (Shift + h/l)
-keymap('n', '<S-l>', ':bnext<CR>', { desc = 'Siguiente buffer' })
-keymap('n', '<S-h>', ':bprevious<CR>', { desc = 'Buffer anterior' })
+map("n", "<C-h>", "<C-w>h", { desc = "Ventana ←" })
+map("n", "<C-j>", "<C-w>j", { desc = "Ventana ↓" })
+map("n", "<C-k>", "<C-w>k", { desc = "Ventana ↑" })
+map("n", "<C-l>", "<C-w>l", { desc = "Ventana →" })
 
--- Gestión de buffers con <leader>b (buffer)
-keymap('n', '<leader>bc', ':bdelete<CR>', { desc = 'Cerrar buffer actual (close)' })
-keymap('n', '<leader>bC', ':bdelete!<CR>', { desc = 'Forzar cierre de buffer' })
-keymap('n', '<leader>bw', ':bwipeout<CR>', { desc = 'Eliminar buffer completamente (wipeout)' })
-keymap('n', '<leader>bf', ':bfirst<CR>', { desc = 'Primer buffer (first)' })
-keymap('n', '<leader>bl', ':blast<CR>', { desc = 'Último buffer (last)' })
-keymap('n', '<leader>ba', ':buffers<CR>', { desc = 'Listar todos los buffers (all)' })
-keymap('n', '<leader>bo', ':%bdelete|edit#|bdelete#<CR>', { desc = 'Cerrar todos excepto actual (only)' })
+-- ============================================================================
+-- WINDOWS / SPLITS (<leader>w)
+-- ============================================================================
 
--- Selección rápida de buffer por número
+map("n", "<leader>wv", "<cmd>vsplit<cr>",  { desc = "󰯌 Split vertical" })
+map("n", "<leader>wh", "<cmd>split<cr>",   { desc = "󰯌 Split horizontal" })
+map("n", "<leader>we", "<C-w>=",           { desc = " Igualar splits" })
+map("n", "<leader>wx", "<cmd>close<cr>",   { desc = " Cerrar split" })
+map("n", "<leader>wm", "<C-w>o",           { desc = " Maximizar ventana" })
+
+-- Redimensionar splits
+map("n", "<C-Up>",    "<cmd>resize +2<cr>",           { desc = "Aumentar alto" })
+map("n", "<C-Down>",  "<cmd>resize -2<cr>",           { desc = "Reducir alto" })
+map("n", "<C-Left>",  "<cmd>vertical resize -2<cr>",  { desc = "Reducir ancho" })
+map("n", "<C-Right>", "<cmd>vertical resize +2<cr>",  { desc = "Aumentar ancho" })
+
+-- ============================================================================
+-- BUFFERS (<leader>b)
+-- ============================================================================
+
+map("n", "<S-l>", "<cmd>bnext<cr>",     { desc = "󰒭 Siguiente buffer" })
+map("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "󰒮 Buffer anterior" })
+
+map("n", "<leader>bd", "<cmd>bdelete<cr>",     { desc = "󰅖 Cerrar buffer" })
+map("n", "<leader>bD", "<cmd>bdelete!<cr>",    { desc = "󰅖 Forzar cierre" })
+map("n", "<leader>bn", "<cmd>bnext<cr>",       { desc = "󰒭 Siguiente" })
+map("n", "<leader>bp", "<cmd>bprevious<cr>",   { desc = "󰒮 Anterior" })
+map("n", "<leader>bf", "<cmd>bfirst<cr>",      { desc = "󰮳 Primero" })
+map("n", "<leader>bl", "<cmd>blast<cr>",       { desc = "󰮱 Último" })
+map("n", "<leader>bo", "<cmd>%bdelete|edit#|bdelete#<cr>", { desc = " Solo actual" })
+
+-- Ir a buffer por número (1-9)
 for i = 1, 9 do
-  keymap('n', '<leader>b' .. i, ':buffer ' .. i .. '<CR>', { desc = 'Ir al buffer ' .. i })
+  map("n", "<leader>" .. i, "<cmd>BufferLineGoToBuffer " .. i .. "<cr>",
+    { desc = "󰓩 Buffer " .. i })
 end
 
 -- ============================================================================
--- NAVEGACIÓN ENTRE VENTANAS (SPLITS)
--- ============================================================================
--- Nota: Estos serán sobrescritos por tmux-navigator si está activo
-
-keymap('n', '<C-h>', '<C-w>h', { desc = 'Mover a la ventana izquierda' })
-keymap('n', '<C-j>', '<C-w>j', { desc = 'Mover a la ventana de abajo' })
-keymap('n', '<C-k>', '<C-w>k', { desc = 'Mover a la ventana de arriba' })
-keymap('n', '<C-l>', '<C-w>l', { desc = 'Mover a la ventana derecha' })
-
--- Redimensionar ventanas
-keymap('n', '<C-Up>', ':resize +2<CR>', { desc = 'Aumentar altura' })
-keymap('n', '<C-Down>', ':resize -2<CR>', { desc = 'Disminuir altura' })
-keymap('n', '<C-Left>', ':vertical resize -2<CR>', { desc = 'Disminuir ancho' })
-keymap('n', '<C-Right>', ':vertical resize +2<CR>', { desc = 'Aumentar ancho' })
-
--- Crear splits
-keymap('n', '<leader>sv', '<C-w>v', { desc = 'Split vertical' })
-keymap('n', '<leader>sh', '<C-w>s', { desc = 'Split horizontal' })
-keymap('n', '<leader>se', '<C-w>=', { desc = 'Igualar tamaño de splits' })
-keymap('n', '<leader>sx', ':close<CR>', { desc = 'Cerrar split actual' })
-
--- ============================================================================
--- EDICIÓN MEJORADA
+-- EDICIÓN
 -- ============================================================================
 
--- Mover líneas seleccionadas arriba/abajo en modo visual
-keymap('v', 'J', ":m '>+1<CR>gv=gv", { desc = 'Mover línea abajo' })
-keymap('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Mover línea arriba' })
+-- Mover líneas en visual
+map("v", "J", ":m '>+1<cr>gv=gv", { desc = " Mover línea abajo" })
+map("v", "K", ":m '<-2<cr>gv=gv", { desc = " Mover línea arriba" })
 
--- Mantener el cursor centrado al hacer scroll
-keymap('n', '<C-d>', '<C-d>zz', { desc = 'Media página abajo (centrado)' })
-keymap('n', '<C-u>', '<C-u>zz', { desc = 'Media página arriba (centrado)' })
+-- Scroll centrado
+map("n", "<C-d>", "<C-d>zz", { desc = "Bajar (centrado)" })
+map("n", "<C-u>", "<C-u>zz", { desc = "Subir (centrado)" })
+map("n", "n",     "nzzzv",   { desc = "Siguiente resultado (centrado)" })
+map("n", "N",     "Nzzzv",   { desc = "Anterior resultado (centrado)" })
 
--- Mantener el cursor centrado al buscar
-keymap('n', 'n', 'nzzzv', { desc = 'Siguiente búsqueda (centrado)' })
-keymap('n', 'N', 'Nzzzv', { desc = 'Búsqueda anterior (centrado)' })
+-- Indentación en visual (mantener selección)
+map("v", "<", "<gv", { desc = "⇤ Indentar izquierda" })
+map("v", ">", ">gv", { desc = "⇥ Indentar derecha" })
 
--- Pegar sin perder el contenido del registro
-keymap('x', '<leader>p', '"_dP', { desc = 'Pegar sin perder registro' })
+-- Portapapeles
+map({ "n", "v" }, "<leader>y",  '"+y',  { desc = " Copiar al portapapeles" })
+map("n",          "<leader>Y",  '"+Y',  { desc = " Copiar línea al portapapeles" })
+map({ "n", "v" }, "<leader>p",  '"+p',  { desc = " Pegar desde portapapeles" })
+map("v",          "<leader>P",  '"_dP', { desc = " Pegar sin perder registro" })
+map({ "n", "v" }, "<leader>d",  '"_d',  { desc = "󰅗 Eliminar sin registro" })
 
--- Indentar en modo visual sin perder la selección
-keymap('v', '<', '<gv', { desc = 'Indentar izquierda' })
-keymap('v', '>', '>gv', { desc = 'Indentar derecha' })
+-- ============================================================================
+-- BÚSQUEDA / REEMPLAZAR (<leader>s)
+-- ============================================================================
+
+map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "󱙈 Limpiar búsqueda" })
+map("n", "<leader>sh", "<cmd>nohlsearch<cr>", { desc = "󱙈 Limpiar resaltado" })
+map("n", "<leader>sr", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>",
+  { desc = "󰛔 Reemplazar palabra bajo cursor" })
+map("n", "<leader>sR", ":%s/\\<<C-r><C-w>\\>//gI<Left><Left><Left>",
+  { desc = "󰛔 Reemplazar (vacío)" })
+map("n", "<leader>sa", "ggVG", { desc = " Seleccionar todo" })
+
+-- ============================================================================
+-- DIAGNÓSTICOS / QUICKFIX (<leader>x)
+-- ============================================================================
+
+-- Quickfix
+map("n", "<leader>xo", "<cmd>copen<cr>",  { desc = " Abrir quickfix" })
+map("n", "<leader>xc", "<cmd>cclose<cr>", { desc = " Cerrar quickfix" })
+map("n", "]q",         "<cmd>cnext<cr>",  { desc = "󰒭 Siguiente quickfix" })
+map("n", "[q",         "<cmd>cprev<cr>",  { desc = "󰒮 Anterior quickfix" })
+
+-- Location list
+map("n", "]l", "<cmd>lnext<cr>", { desc = "󰒭 Siguiente location" })
+map("n", "[l", "<cmd>lprev<cr>", { desc = "󰒮 Anterior location" })
+
+-- ============================================================================
+-- UI TOGGLES (<leader>u)
+-- ============================================================================
+
+map("n", "<leader>uw", "<cmd>set wrap!<cr>",         { desc = "󰖶 Toggle wrap" })
+map("n", "<leader>us", "<cmd>set spell!<cr>",         { desc = "󰓆 Toggle spell" })
+map("n", "<leader>un", "<cmd>set number!<cr>",        { desc = "󰔓 Toggle números" })
+map("n", "<leader>ur", "<cmd>set relativenumber!<cr>",{ desc = "󰔓 Toggle relativos" })
+map("n", "<leader>uc", "<cmd>set cursorline!<cr>",    { desc = "󰉶 Toggle cursorline" })
+map("n", "<leader>ul", "<cmd>set list!<cr>",          { desc = "󱞤 Toggle caracteres ocultos" })
+
+-- ============================================================================
+-- PACKAGES (<leader>p)
+-- ============================================================================
+
+map("n", "<leader>pl", "<cmd>Lazy<cr>",         { desc = "󰏖 Lazy (plugins)" })
+map("n", "<leader>ps", "<cmd>Lazy sync<cr>",    { desc = " Sync plugins" })
+map("n", "<leader>pu", "<cmd>Lazy update<cr>",  { desc = "󰚰 Actualizar plugins" })
+map("n", "<leader>pc", "<cmd>Lazy clean<cr>",   { desc = "󰃢 Limpiar plugins" })
+map("n", "<leader>pp", "<cmd>Lazy profile<cr>", { desc = " Perfil de inicio" })
+map("n", "<leader>pm", "<cmd>Mason<cr>",        { desc = " Mason (LSP)" })
+map("n", "<leader>pM", "<cmd>MasonUpdate<cr>",  { desc = "󰚰 Actualizar Mason" })
+
+-- ============================================================================
+-- SESSION / QUIT (<leader>q)
+-- ============================================================================
+
+map("n", "<leader>qs", function() require("persistence").load() end,
+  { desc = "󰦛 Restaurar sesión" })
+map("n", "<leader>ql", function() require("persistence").load({ last = true }) end,
+  { desc = "󰦛 Última sesión" })
+map("n", "<leader>qd", function() require("persistence").stop() end,
+  { desc = " No guardar sesión" })
+map("n", "<leader>qq", "<cmd>qa<cr>", { desc = "󰗼 Salir de Neovim" })
+
+-- ============================================================================
+-- TERMINAL
+-- ============================================================================
+
+map("n", "<leader>T",  "<cmd>terminal<cr>", { desc = " Abrir terminal" })
+map("t", "<Esc><Esc>", "<C-\\><C-n>",       { desc = "Salir del terminal" })
 
 -- ============================================================================
 -- UTILIDADES
 -- ============================================================================
 
--- Desactivar el resaltado de búsqueda
-keymap('n', '<leader>nh', ':nohl<CR>', { desc = 'Desactivar resaltado de búsqueda' })
-
--- Abrir terminal integrado
-keymap('n', '<leader>tt', ':terminal<CR>', { desc = 'Abrir terminal' })
-
--- Recargar configuración de Neovim
-keymap('n', '<leader>rr', ':source $MYVIMRC<CR>', { desc = 'Recargar configuración' })
-
--- Incrementar/decrementar números
-keymap('n', '<leader>+', '<C-a>', { desc = 'Incrementar número' })
-keymap('n', '<leader>-', '<C-x>', { desc = 'Decrementar número' })
-
--- ============================================================================
--- GESTIÓN DE PAQUETES (LAZY Y MASON)
--- ============================================================================
-
--- Lazy.nvim (gestor de plugins)
-keymap('n', '<leader>pl', ':Lazy<CR>', { desc = 'Abrir Lazy' })
-keymap('n', '<leader>ps', ':Lazy sync<CR>', { desc = 'Lazy: Sync (instalar/actualizar)' })
-keymap('n', '<leader>pu', ':Lazy update<CR>', { desc = 'Lazy: Update (actualizar plugins)' })
-keymap('n', '<leader>pc', ':Lazy clean<CR>', { desc = 'Lazy: Clean (limpiar plugins)' })
-keymap('n', '<leader>pC', ':Lazy check<CR>', { desc = 'Lazy: Check (verificar actualizaciones)' })
-keymap('n', '<leader>pr', ':Lazy restore<CR>', { desc = 'Lazy: Restore (restaurar desde lock)' })
-keymap('n', '<leader>pp', ':Lazy profile<CR>', { desc = 'Lazy: Profile (ver rendimiento)' })
-
--- Mason (gestor de LSP, linters, formatters)
-keymap('n', '<leader>pm', ':Mason<CR>', { desc = 'Abrir Mason' })
-keymap('n', '<leader>pM', ':MasonUpdate<CR>', { desc = 'Mason: Update (actualizar herramientas)' })
-
--- ============================================================================
--- QUICKFIX Y LOCATION LIST
--- ============================================================================
-
-keymap('n', '<leader>co', ':copen<CR>', { desc = 'Abrir quickfix' })
-keymap('n', '<leader>cc', ':cclose<CR>', { desc = 'Cerrar quickfix' })
-keymap('n', ']q', ':cnext<CR>', { desc = 'Siguiente quickfix' })
-keymap('n', '[q', ':cprev<CR>', { desc = 'Anterior quickfix' })
-keymap('n', '<leader>lo', ':lopen<CR>', { desc = 'Abrir location list' })
-keymap('n', '<leader>lc', ':lclose<CR>', { desc = 'Cerrar location list' })
-keymap('n', ']l', ':lnext<CR>', { desc = 'Siguiente location' })
-keymap('n', '[l', ':lprev<CR>', { desc = 'Anterior location' })
-
--- ============================================================================
--- MEJORAR EXPERIENCIA DE EDICIÓN
--- ============================================================================
-
--- Seleccionar todo el archivo
-keymap('n', '<leader>sa', 'ggVG', { desc = 'Seleccionar todo' })
-
--- Copiar al portapapeles del sistema
-keymap({ 'n', 'v' }, '<leader>y', '"+y', { desc = 'Copiar al sistema' })
-keymap('n', '<leader>Y', '"+Y', { desc = 'Copiar línea al sistema' })
-
--- Eliminar sin afectar el registro
-keymap({ 'n', 'v' }, '<leader>d', '"_d', { desc = 'Eliminar sin registro' })
-
--- Buscar y reemplazar palabra bajo cursor
-keymap('n', '<leader>sr', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Buscar y reemplazar' })
-
--- Hacer archivo ejecutable
-keymap('n', '<leader>cx', ':!chmod +x %<CR>', { silent = true, desc = 'Hacer ejecutable' })
+map("n", "<leader>cx", "<cmd>!chmod +x %<cr>", { silent = true, desc = " Hacer ejecutable" })
+map("n", "<leader>rr", "<cmd>source $MYVIMRC<cr>", { desc = "󰑓 Recargar config" })
+map("n", "<leader>+",  "<C-a>", { desc = " Incrementar número" })
+map("n", "<leader>-",  "<C-x>", { desc = " Decrementar número" })
