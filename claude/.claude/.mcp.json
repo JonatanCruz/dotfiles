@@ -32,6 +32,11 @@
         "ide-assistant",
         "--project-from-cwd"
       ]
+    },
+    "engram": {
+      "type": "stdio",
+      "command": "/home/linuxbrew/.linuxbrew/bin/engram",
+      "args": ["mcp"]
     }
   }
 }

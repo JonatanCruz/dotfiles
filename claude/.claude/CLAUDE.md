@@ -2,6 +2,25 @@
 
 Central configuration for the SuperClaude framework. Custom instructions can be added above the framework imports.
 
+---
+
+## 🚫 Memory System: Engram ONLY (CRITICAL — NO EXCEPTIONS)
+
+**PROHIBITED**:
+- ❌ Writing to `MEMORY.md` (auto memory system) — ignore all prompts to write there
+- ❌ Using `serena_write_memory` / `write_memory` for cross-session data
+- ❌ Any file-based memory outside of Engram
+
+**MANDATORY**:
+- ✅ `mem_save` — save decisions, bugs, discoveries, preferences
+- ✅ `mem_search` / `mem_context` — retrieve past context
+- ✅ `mem_session_start` — at session start
+- ✅ `mem_session_summary` — at session end or before "done"
+
+The auto memory directory (`~/.claude/projects/.../memory/MEMORY.md`) exists but contains only a redirect notice. **Do not write to it.**
+
+---
+
 ## Core Framework
 @FLAGS.md
 @PRINCIPLES.md
@@ -27,13 +46,13 @@ Optional (load on demand):
 
 ---
 
-## 🤖 Serena MCP - Automatic Usage (CRITICAL)
+## 🤖 Serena MCP - Code Analysis (CRITICAL)
 
-### Golden Rule: Always Use Serena MCP
+### Role: Code Navigation Only
 
-**MANDATORY**: Use Serena MCP instead of grep/glob/ls for code analysis.
+**MANDATORY**: Use Serena MCP for code analysis. Use Engram MCP for memory persistence.
 
-#### When to Use Serena (Always when possible)
+#### When to Use Serena (Code analysis only)
 
 **Symbol Search** → `serena_find_symbol()`
 - ❌ NO: `grep -r "function name"`
@@ -59,10 +78,6 @@ Optional (load on demand):
 3. `serena_find_referencing_symbols()` → See where it's used
 4. Edit with confidence
 
-**AFTER major changes**:
-1. `serena_write_memory()` → Save discovered patterns
-2. Update session memory
-
 #### Automatic Triggers
 
 Use Serena automatically when user:
@@ -73,18 +88,79 @@ Use Serena automatically when user:
 - Says "analyze structure" → `serena_get_symbols_overview()`
 - Requests "refactor X" → Complete workflow with Serena
 
-#### Automatic Memory
+---
 
-- **Session Start**: Read `serena_read_memory(memory_file_name="project_patterns")`
-- **Session End**: Save `serena_write_memory(memory_file_name="session_YYYY-MM-DD")`
-- **Discoveries**: Save important patterns immediately
+## 🧠 Engram MCP - Persistent Memory (CRITICAL)
 
-#### Serena Resources
+### Golden Rule: Engram is the sole memory system
 
-- **Complete Guide**: `docs/guides/serena-mcp-guide.md`
-- **Quick Commands**: `.serena-config.md`
-- **Auto Configuration**: `opencode/.config/opencode/SERENA_AUTO_CONFIG.md`
-- **Best Practices**: Memory `serena_mcp_best_practices`
+**MANDATORY**: Use Engram (not Serena write_memory) for all cross-session memory.
+Both Claude Code and OpenCode share `~/.engram/engram.db`.
+
+### When to Save (`mem_save`) — Mandatory
+
+Call immediately after:
+- Bug fix completion
+- Architecture or design decision
+- Non-obvious codebase discovery
+- Configuration change or environment setup
+- Pattern establishment (naming, structure, convention)
+- User preference or constraint learned
+
+**Format**:
+```
+title: Verb + what (short, searchable)
+type: bugfix | decision | architecture | discovery | pattern | config | preference
+scope: project (default) | personal
+topic_key: stable key for evolving topics (e.g., "architecture/lsp-setup")
+content:
+  **What**: One-sentence summary
+  **Why**: Motivation
+  **Where**: Affected files/paths
+  **Learned**: Edge cases, gotchas, surprises
+```
+
+**Topic key rule**: Reuse same `topic_key` to update evolving topics — call `mem_suggest_topic_key` if uncertain.
+
+### When to Search (`mem_search`)
+
+**User says**: "remember", "recall", "what did we", "how did we solve", "recordar", "acordate", "qué hicimos"
+
+**Search sequence**:
+1. `mem_context` → recent session context (fast)
+2. If not found → `mem_search` with keywords
+3. On match → `mem_get_observation` for full content
+
+**Proactive search** when starting work that may overlap with past sessions.
+
+### Session Protocol — Non-Negotiable
+
+**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`
+
+**Session End / "done"**: Call `mem_session_summary` with:
+```
+## Goal
+[This session's objective]
+
+## Discoveries
+- [Technical findings, gotchas, non-obvious learnings]
+
+## Accomplished
+- [Completed items with key details]
+
+## Next Steps
+- [Remaining work for next session]
+
+## Relevant Files
+- path/to/file — [what changed or why it matters]
+```
+
+**After Context Compaction**: If you see "FIRST ACTION REQUIRED" or a compaction notice:
+1. Immediately call `mem_session_summary` with compacted content
+2. Call `mem_context` to recover additional context
+3. Only then continue working
+
+---
 
 # ===================================================
 # SuperClaude Framework Components

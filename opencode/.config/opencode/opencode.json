@@ -211,6 +211,12 @@
       "command": ["npx", "-y", "@executeautomation/playwright-mcp-server"],
       "enabled": true,
       "timeout": 10000
+    },
+    "engram": {
+      "type": "local",
+      "command": ["/home/linuxbrew/.linuxbrew/bin/engram", "mcp"],
+      "enabled": true,
+      "timeout": 10000
     }
   },
 
