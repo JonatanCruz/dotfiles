@@ -40,6 +40,16 @@ return {
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
+      -- vim.lsp.config() requires Neovim 0.11+
+      if vim.fn.has("nvim-0.11") == 0 then
+        vim.notify(
+          "LSP config requires Neovim 0.11+. Please upgrade.",
+          vim.log.levels.ERROR,
+          { title = "LSP Setup" }
+        )
+        return
+      end
+
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       local servers = require("config.lsp_servers")
 
