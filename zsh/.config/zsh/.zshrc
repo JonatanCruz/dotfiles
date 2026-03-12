@@ -46,9 +46,5 @@ source "${ZDOTDIR}/plugins.zsh"
 # bun completions (cross-platform)
 [ -s "${HOME}/.bun/_bun" ] && source "${HOME}/.bun/_bun"
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 # API Keys (loaded from local secrets file, never committed)
 [[ -f "${ZDOTDIR}/secrets.zsh" ]] && source "${ZDOTDIR}/secrets.zsh"

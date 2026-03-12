@@ -256,7 +256,7 @@ apply_stow_packages() {
 
     cd "$DOTFILES_DIR"
 
-    local packages=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude git)
+    local packages=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude opencode git)
     local success=0
     local failed=0
 

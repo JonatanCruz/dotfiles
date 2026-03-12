@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # ==============================================================================
 # DOTFILES INSTALLER
@@ -74,10 +75,11 @@ declare -A PACKAGE_DESCRIPTIONS=(
     ["wezterm"]="WezTerm - Terminal emulator"
     ["docker"]="Docker - Completion y configuración"
     ["claude"]="Claude Code - Configuración para Claude Code CLI"
+    ["opencode"]="OpenCode - Configuración para OpenCode CLI"
 )
 
 # Orden de paquetes para mostrar
-PACKAGE_ORDER=("nvim" "zsh" "zsh-plugins" "tmux" "starship" "yazi" "wezterm" "docker" "claude")
+PACKAGE_ORDER=("nvim" "zsh" "zsh-plugins" "tmux" "starship" "yazi" "wezterm" "docker" "claude" "opencode")
 
 get_available_packages() {
     local packages=()
