@@ -6,6 +6,9 @@
 export EDITOR='nvim'
 export PAGER='less'
 
+# Asegurar que $TERM esté definido (necesario para tput en entornos sin terminal)
+[[ -z "$TERM" ]] && export TERM=xterm-256color
+
 # Homebrew - detecta macOS o Linux automáticamente
 if [ -x "/opt/homebrew/bin/brew" ]; then
   # macOS Apple Silicon (M1/M2/M3)
@@ -58,10 +61,6 @@ export FUNCNEST=1000
 
 # Claude Code - Límite de tokens de salida
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
-
-# Bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
 
 # .NET SDK - system install (/usr/bin/dotnet → /usr/lib/dotnet)
 export DOTNET_ROOT="/usr/lib/dotnet"

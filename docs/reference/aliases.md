@@ -7,10 +7,11 @@ Esta guía consolida todos los aliases disponibles en este entorno de desarrollo
 1. [Git - Control de Versiones](#git---control-de-versiones)
 2. [GitHub CLI - Gestión de Repos](#github-cli---gestión-de-repos)
 3. [Docker - Contenedores](#docker---contenedores)
-4. [Tmux - Multiplexor de Terminal](#tmux---multiplexor-de-terminal)
-5. [Herramientas Modernas](#herramientas-modernas)
-6. [Navegación - Directorios](#navegación---directorios)
-7. [Aliases de Gitconfig](#aliases-de-gitconfig)
+4. [Node.js - Package Managers](#nodejs---package-managers)
+5. [Tmux - Multiplexor de Terminal](#tmux---multiplexor-de-terminal)
+6. [Herramientas Modernas](#herramientas-modernas)
+7. [Navegación - Directorios](#navegación---directorios)
+8. [Aliases de Gitconfig](#aliases-de-gitconfig)
 
 ---
 
@@ -235,6 +236,97 @@ Ver logs en tiempo real de un contenedor.
 
 **`dcleanall`**
 Limpieza completa de Docker con confirmación (contenedores, imágenes, volúmenes, redes).
+
+---
+
+## Node.js - Package Managers
+
+### NPM
+
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `ni` | `npm install` | Instalar dependencias |
+| `nid` | `npm install --save-dev` | Instalar como devDependency |
+| `nig` | `npm install -g` | Instalar globalmente |
+| `nu` | `npm uninstall` | Desinstalar paquete |
+| `nup` | `npm update` | Actualizar paquetes |
+| `nr` | `npm run` | Ejecutar script |
+| `nrs` | `npm run start` | Start |
+| `nrd` | `npm run dev` | Dev server |
+| `nrb` | `npm run build` | Build |
+| `nrt` | `npm run test` | Tests |
+| `nrl` | `npm run lint` | Linting |
+| `nrf` | `npm run format` | Formatear |
+| `nci` | `npm ci` | Clean install |
+| `nls` | `npm ls` | Listar paquetes |
+| `nout` | `npm outdated` | Ver paquetes desactualizados |
+| `nau` | `npm audit` | Auditoría de seguridad |
+| `nauf` | `npm audit fix` | Fix automático |
+
+### PNPM
+
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `pi` | `pnpm install` | Instalar dependencias |
+| `pid` | `pnpm install -D` | Instalar como devDep |
+| `pig` | `pnpm install -g` | Instalar globalmente |
+| `pu` | `pnpm uninstall` | Desinstalar |
+| `pup` | `pnpm update` | Actualizar |
+| `pr` | `pnpm run` | Ejecutar script |
+| `prs` | `pnpm run start` | Start |
+| `prd` | `pnpm run dev` | Dev server |
+| `prb` | `pnpm run build` | Build |
+| `prt` | `pnpm run test` | Tests |
+| `prl` | `pnpm run lint` | Linting |
+| `prf` | `pnpm run format` | Formatear |
+| `pa` | `pnpm add` | Agregar paquete |
+| `pad` | `pnpm add -D` | Agregar como devDep |
+| `pag` | `pnpm add -g` | Agregar globalmente |
+| `px` | `pnpm dlx` | Ejecutar sin instalar |
+
+### Yarn
+
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `yi` | `yarn install` | Instalar dependencias |
+| `ya` | `yarn add` | Agregar paquete |
+| `yad` | `yarn add -D` | Agregar como devDep |
+| `yag` | `yarn global add` | Agregar globalmente |
+| `yu` | `yarn upgrade` | Actualizar |
+| `yr` | `yarn run` | Ejecutar script |
+| `yrs` | `yarn start` | Start |
+| `yrd` | `yarn dev` | Dev server |
+| `yrb` | `yarn build` | Build |
+| `yrt` | `yarn test` | Tests |
+| `yrl` | `yarn lint` | Linting |
+
+### Bun
+
+| Alias | Comando | Descripción |
+|-------|---------|-------------|
+| `bi` | `bun install` | Instalar dependencias |
+| `ba` | `bun add` | Agregar paquete |
+| `bad` | `bun add -d` | Agregar como devDep |
+| `br` | `bun run` | Ejecutar script |
+| `brs` | `bun run start` | Start |
+| `brd` | `bun run dev` | Dev server |
+| `brb` | `bun run build` | Build |
+| `brt` | `bun run test` | Tests |
+| `bx` | `bunx` | Ejecutar sin instalar |
+
+### Funciones Inteligentes (Auto-detectan lockfile)
+
+**`pkg <comando>`**
+Ejecuta el comando con el gestor de paquetes correcto del proyecto (detecta `bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`).
+
+**`pkgi`**
+Instala dependencias con el gestor correcto.
+
+**`pkgr <script>`**
+Ejecuta un script con el gestor correcto.
+
+**`pkgclean`**
+Elimina `node_modules/` y reinstala con el gestor correcto.
 
 ---
 

@@ -299,11 +299,14 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 ### Tmux (Prefix: Ctrl+s)
 
-- Split horizontal: `Prefix + |`
-- Split vertical: `Prefix + -`
-- Navigate panes: `Prefix + h/j/k/l`
-- Resize panes: `Prefix + H/J/K/L` (hold for repeat)
+- Split horizontal (arriba/abajo): `Prefix + v`
+- Split vertical (izquierda/derecha): `Prefix + h`
+- Navigate panes: `Ctrl+h/j/k/l` (sin prefix, via vim-tmux-navigator)
+- Resize panes: `Alt+h/j/k/l` (vim-aware, sin prefix)
+- Zoom pane: `Prefix + m`
+- Toggle status bar: `Prefix + \`
 - Reload config: `Prefix + r`
+- Session manager: `Prefix + s` (SessionX con fzf+zoxide)
 
 ### Neovim (Leader: Space)
 
@@ -353,7 +356,7 @@ This configuration uses modern CLI alternatives:
 - `zoxide` replaces `cd` (smart directory jumping)
 - `fzf` for fuzzy finding
 
-All aliases are defined in `zsh/.zshrc`.
+Aliases are organized in modular files under `zsh/.config/zsh/aliases/` (tools, git, gh, docker, gcloud, navigation, editor, tmux, utils, node).
 
 ## Tmux-Neovim Integration
 

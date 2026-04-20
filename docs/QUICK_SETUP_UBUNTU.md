@@ -21,7 +21,123 @@ Esto instalará:
 
 ---
 
-## 🎯 Opción 2: Instalación Paso a Paso (Control Total)
+## 🍺 Opción 2: Instalación con Homebrew (Simple y Actualizada)
+
+Homebrew (Linuxbrew) permite instalar todas las herramientas con versiones recientes sin necesidad de PPAs ni compilaciones manuales.
+
+### Paso 1: Instalar dependencias base y Homebrew
+
+```bash
+# Dependencias para Homebrew
+sudo apt update && sudo apt install -y build-essential curl file git procps
+
+# Instalar Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Agregar Homebrew al PATH (ejecutar lo que indica el instalador)
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+```
+
+### Paso 2: Instalar TODAS las herramientas de una vez
+
+```bash
+# Una sola línea instala todo el stack
+brew install \
+    neovim \
+    tmux \
+    starship \
+    eza \
+    bat \
+    fd \
+    ripgrep \
+    fzf \
+    zoxide \
+    yazi \
+    lazygit \
+    stow \
+    node \
+    python@3
+
+# Verificar instalación
+brew doctor
+```
+
+### Paso 3: Aplicar dotfiles
+
+```bash
+cd ~/dotfiles
+git submodule update --init --recursive
+stow nvim zsh zsh-plugins tmux starship yazi docker claude git
+chsh -s $(which zsh)
+```
+
+**Ventajas de Homebrew:**
+- ✅ Versiones siempre actualizadas (no dependes de repos de Ubuntu)
+- ✅ No necesita `sudo` para instalar paquetes
+- ✅ Un solo comando para todo el stack
+- ✅ Consistente entre macOS y Linux
+- ✅ Fácil rollback con `brew uninstall`
+
+**Desventajas:**
+- ⚠️ Usa más espacio en disco (~2-4 GB por las dependencias propias)
+- ⚠️ Las rutas son diferentes a las del sistema (`/home/linuxbrew/...`)
+
+---
+
+## 🔀 Alternativas por Herramienta
+
+Cada herramienta tiene alternativas según tus preferencias:
+
+| Categoría | Recomendada | Alternativas | Notas |
+|-----------|-------------|--------------|-------|
+| **Listado de archivos** | `eza` | `lsd`, `exa` (deprecated), `natls` | `lsd` tiene iconos sin Nerd Font |
+| **Visor de archivos** | `bat` | `glow` (markdown), `highlight`, `pygmentize` | `glow` ideal para README.md |
+| **Búsqueda de texto** | `ripgrep` (rg) | `ag` (silver-searcher), `ack`, `ugrep` | `ugrep` es más compatible con grep POSIX |
+| **Búsqueda de archivos** | `fd` | `bfs`, `find` (GNU) | `bfs` prioriza breadth-first |
+| **Fuzzy finder** | `fzf` | `skim` (sk), `peco`, `zf` | `skim` es un clon de fzf en Rust |
+| **Navegación dirs** | `zoxide` | `autojump`, `z.lua`, `fasd` | `zoxide` es el más rápido |
+| **File manager** | `yazi` | `ranger`, `nnn`, `lf`, `joshuto` | `nnn` es el más ligero |
+| **Prompt** | `starship` | `powerlevel10k`, `oh-my-posh`, `pure` | `p10k` solo para Zsh |
+| **Editor** | `neovim` | `helix`, `kakoune`, `vim`, `micro` | `helix` no necesita plugins |
+| **Multiplexor** | `tmux` | `zellij`, `screen`, `byobu` | `zellij` es más moderno/intuitivo |
+| **Git TUI** | `lazygit` | `tig`, `gitui`, `fugitive` (nvim) | `gitui` es más ligero |
+| **Diffs** | `delta` | `difftastic`, `diff-so-fancy` | `difftastic` entiende AST |
+
+### Instalación de alternativas con Homebrew
+
+```bash
+# Si prefieres zellij en lugar de tmux
+brew install zellij
+
+# Si prefieres helix en lugar de neovim
+brew install helix
+
+# Si prefieres lsd en lugar de eza
+brew install lsd
+
+# Si prefieres ranger en lugar de yazi
+brew install ranger
+
+# Herramientas complementarias recomendadas
+brew install delta dust btop tokei hyperfine
+```
+
+### Instalación de alternativas con apt
+
+```bash
+# Alternativas disponibles directamente en apt
+sudo apt install -y \
+    silversearcher-ag \
+    ranger \
+    tig \
+    byobu \
+    screen
+```
+
+---
+
+## 🎯 Opción 3: Instalación Paso a Paso (Control Total)
 
 ### Paso 1: Instalar Dependencias del Sistema
 
@@ -297,7 +413,7 @@ exec zsh
 Tu configuración usa **Catppuccin Mocha** (no Dracula):
 
 - Neovim: Tema aplicado automáticamente
-- Tmux: Plugin catppuccin/tmux instalado
+- Tmux: Colores Catppuccin via status bar custom (sin plugin externo)
 - Starship: Configuración en `~/.config/starship.toml`
 
 ---
@@ -308,9 +424,12 @@ Tu configuración usa **Catppuccin Mocha** (no Dracula):
 
 | Atajo | Acción |
 |-------|--------|
-| `Ctrl+s` + `\|` | Split horizontal |
-| `Ctrl+s` + `-` | Split vertical |
-| `Ctrl+s` + `h/j/k/l` | Navegar entre paneles |
+| `Ctrl+s` + `v` | Split horizontal (arriba/abajo) |
+| `Ctrl+s` + `h` | Split vertical (izquierda/derecha) |
+| `Ctrl+h/j/k/l` | Navegar entre paneles (sin prefix) |
+| `Alt+h/j/k/l` | Redimensionar paneles (vim-aware) |
+| `Ctrl+s` + `m` | Zoom pane (toggle) |
+| `Ctrl+s` + `s` | Gestor de sesiones (SessionX) |
 | `Ctrl+s` + `r` | Recargar configuración |
 
 ### Neovim (Leader: Espacio)
