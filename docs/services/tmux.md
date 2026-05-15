@@ -4,7 +4,7 @@ Configuración moderna de Tmux con TPM, SessionX, Resurrect, Continuum, navegaci
 
 ## Características Principales
 
-- **🎨 Catppuccin Mocha**: Tema morado/cyan con background transparente
+- **🎨 Catppuccin Mocha**: Colores via status bar custom (sin plugin externo)
 - **📋 SessionX**: Gestión avanzada de sesiones con FZF y Zoxide
 - **💾 Resurrect + Continuum**: Persistencia automática de sesiones
 - **🔄 Vim-Tmux-Navigator**: Navegación seamless entre panes de Tmux y splits de Neovim
@@ -25,9 +25,12 @@ Configuración moderna de Tmux con TPM, SessionX, Resurrect, Continuum, navegaci
 | **Resurrect** | Guardar/restaurar sesiones |
 | **Continuum** | Auto-save cada 15 minutos |
 | **vim-tmux-navigator** | Navegación Vim/Tmux |
+| **aserowy/tmux.nvim** | Integración profunda con Neovim (resize vim-aware) |
 | **Thumbs** | Copia rápida de texto |
 | **Yank** | Copia al clipboard del sistema |
-| **Catppuccin** | Tema Mocha transparente |
+| **tmux-fzf** | FZF dentro de Tmux (buscar sesiones, windows, panes) |
+| **tmux-fzf-url** | Seleccionar/copiar URLs de la terminal con FZF |
+| **tmux-which-key** | Muestra keybindings disponibles (like Vim's which-key) |
 
 ## Keybindings Esenciales
 

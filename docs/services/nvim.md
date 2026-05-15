@@ -78,6 +78,59 @@ nvim/.config/nvim/
 - `<leader>gb` - Git branches
 - `]c` / `[c` - Siguiente/anterior cambio
 
+### Diffview (Git avanzado)
+- `<leader>gd` - Abrir Diffview (diff completo)
+- `<leader>gD` - Cerrar Diffview
+- `<leader>gfh` - Historial de archivos (todo el repo)
+- `<leader>gff` - Historial del archivo actual
+- `<leader>gm` - Conflictos de merge
+- `<leader>gc` - Diff del último commit
+
+### Debugging (DAP)
+- `<leader>db` - Toggle breakpoint
+- `<leader>dB` - Breakpoint condicional
+- `<leader>dc` - Continuar/Iniciar debug
+- `<leader>di` - Step into
+- `<leader>dO` - Step over
+- `<leader>do` - Step out
+- `<leader>dC` - Run to cursor
+- `<leader>dl` - Re-ejecutar último debug
+- `<leader>dt` - Terminar debug
+- `<leader>du` - Toggle DAP UI
+- `<leader>dr` - Toggle REPL
+- `<leader>de` - Evaluar expresión (normal/visual)
+- `<leader>dw` - Hover widgets
+- `<leader>dk` / `<leader>dj` - Navegar stack arriba/abajo
+
+Lenguajes soportados: JavaScript, TypeScript, React (TSX/JSX), Python
+
+### Testing (Neotest)
+- `<leader>tt` - Ejecutar test más cercano
+- `<leader>tf` - Ejecutar tests del archivo
+- `<leader>ta` - Ejecutar todos los tests
+- `<leader>tl` - Re-ejecutar último test
+- `<leader>ts` - Toggle resumen de tests
+- `<leader>to` - Abrir output del test
+- `<leader>tO` - Toggle panel de output
+- `<leader>tw` - Toggle watch mode
+- `<leader>td` - Debug test más cercano (integración DAP)
+- `<leader>tS` - Detener tests
+- `<leader>tn` / `<leader>tp` - Siguiente/anterior test fallido
+
+Frameworks soportados: Jest, Vitest (auto-detección)
+
+### Refactoring
+- `<leader>re` - Extract function (visual)
+- `<leader>rf` - Extract function to file (visual)
+- `<leader>rv` - Extract variable (visual)
+- `<leader>ri` - Inline variable (normal/visual)
+- `<leader>rI` - Inline function
+- `<leader>rb` - Extract block
+- `<leader>rbf` - Extract block to file
+- `<leader>rs` - Seleccionar refactoring (Telescope)
+- `<leader>rd` - Debug: print variable
+- `<leader>rc` - Debug: cleanup prints
+
 ### Terminal
 - `<leader>tt` - Toggle terminal flotante
 - `<C-\>` - Toggle terminal en split
@@ -115,6 +168,28 @@ La configuración incluye 60+ highlight groups transparentes para integración p
 - **lazygit.nvim**: Integración Git
 - **vim-tmux-navigator**: Navegación Tmux
 - **supermaven-nvim**: AI completion
+- **aerial.nvim**: Symbol outline panel
+
+### Debug & Testing
+- **nvim-dap**: Debug Adapter Protocol (Node.js, TypeScript, Python)
+- **nvim-dap-ui**: Interfaz visual para debugging
+- **nvim-dap-virtual-text**: Valores inline durante debug
+- **neotest**: Testing framework (Jest, Vitest)
+
+### Git Avanzado
+- **diffview.nvim**: Diff viewer y resolución de conflictos
+- **gitsigns.nvim**: Indicadores de cambios en gutter
+
+### Refactoring & Code Quality
+- **refactoring.nvim**: Extract function/variable/block, inline
+- **conform.nvim**: Auto-formateo on save
+- **nvim-lint**: Linting asíncrono
+
+### Focus & UX
+- **zen-mode.nvim**: Modo Zen para focus
+- **persistence.nvim**: Sesiones automáticas
+- **todo-comments.nvim**: Highlight y búsqueda de TODOs
+- **neogen**: Generación de docstrings
 
 ## Personalización
 

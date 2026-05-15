@@ -5,7 +5,7 @@ Configuración modular de Zsh con 5 módulos de configuración, 8 categorías de
 ## Características Principales
 
 - **📂 Modular**: 5 archivos de configuración separados por función
-- **🎯 Aliases Organizados**: 8 categorías (tools, git, tmux, gcloud, gh, docker, navigation, editor)
+- **🎯 Aliases Organizados**: 10 categorías (tools, git, tmux, gcloud, gh, docker, navigation, editor, utils, node)
 - **⌨️ Modo Vi**: Edición de línea de comandos estilo Vim
 - **📝 Historial Inteligente**: 10,000 comandos persistentes compartidos
 - **🎨 Autocompletado**: Menú interactivo con colores
@@ -26,7 +26,7 @@ zsh/
     │   ├── completion.zsh      # Autocompletado
     │   └── keybindings.zsh     # Modo Vi + atajos
     │
-    ├── aliases/                # 8 categorías
+    ├── aliases/                # 10 categorías
     │   ├── tools.zsh           # eza, bat, btop, fd, ripgrep
     │   ├── git.zsh             # Git y LazyGit
     │   ├── tmux.zsh            # Gestión de tmux
@@ -35,6 +35,7 @@ zsh/
     │   ├── docker.zsh          # Docker y Docker Compose
     │   ├── navigation.zsh      # cd, zoxide
     │   ├── editor.zsh          # Neovim
+    │   ├── node.zsh            # npm, pnpm, yarn, bun
     │   └── utils.zsh           # Utilidades
     │
     └── plugins.zsh             # Carga de plugins
@@ -165,6 +166,37 @@ rg          # ripgrep (case-insensitive)
 yz          # yazi (file manager)
 top         # btop (monitor de sistema)
 help        # tldr (ayuda rápida)
+```
+
+### Node.js / Package Managers
+
+```bash
+# NPM
+ni / nid / nig    # install / install --save-dev / install -g
+nr / nrd / nrb    # run / run dev / run build
+nrt / nrl / nrf   # run test / run lint / run format
+nci / nup / nau   # ci / update / audit
+
+# PNPM (más rápido)
+pi / pid / pig    # install / install -D / install -g
+pr / prd / prb    # run / run dev / run build
+pa / pad / pag    # add / add -D / add -g
+px                # pnpm dlx (ejecutar sin instalar)
+
+# Yarn
+yi / ya / yad     # install / add / add -D
+yr / yrd / yrb    # run / run dev / run build
+
+# Bun (ultra-rápido)
+bi / ba / bad     # install / add / add -d
+br / brd / brb    # run / run dev / run build
+bx                # bunx (ejecutar sin instalar)
+
+# Funciones inteligentes (auto-detectan lockfile)
+pkg <cmd>         # Ejecutar comando con el gestor correcto
+pkgi              # Install con el gestor correcto
+pkgr <script>     # Run script con el gestor correcto
+pkgclean          # rm -rf node_modules && reinstalar
 ```
 
 ### Editor
@@ -331,6 +363,19 @@ Configuración optimizada para carga rápida:
 - Plugins cargados al final
 - Starship inicializado al último
 - Compinit con opción `-i`
+
+### Lazy-Loading (400-600ms de ahorro)
+
+Las siguientes herramientas se cargan **on-demand** (al primer uso) en lugar de al inicio de sesión:
+
+| Herramienta | Ahorro | Mecanismo |
+|-------------|--------|-----------|
+| **NVM** | 200-300ms | Funciones `nvm`, `node`, `npm`, `npx` se redefinen como wrappers que cargan NVM al primer uso |
+| **Zoxide** | 100-150ms | Inicialización diferida hasta el primer `z` o `zi` |
+| **Direnv** | 100-150ms | Hook evaluado lazily |
+| **GitHub CLI** | ~50ms | Completions cargadas en background |
+
+Esto significa que el primer `node --version` tarda un instante extra, pero todas las sesiones posteriores son instantáneas.
 
 ## Comparación con Configuración Anterior
 
