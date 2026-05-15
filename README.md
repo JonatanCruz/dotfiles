@@ -1,308 +1,280 @@
-# 💻 Dotfiles - Professional Development Environment
+<div align="center">
 
-[![CI/CD](https://github.com/JonatanCruz/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/JonatanCruz/dotfiles/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey.svg)](https://github.com/JonatanCruz/dotfiles)
-[![GNU Stow](https://img.shields.io/badge/managed_by-GNU_Stow-orange.svg)](https://www.gnu.org/software/stow/)
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e1e2e,50:313244,100:45475a&height=220&section=header&text=.dotfiles&fontSize=72&fontColor=cdd6f4&fontAlignY=35&desc=modern%20development%20environment&descSize=18&descColor=89b4fa&descAlignY=55&animation=fadeIn" width="100%"/>
 
-> Modern, keyboard-driven development environment with unified Catppuccin Mocha theming and transparent backgrounds. Optimized for Linux and macOS.
+<br/>
 
-![Catppuccin Mocha Theme](https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/palette/mocha.png)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/JonatanCruz/dotfiles/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=a6e3a1&label=CI&color=1e1e2e)](https://github.com/JonatanCruz/dotfiles/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-89b4fa?style=for-the-badge&logo=opensourceinitiative&logoColor=89b4fa&color=1e1e2e)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos-cba6f7?style=for-the-badge&logo=apple&logoColor=cba6f7&color=1e1e2e)](https://github.com/JonatanCruz/dotfiles)
+[![Stow](https://img.shields.io/badge/managed%20by-GNU%20Stow-fab387?style=for-the-badge&logo=gnu&logoColor=fab387&color=1e1e2e)](https://www.gnu.org/software/stow/)
+[![Theme](https://img.shields.io/badge/theme-catppuccin%20mocha-f5c2e7?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgZmlsbD0iI2Y1YzJlNyIvPjwvc3ZnPg==&color=1e1e2e)](https://github.com/catppuccin/catppuccin)
 
-## ⚡ Quick Setup - Ubuntu 24.04 LTS
+<br/>
 
-**One-command installation:**
+> Keyboard-driven development environment with unified theming and transparent backgrounds.
+> <br/>Optimized for Linux and macOS.
 
-```bash
-cd ~/dotfiles
-./scripts/quick-setup-ubuntu.sh
-```
+<br/>
 
-**What it does:** Installs everything (Neovim, Tmux, Zsh, Starship, CLI tools, fonts) in 5-10 minutes.
+<img src="https://skillicons.dev/icons?i=neovim,lua,bash,git,github,docker,linux,apple&theme=dark" alt="Tech Stack" />
 
-**Step-by-step guide:** See [docs/QUICK_SETUP_UBUNTU.md](docs/QUICK_SETUP_UBUNTU.md) and [docs/CHECKLIST_INSTALACION.md](docs/CHECKLIST_INSTALACION.md)
+<br/><br/>
+
+</div>
 
 ---
 
-## ✨ Features
-
-- 🎨 **Unified Theme**: Catppuccin Mocha across all tools
-- ⌨️ **Vim-Style Navigation**: Keyboard-first workflow
-- 🔄 **GNU Stow Management**: Modular, version-controlled configuration
-- 🚀 **Modern CLI Tools**: Fast alternatives to traditional Unix tools
-- 🤖 **AI Integration**: Claude Code configuration included
-- 🔧 **Automated Setup**: Interactive installer with conflict detection
-- ✅ **CI/CD Pipeline**: Automated testing and validation via GitHub Actions
-
-## 🛠️ Stack
-
-| Category | Tools |
-|----------|-------|
-| **Core** | [GNU Stow](https://www.gnu.org/software/stow/), [Neovim](https://neovim.io/), [Tmux](https://github.com/tmux/tmux), [Zsh](https://www.zsh.org/) |
-| **Modern CLI** | [eza](https://github.com/eza-community/eza), [bat](https://github.com/sharkdp/bat), [fd](https://github.com/sharkdp/fd), [ripgrep](https://github.com/BurntSushi/ripgrep), [zoxide](https://github.com/ajeetdsouza/zoxide) |
-| **Terminal** | [WezTerm](https://wezfurlong.org/wezterm/) (macOS), [Starship](https://starship.rs/) prompt |
-| **Git Tools** | [LazyGit](https://github.com/jesseduffield/lazygit), [Delta](https://github.com/dandavison/delta), [GitHub CLI](https://cli.github.com/) |
-| **File Explorer** | [Yazi](https://github.com/sxyazi/yazi), NvimTree |
-| **AI Assistant** | [Claude Code](https://claude.com/claude-code) |
-| **DevOps** | [direnv](https://direnv.net/), [btop](https://github.com/aristocratos/btop), [tldr](https://github.com/tldr-pages/tldr) |
-
-## 🚀 Quick Start
-
-### Automated Installation (Recommended)
+## Quick Start
 
 ```bash
-# Clone repository with submodules
+# Clone and install
 git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-
-# Run interactive installer
-./install.sh
+cd ~/dotfiles && ./install.sh
 ```
 
-The installer will:
-- ✓ Detect OS (Linux/macOS)
-- ✓ Verify dependencies
-- ✓ Let you select packages
-- ✓ Detect conflicts
-- ✓ Create backups
-- ✓ Apply configurations
-
-### Manual Installation
+The installer detects your OS, verifies dependencies, handles conflicts with backups, and applies configurations.
 
 <details>
-<summary><b>Click to expand manual installation steps</b></summary>
-
-**1. Prerequisites**
+<summary><strong>Ubuntu 24.04 — One-command setup</strong></summary>
 
 ```bash
-# Linux (Ubuntu/Debian)
-sudo apt install stow git
-
-# macOS
-brew install stow git
+cd ~/dotfiles && ./scripts/bootstrap.sh -y
 ```
 
-**2. Clone and Setup**
+Installs everything (Neovim, Tmux, Zsh, Starship, CLI tools, fonts) automatically.
+
+See the full [Ubuntu Setup Guide](docs/QUICK_SETUP_UBUNTU.md) for step-by-step or Homebrew options.
+
+</details>
+
+<details>
+<summary><strong>Manual / Selective install</strong></summary>
 
 ```bash
-git clone --recurse-submodules https://github.com/JonatanCruz/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-```
+# Prerequisites
+sudo apt install stow git   # Linux
+brew install stow git        # macOS
 
-**3. Install Dependencies**
-
-For detailed dependency installation, see [docs/INSTALL.md](docs/INSTALL.md)
-
-**4. Apply Configurations**
-
-```bash
-# Apply all configurations
-stow */
-
-# Or selectively:
+# Apply specific configs
 stow nvim zsh tmux starship
-```
 
-**5. Set Zsh as Default Shell**
-
-```bash
+# Set Zsh as default shell
 chsh -s $(which zsh)
 ```
 
 </details>
 
-## 📂 Repository Structure
+---
+
+## Stack
+
+<table>
+<tr>
+<td width="140"><strong>Core</strong></td>
+<td>
+
+[Neovim](https://neovim.io/) · [Tmux](https://github.com/tmux/tmux) · [Zsh](https://www.zsh.org/) · [GNU Stow](https://www.gnu.org/software/stow/) · [Starship](https://starship.rs/)
+
+</td>
+</tr>
+<tr>
+<td><strong>Modern CLI</strong></td>
+<td>
+
+[eza](https://github.com/eza-community/eza) · [bat](https://github.com/sharkdp/bat) · [fd](https://github.com/sharkdp/fd) · [ripgrep](https://github.com/BurntSushi/ripgrep) · [fzf](https://github.com/junegunn/fzf) · [zoxide](https://github.com/ajeetdsouza/zoxide)
+
+</td>
+</tr>
+<tr>
+<td><strong>Git Tools</strong></td>
+<td>
+
+[LazyGit](https://github.com/jesseduffield/lazygit) · [Delta](https://github.com/dandavison/delta) · [Diffview](https://github.com/sindrets/diffview.nvim) · [GitHub CLI](https://cli.github.com/)
+
+</td>
+</tr>
+<tr>
+<td><strong>Dev Tools</strong></td>
+<td>
+
+[Yazi](https://github.com/sxyazi/yazi) · [btop](https://github.com/aristocratos/btop) · [direnv](https://direnv.net/) · [Claude Code](https://claude.com/claude-code)
+
+</td>
+</tr>
+</table>
+
+---
+
+## Repository Structure
 
 ```
 dotfiles/
-├── .github/workflows/      # CI/CD automation
-│   └── ci.yml             # Linting, testing, security scans
-├── scripts/               # Utility scripts
-│   ├── bootstrap.sh      # Fresh system setup
-│   ├── health-check.sh   # Environment validation
-│   └── snapshot.sh       # Configuration backup
-├── nvim/                  # Neovim configuration
-│   └── .config/nvim/     # Modular Lua config with lazy.nvim
-├── claude/                # Claude Code global config
-│   └── .claude/          # SuperClaude framework
-├── tmux/                  # Tmux multiplexer
-├── zsh/                   # Zsh shell config
-├── zsh-plugins/           # Zsh plugins (submodules)
-├── starship/              # Starship prompt
-├── yazi/                  # Yazi file manager
-├── wezterm/               # WezTerm (macOS)
-├── docker/                # Docker completion
-└── git/                   # Git configuration
+├── nvim/              Neovim — modular Lua config with lazy.nvim, LSP, DAP, Neotest
+├── zsh/               Zsh — 10 alias categories, lazy-loading, vi mode
+├── tmux/              Tmux — SessionX, Resurrect, vim-tmux-navigator
+├── starship/          Starship — Catppuccin Mocha prompt
+├── yazi/              Yazi — terminal file manager
+├── git/               Git — Delta diff, rerere, aliases
+├── claude/            Claude Code — SuperClaude framework
+├── wezterm/           WezTerm — GPU-accelerated terminal (macOS)
+├── docker/            Docker — completion scripts
+├── zsh-plugins/       Zsh plugins (git submodules)
+├── scripts/           bootstrap, health-check, snapshot
+└── docs/              Full documentation
 ```
 
-## 🔧 Utility Scripts
+---
 
-| Script | Description | Usage |
-|--------|-------------|-------|
-| `bootstrap.sh` | Fresh system setup | `./scripts/bootstrap.sh` |
-| `health-check.sh` | Validate environment | `./scripts/health-check.sh` |
-| `snapshot.sh` | Backup configurations | `./scripts/snapshot.sh create backup-name` |
-
-## ⚙️ Key Technologies
-
-### Neovim Configuration
-
-- **Plugin Manager**: [lazy.nvim](https://github.com/folke/lazy.nvim) (lazy loading)
-- **LSP**: Mason for automatic server installation
-- **Completion**: nvim-cmp with intelligent snippets
-- **Fuzzy Finder**: Telescope
-- **Git Integration**: LazyGit, Gitsigns
-- **Theme**: Catppuccin with transparency
-
-**Structure**: Modular Lua configuration in `lua/config/` and `lua/plugins/`
-
-### GNU Stow Management
-
-Stow creates symlinks from repository to home directory:
-
-```bash
-stow nvim      # Link ~/.config/nvim → ~/dotfiles/nvim/.config/nvim
-stow -R nvim   # Restow (update links)
-stow -D nvim   # Unlink configuration
-stow -n nvim   # Dry-run (preview changes)
-```
-
-### CI/CD Pipeline
-
-GitHub Actions workflow validates:
-- ✓ ShellCheck linting (Bash scripts)
-- ✓ Luacheck linting (Neovim configs)
-- ✓ Stow dry-run tests (all packages)
-- ✓ Neovim config validation
-- ✓ Security scanning (TruffleHog)
-- ✓ Health check execution
-- ✓ Bootstrap script testing
-
-## 🎨 Theming
-
-**Catppuccin Mocha** unified across:
-- Neovim (`mocha` flavor with transparency)
-- Tmux (`catppuccin/tmux` plugin)
-- WezTerm (60% transparency with blur)
-- Git Delta (Mocha syntax highlighting)
-- Starship (Mocha color palette)
-
-**Color Palette**: [View Catppuccin Mocha](https://github.com/catppuccin/catppuccin#-palette)
-
-## ⌨️ Essential Keybindings
+## Keybindings
 
 <details>
-<summary><b>Tmux (Prefix: Ctrl+a)</b></summary>
+<summary><strong>Tmux</strong> — Prefix: <code>Ctrl+s</code></summary>
 
 | Key | Action |
 |-----|--------|
-| `Prefix + \|` | Horizontal split |
-| `Prefix + -` | Vertical split |
-| `Prefix + h/j/k/l` | Navigate panes |
-| `Prefix + H/J/K/L` | Resize panes |
+| `Prefix + v` | Split horizontal (top/bottom) |
+| `Prefix + h` | Split vertical (left/right) |
+| `Ctrl+h/j/k/l` | Navigate panes (no prefix) |
+| `Alt+h/j/k/l` | Resize panes (vim-aware) |
+| `Prefix + m` | Zoom pane toggle |
+| `Prefix + s` | Session manager (SessionX) |
 | `Prefix + r` | Reload config |
 
 </details>
 
 <details>
-<summary><b>Neovim (Leader: Space)</b></summary>
+<summary><strong>Neovim</strong> — Leader: <code>Space</code></summary>
 
 | Key | Action |
 |-----|--------|
-| `<leader>w` | Save file |
+| `<leader>w` | Save |
 | `<leader>q` | Quit |
 | `<leader>e` | File explorer |
 | `<leader>ff` | Find files |
 | `<leader>fg` | Search text |
 | `<leader>gg` | LazyGit |
-| `gd` | Go to definition |
-| `gr` | References |
-| `K` | Hover docs |
+| `gd` / `gr` / `K` | Go to definition / References / Hover |
+| `<leader>db` | Toggle breakpoint (DAP) |
+| `<leader>dc` | Start/Continue debug |
+| `<leader>tt` | Run nearest test (Neotest) |
+| `<leader>re` | Extract function (Refactoring) |
+| `<leader>gd` | Open Diffview |
 
 </details>
 
-<details>
-<summary><b>Yazi (Vim-style)</b></summary>
+---
 
-| Key | Action |
-|-----|--------|
-| `h/j/k/l` | Navigate |
-| `Enter` | Open file |
-| `Esc` or `q` | Exit |
+## Theming
 
-</details>
+**Catppuccin Mocha** — unified across every tool:
 
-## 🔄 Updates
+<table>
+<tr>
+<td align="center"><img src="https://img.shields.io/badge/-%20-89b4fa?style=flat-square&logoColor=white" width="24"/> Blue</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-cba6f7?style=flat-square&logoColor=white" width="24"/> Mauve</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-f5c2e7?style=flat-square&logoColor=white" width="24"/> Pink</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-a6e3a1?style=flat-square&logoColor=white" width="24"/> Green</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-f9e2af?style=flat-square&logoColor=white" width="24"/> Yellow</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-fab387?style=flat-square&logoColor=white" width="24"/> Peach</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-f38ba8?style=flat-square&logoColor=white" width="24"/> Red</td>
+<td align="center"><img src="https://img.shields.io/badge/-%20-94e2d5?style=flat-square&logoColor=white" width="24"/> Teal</td>
+</tr>
+</table>
+
+Applied to: Neovim · Tmux · Starship · WezTerm · Git Delta · Yazi
+
+---
+
+## CI/CD
+
+GitHub Actions validates on every push:
+
+![ShellCheck](https://img.shields.io/badge/shellcheck-passing-a6e3a1?style=flat-square&logo=gnu-bash&logoColor=a6e3a1&color=1e1e2e)
+![Luacheck](https://img.shields.io/badge/luacheck-passing-89b4fa?style=flat-square&logo=lua&logoColor=89b4fa&color=1e1e2e)
+![Stow](https://img.shields.io/badge/stow%20dry--run-passing-cba6f7?style=flat-square&logo=gnu&logoColor=cba6f7&color=1e1e2e)
+![Security](https://img.shields.io/badge/trufflehog-clean-f9e2af?style=flat-square&logo=trufflehog&logoColor=f9e2af&color=1e1e2e)
+
+ShellCheck · Luacheck · Stow dry-run · Neovim config validation · TruffleHog security scan · Health check · Bootstrap test
+
+---
+
+## Documentation
+
+<table>
+<tr>
+<td width="50%">
+
+**Getting Started**
+- [Ubuntu Quick Setup](docs/QUICK_SETUP_UBUNTU.md)
+- [Installation Guide](docs/INSTALL.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Installation Checklist](docs/CHECKLIST_INSTALACION.md)
+
+</td>
+<td>
+
+**Reference**
+- [All Aliases](docs/reference/aliases.md)
+- [Keybindings](docs/guides/keybindings.md)
+- [Scripts](docs/reference/scripts.md)
+- [Troubleshooting](docs/reference/troubleshooting.md)
+
+</td>
+</tr>
+<tr>
+<td>
+
+**Services**
+- [Neovim](docs/services/nvim.md) · [Tmux](docs/services/tmux.md) · [Zsh](docs/services/zsh.md)
+- [Starship](docs/services/starship.md) · [Yazi](docs/services/yazi.md) · [Git](docs/services/git.md)
+- [Claude Code](docs/services/claude.md) · [WezTerm](docs/services/wezterm.md)
+
+</td>
+<td>
+
+**Advanced**
+- [Neovim Plugins](docs/advanced/neovim-plugins.md)
+- [Tmux Workflows](docs/advanced/tmux-workflows.md)
+- [Tool Integration](docs/advanced/integration.md)
+- [Customization](docs/guides/customization.md)
+
+</td>
+</tr>
+</table>
+
+Full documentation: **[docs/](docs/README.md)**
+
+---
+
+## Troubleshooting
 
 ```bash
-cd ~/dotfiles
-git pull --recurse-submodules
-stow -R */  # Restow all packages
+# Stow conflicts — backup and retry
+mv ~/.config/nvim ~/.config/nvim.backup && stow nvim
+
+# Neovim plugins not loading
+nvim -c "Lazy sync"
+
+# Zsh not default shell
+chsh -s $(which zsh)  # then logout/login
+
+# Full environment health check
+./scripts/health-check.sh
 ```
-
-## 📚 Documentation
-
-**[📖 Documentation Hub](docs/README.md)** - Complete documentation index and navigation
-
-### Installation Guides
-- **[Quick Setup Ubuntu 24.04](docs/QUICK_SETUP_UBUNTU.md)** - ⚡ Fast setup guide for Ubuntu
-- **[Installation Checklist](docs/CHECKLIST_INSTALACION.md)** - ✅ Step-by-step verification
-- **[Complete Installation Guide](docs/INSTALL.md)** - 📖 Detailed multi-platform instructions
-- **[Architecture](docs/ARCHITECTURE.md)** - 🏗️ Project structure and GNU Stow management
-
-### By Category
-- **[Services Documentation](docs/services/)** - Individual service configurations (Neovim, Tmux, Zsh, etc.)
-- **[User Guides](docs/guides/)** - Workflows, keybindings, and customization
-- **[Quick Reference](docs/reference/)** - Aliases, scripts, and troubleshooting
-- **[Advanced Topics](docs/advanced/)** - Deep dives and integrations between services
-
-## 🐛 Troubleshooting
-
-### Stow Conflicts
-
-```bash
-# Backup existing config
-mv ~/.config/nvim ~/.config/nvim.backup
-
-# Apply dotfiles
-stow nvim
-```
-
-### Neovim Plugins Not Loading
-
-```bash
-# Open Neovim and sync plugins
-nvim
-:Lazy sync
-```
-
-### Zsh Not Default Shell
-
-```bash
-chsh -s $(which zsh)
-# Logout and login again
-```
-
-## 🤝 Contributing
-
-Issues and pull requests are welcome. For major changes, please open an issue first.
-
-## 📜 License
-
-MIT License - See [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-- [Catppuccin](https://github.com/catppuccin/catppuccin) - Soothing pastel theme
-- [GNU Stow](https://www.gnu.org/software/stow/) - Symlink management
-- [Dotfiles Community](https://dotfiles.github.io/) - Best practices and inspiration
 
 ---
 
 <div align="center">
 
-**[⬆ Back to Top](#-dotfiles---professional-development-environment)**
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e1e2e,50:313244,100:45475a&height=120&section=footer&animation=fadeIn" width="100%"/>
 
-Made with ❤️ by [JonatanCruz](https://github.com/JonatanCruz)
+<sub>
+
+MIT License · Made by [JonatanCruz](https://github.com/JonatanCruz)
+
+[Catppuccin](https://github.com/catppuccin/catppuccin) · [GNU Stow](https://www.gnu.org/software/stow/) · [Dotfiles Community](https://dotfiles.github.io/)
+
+</sub>
 
 </div>
