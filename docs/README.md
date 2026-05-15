@@ -1,80 +1,108 @@
-# 📚 Documentación Dotfiles
+<div align="center">
 
-Bienvenido al centro de documentación del proyecto Dotfiles. Esta documentación está organizada por categorías para facilitar la navegación.
+<img src="https://capsule-render.vercel.app/api?type=rect&color=1e1e2e&height=1" width="100%"/>
 
-## 🗂️ Estructura de Documentación
+# Documentation
 
-### ⚡ Instalación Rápida
+<sub>Complete reference for the dotfiles development environment</sub>
 
-**¿Nuevo usuario? Empieza aquí:**
+<br/>
 
-- **[Quick Setup Ubuntu 24.04](QUICK_SETUP_UBUNTU.md)** - ⚡ Instalación automática optimizada (5-10 min)
-- **[Checklist de Instalación](CHECKLIST_INSTALACION.md)** - ✅ Verificación paso a paso completa
-- **[Guía de Instalación Completa](INSTALL.md)** - 📖 Manual detallado multi-plataforma
-- **[Arquitectura](ARCHITECTURE.md)** - 🏗️ Estructura del proyecto y funcionamiento de GNU Stow
+[![Neovim](https://img.shields.io/badge/neovim-docs-89b4fa?style=flat-square&logo=neovim&logoColor=89b4fa&color=1e1e2e)](services/nvim.md)
+[![Tmux](https://img.shields.io/badge/tmux-docs-a6e3a1?style=flat-square&logo=tmux&logoColor=a6e3a1&color=1e1e2e)](services/tmux.md)
+[![Zsh](https://img.shields.io/badge/zsh-docs-cba6f7?style=flat-square&logo=zsh&logoColor=cba6f7&color=1e1e2e)](services/zsh.md)
+[![Git](https://img.shields.io/badge/git-docs-fab387?style=flat-square&logo=git&logoColor=fab387&color=1e1e2e)](services/git.md)
 
-### 🛠️ Documentación por Servicio
+<br/>
 
-Documentación detallada de cada herramienta configurada:
-
-- **[Neovim](services/nvim.md)** - Editor de código con LSP, plugins y keybindings
-- **[Tmux](services/tmux.md)** - Multiplexor de terminal con gestión de sesiones
-- **[Zsh](services/zsh.md)** - Shell con aliases, módulos y plugins
-- **[Starship](services/starship.md)** - Prompt personalizado con módulos
-- **[Yazi](services/yazi.md)** - File manager con navegación Vim
-- **[WezTerm](services/wezterm.md)** - Emulador de terminal GPU-accelerated
-- **[Git](services/git.md)** - Configuración de Git con Delta diff viewer
-- **[Docker](services/docker.md)** - Completions y aliases para Docker
-- **[Claude Code](services/claude.md)** - Framework SuperClaude y agentes especializados
-- **[OpenCode](guides/opencode.md)** - AI coding agent con MCP y SuperClaude
-- **[OpenCode Best Practices](guides/opencode-best-practices.md)** - Prácticas profesionales y recomendaciones
-
-### 📚 Guías de Usuario
-
-Aprende a usar el entorno de desarrollo:
-
-- **[Primeros Pasos](guides/getting-started.md)** - Instalación rápida y primer uso
-- **[Keybindings](guides/keybindings.md)** - Referencia completa de atajos de teclado
-- **[Workflows](guides/workflows.md)** - Flujos de trabajo comunes
-- **[Personalización](guides/customization.md)** - Cómo personalizar tu configuración
-
-### 🔍 Referencias Rápidas
-
-Consultas rápidas para el día a día:
-
-- **[Aliases](reference/aliases.md)** - Todos los aliases de Git, Docker, Tmux, etc.
-- **[Scripts](reference/scripts.md)** - Documentación de scripts utilitarios
-- **[Troubleshooting](reference/troubleshooting.md)** - Solución de problemas comunes
-
-### 🚀 Temas Avanzados
-
-Personalización y configuración avanzada:
-
-- **[Plugins de Neovim](advanced/neovim-plugins.md)** - Cómo agregar nuevos plugins
-- **[Workflows de Tmux](advanced/tmux-workflows.md)** - Uso avanzado de Tmux
-- **[Integración](advanced/integration.md)** - Integración entre servicios
-
-## 🎯 Inicio Rápido
-
-Si eres nuevo en este proyecto, te recomendamos seguir este orden:
-
-### Ubuntu 24.04 LTS (Instalación Rápida)
-```bash
-cd ~/dotfiles
-./scripts/quick-setup-ubuntu.sh
-```
-Luego sigue el **[Checklist de Instalación](CHECKLIST_INSTALACION.md)** para verificar todo.
-
-### Otras Plataformas
-1. Lee **[Arquitectura](ARCHITECTURE.md)** para entender cómo funciona el proyecto
-2. Sigue **[Instalación](INSTALL.md)** para configurar tu sistema
-3. Consulta **[Primeros Pasos](guides/getting-started.md)** para comenzar a usar el entorno
-4. Mantén **[Keybindings](guides/keybindings.md)** a mano como referencia
-
-## 🤝 Contribuir
-
-Para contribuir al proyecto, consulta la documentación de desarrollo y las guías de estilo en cada servicio específico.
+</div>
 
 ---
 
-**Última actualización**: 2026-01-15
+## Getting Started
+
+If you're new, follow this path:
+
+| Step | Resource | Description |
+|:----:|----------|-------------|
+| 1 | **[Quick Setup Ubuntu](QUICK_SETUP_UBUNTU.md)** | Automated install in 5-10 min (includes Homebrew option) |
+| 2 | **[Installation Checklist](CHECKLIST_INSTALACION.md)** | Verify everything is working |
+| 3 | **[Architecture](ARCHITECTURE.md)** | Understand how GNU Stow manages configs |
+| 4 | **[Keybindings](guides/keybindings.md)** | Learn the key shortcuts |
+
+For other platforms, start with the [Complete Installation Guide](INSTALL.md).
+
+---
+
+## Services
+
+Detailed documentation for each configured tool:
+
+<table>
+<tr>
+<td width="50%">
+
+| Service | Description |
+|---------|-------------|
+| **[Neovim](services/nvim.md)** | Editor with LSP, DAP debugging, Neotest, AI completion |
+| **[Tmux](services/tmux.md)** | Multiplexer with SessionX, Resurrect, vim-tmux nav |
+| **[Zsh](services/zsh.md)** | Shell with 10 alias categories, lazy-loading, vi mode |
+| **[Starship](services/starship.md)** | Prompt with Catppuccin Mocha colors |
+
+</td>
+<td>
+
+| Service | Description |
+|---------|-------------|
+| **[Yazi](services/yazi.md)** | Terminal file manager with vim navigation |
+| **[Git](services/git.md)** | Delta diff viewer, rerere, aliases |
+| **[Docker](services/docker.md)** | Completions and container aliases |
+| **[Claude Code](services/claude.md)** | SuperClaude framework, MCP servers |
+
+</td>
+</tr>
+</table>
+
+Additional: [WezTerm](services/wezterm.md) (macOS) · [OpenCode](guides/opencode.md) · [OpenCode Best Practices](guides/opencode-best-practices.md)
+
+---
+
+## Guides
+
+| Guide | What you'll learn |
+|-------|-------------------|
+| **[Getting Started](guides/getting-started.md)** | First steps after installation |
+| **[Keybindings](guides/keybindings.md)** | Complete shortcut reference |
+| **[Workflows](guides/workflows.md)** | Common development workflows |
+| **[Customization](guides/customization.md)** | How to adapt configs to your needs |
+
+---
+
+## Reference
+
+| Resource | Content |
+|----------|---------|
+| **[Aliases](reference/aliases.md)** | All aliases: Git, Docker, Node.js, Tmux, GCloud, and more |
+| **[Scripts](reference/scripts.md)** | bootstrap, health-check, snapshot utilities |
+| **[Troubleshooting](reference/troubleshooting.md)** | Common issues and solutions |
+| **[LSP Requirements](reference/lsp-requirements.md)** | Language server dependencies |
+
+---
+
+## Advanced
+
+| Topic | Description |
+|-------|-------------|
+| **[Neovim Plugins](advanced/neovim-plugins.md)** | Adding and configuring plugins |
+| **[Tmux Workflows](advanced/tmux-workflows.md)** | Advanced multiplexer usage |
+| **[Integration](advanced/integration.md)** | How tools work together |
+
+---
+
+<div align="center">
+<sub>
+
+[Back to main README](../README.md)
+
+</sub>
+</div>

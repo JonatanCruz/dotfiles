@@ -46,16 +46,11 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 
 | Keybinding | Acción |
 |------------|--------|
-| `Prefix + \|` | Split vertical |
-| `Prefix + -` | Split horizontal |
-| `Prefix + h` | Mover a panel izquierdo |
-| `Prefix + j` | Mover a panel abajo |
-| `Prefix + k` | Mover a panel arriba |
-| `Prefix + l` | Mover a panel derecho |
-| `Prefix + H` | Resize panel izquierda |
-| `Prefix + J` | Resize panel abajo |
-| `Prefix + K` | Resize panel arriba |
-| `Prefix + L` | Resize panel derecha |
+| `Prefix + h` | Split vertical (izq/der) |
+| `Prefix + v` | Split horizontal (arriba/abajo) |
+| `Ctrl+h/j/k/l` | Navegar entre paneles (sin prefix, vim-tmux-navigator) |
+| `Alt+h/j/k/l` | Resize paneles (vim-aware, sin prefix) |
+| `Prefix + m` | Zoom pane (toggle) |
 | `Prefix + x` | Cerrar panel (confirma) |
 | `Prefix + z` | Zoom/unzoom panel |
 | `Prefix + Space` | Cambiar layout de paneles |
