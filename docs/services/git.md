@@ -1,532 +1,634 @@
-# Git - Control de Versiones Optimizado
+![Git](https://img.shields.io/badge/git-%23fab387?style=for-the-badge&logo=git&logoColor=white&color=1e1e2e)
 
-Configuración de Git con git-delta integrado, tema Catppuccin Mocha y herramientas de merge visual con Neovim.
+# Git - Control de Versiones
 
-## Características Principales
+Configuración de Git con git-delta como pager, tema Catppuccin Mocha en diffs, nvimdiff para resolución de conflictos y un conjunto completo de aliases para operaciones comunes.
 
-- **🎨 Git Delta**: Diff viewer mejorado con syntax highlighting
-- **🌈 Catppuccin Mocha**: Tema púrpura/cyan en diffs
-- **📊 Side-by-Side**: Comparación visual en columnas
-- **🔧 Neovim Merge Tool**: nvimdiff para resolución de conflictos
-- **⚡ Aliases Útiles**: Comandos cortos para operaciones comunes
-- **🔄 Auto-Prune**: Limpieza automática de ramas remotas
+## Ubicacion de archivo
 
-## Git Delta - Diff Viewer Mejorado
+El archivo de configuración principal es `~/.gitconfig`, gestionado con GNU Stow desde:
 
-Git Delta transforma los diffs estándar de Git en una experiencia visual mejorada con:
-
-### Features
-- **Syntax Highlighting**: Código coloreado en diffs
-- **Side-by-Side**: Comparación en dos columnas
-- **Line Numbers**: Números de línea en ambos lados
-- **Hyperlinks**: URLs clickeables en la terminal
-- **Catppuccin Theme**: Colores consistentes con resto del setup
-
-### Ejemplo de Output
-
-**Diff estándar vs Delta**:
 ```
-# Diff estándar (aburrido)
--const name = 'old'
-+const name = 'new'
-
-# Delta (hermoso)
-┊ 45│const name = 'old'     ┊ 45│const name = 'new'
-     ^^^^^ removed              ^^^^^ added
+dotfiles/git/.gitconfig  →  ~/.gitconfig
 ```
 
-### Colores Catppuccin Mocha en Delta
+Para aplicar:
+
+```bash
+cd ~/dotfiles
+stow git
+```
+
+---
+
+## Git Delta - Diff Viewer
+
+Git Delta reemplaza el pager estándar de Git con syntax highlighting, números de línea y vista en columnas.
+
+### Configuracion
+
+```toml
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[add.interactive]
+    useBuiltin = false
+
+[delta]
+    features        = catppuccin-mocha
+    navigate        = true
+    light           = false
+    side-by-side    = true
+    line-numbers    = true
+    syntax-theme    = Catppuccin-mocha
+    hyperlinks      = true
+    max-line-length = 512
+
+    # Encabezados de archivo
+    file-style            = bold "#fab387"
+    file-decoration-style = "#fab387" ul
+
+    # Formato de numeros de linea
+    line-numbers-left-format  = "{nm:>4}┊"
+    line-numbers-right-format = "{np:>4}│"
+    line-numbers-left-style   = "#6c7086"
+    line-numbers-right-style  = "#6c7086"
+
+    # Encabezados de hunk
+    hunk-header-style            = file line-number syntax
+    hunk-header-decoration-style = "#cba6f7" box
+```
+
+### Descripcion de opciones Delta
+
+| Opcion | Valor | Descripcion |
+|--------|-------|-------------|
+| `features` | `catppuccin-mocha` | Activa el bloque de colores `[delta "catppuccin-mocha"]` |
+| `navigate` | `true` | Navegar entre hunks con `n` / `N` dentro del pager |
+| `side-by-side` | `true` | Muestra el diff en dos columnas (antes / despues) |
+| `line-numbers` | `true` | Numeros de linea en ambas columnas |
+| `syntax-theme` | `Catppuccin-mocha` | Tema de syntax highlighting |
+| `hyperlinks` | `true` | Convierte rutas de archivo en URLs clickeables en terminales compatibles |
+| `max-line-length` | `512` | Longitud maxima antes de truncar (evita wrapping excesivo en side-by-side) |
+| `hunk-header-style` | `file line-number syntax` | Muestra archivo, numero de linea y codigo en el encabezado del hunk |
+| `hunk-header-decoration-style` | `"#cba6f7" box` | Encuadra el encabezado del hunk con el color Mauve |
+
+### Paleta Catppuccin Mocha en diffs
+
+El bloque `[delta "catppuccin-mocha"]` define los colores para lineas eliminadas y agregadas:
 
 | Elemento | Color | Hex |
 |----------|-------|-----|
-| **Archivos modificados** | Peach (naranja) | `#fab387` |
-| **Líneas eliminadas** | Fondo rojo oscuro | `#442d30` |
-| **Líneas agregadas** | Fondo verde oscuro | `#2e3d32` |
-| **Líneas modificadas (énfasis)** | Rojo/verde más intenso | `#6e3f44` / `#3e5a3e` |
-| **Números de línea** | Overlay (gris) | `#6c7086` |
-| **Headers de hunks** | Mauve (morado) | `#cba6f7` |
+| Archivos modificados (header) | Peach | `#fab387` |
+| Lineas eliminadas | Fondo rojo oscuro | `#442d30` |
+| Lineas eliminadas (enfasis intra-linea) | Rojo mas intenso | `#6e3f44` |
+| Lineas agregadas | Fondo verde oscuro | `#2e3d32` |
+| Lineas agregadas (enfasis intra-linea) | Verde mas intenso | `#3e5a3e` |
+| Numeros de linea | Overlay (gris) | `#6c7086` |
+| Encabezados de hunk | Mauve | `#cba6f7` |
 
-## Configuración Principal
+La propiedad `map-styles` mapea los colores de merge de Git a la paleta Catppuccin:
 
-### User & Editor
 ```toml
-[user]
-name = "Tu Nombre"
-email = "tu@email.com"
-
-[core]
-editor = nvim
-pager = delta
+map-styles = "bold purple => syntax #cba6f7, bold cyan => syntax #89dceb"
 ```
 
-### Delta Configuration
-```toml
-[delta]
-features = catppuccin-mocha
-navigate = true              # Navegar entre diffs con n/N
-side-by-side = true         # Modo columnas
-line-numbers = true         # Mostrar números de línea
-syntax-theme = Catppuccin-mocha
-hyperlinks = true           # URLs clickeables
+### Ejemplo visual
+
+```
+# Git diff estandar
+-const name = 'old'
++const name = 'new'
+
+# Git Delta (side-by-side con numeros de linea)
+  45┊const name = 'old'     45│const name = 'new'
 ```
 
-## Merge y Diff Tools
-
-### nvimdiff - Merge Tool Visual
-
-Git está configurado para usar **nvimdiff** como herramienta de resolución de conflictos:
+### Instalacion de Delta
 
 ```bash
+# macOS
+brew install git-delta
+
+# Cargo (Rust)
+cargo install git-delta
+```
+
+---
+
+## Merge y Diff Tool - nvimdiff
+
+Git usa Neovim en modo diff para resolución visual de conflictos y comparacion entre archivos.
+
+### Configuracion
+
+```toml
+[merge]
+    tool          = nvimdiff
+    conflictstyle = diff3
+
+[mergetool]
+    prompt     = false
+    keepBackup = false
+
+[mergetool "nvimdiff"]
+    cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+
+[diff]
+    tool       = nvimdiff
+    colorMoved = default
+
+[difftool]
+    prompt = false
+
+[difftool "nvimdiff"]
+    cmd = nvim -d $LOCAL $REMOTE
+```
+
+### Descripcion de opciones
+
+| Opcion | Valor | Descripcion |
+|--------|-------|-------------|
+| `merge.conflictstyle` | `diff3` | Muestra el ancestro comun ademas de LOCAL y REMOTE en el marcador de conflicto |
+| `mergetool.keepBackup` | `false` | No genera archivos `.orig` despues de resolver conflictos |
+| `mergetool.prompt` | `false` | Abre la herramienta sin pedir confirmacion por cada archivo |
+| `diff.colorMoved` | `default` | Destaca bloques de codigo movidos con un color distinto al de lineas agregadas/eliminadas |
+
+### Layout de mergetool
+
+```
 git mergetool
-# Abre Neovim con 3 paneles:
-# ┌────────────┬────────────┬────────────┐
-# │   LOCAL    │   BASE     │   REMOTE   │
-# │  (tuyo)    │ (ancestro) │  (remoto)  │
-# ├────────────┴────────────┴────────────┤
-# │           MERGED (resultado)         │
-# └──────────────────────────────────────┘
+# Abre Neovim con:
+# ┌────────────┬────────────┐
+# │   LOCAL    │   REMOTE   │
+# │  (tuyo)    │  (remoto)  │
+# ├────────────┴────────────┤
+# │    MERGED (resultado)   │
+# └─────────────────────────┘
 ```
 
-**Keybindings en nvimdiff**:
-- `:diffget LOCAL` - Aceptar cambio local (izquierda)
-- `:diffget REMOTE` - Aceptar cambio remoto (derecha)
-- `]c` - Siguiente conflicto
-- `[c` - Conflicto anterior
-- `:wqa` - Guardar y salir de todos los buffers
+La opcion `conflictstyle = diff3` agrega el bloque BASE (ancestro comun) dentro del marcador de conflicto, lo que permite entender mejor la intencion original de ambas versiones.
 
-### Diff Tool
+### Keybindings en nvimdiff
+
+| Comando | Accion |
+|---------|--------|
+| `]c` | Siguiente conflicto |
+| `[c` | Conflicto anterior |
+| `:diffget LOCAL` | Aceptar version local (izquierda) |
+| `:diffget REMOTE` | Aceptar version remota (derecha) |
+| `:diffupdate` | Refrescar marcadores de diff |
+| `:wqa` | Guardar y salir de todos los buffers |
+
+### Uso de difftool
+
 ```bash
-git difftool file.js
-# Abre Neovim con dos paneles lado a lado
+# Comparar archivo con la version en staging
+git difftool archivo.js
+
+# Comparar con otra branch
+git difftool main..feature-branch -- archivo.js
 ```
 
-## Aliases Esenciales
+---
 
-### Status & Info
-```bash
-git s           # Status corto con branch
-git st          # Status completo
-git last        # Último commit con stats
-```
+## Aliases
 
-### Add & Commit
-```bash
-git a file.js   # Add archivo específico
-git aa          # Add all
-git ap          # Add patch (interactivo)
-git cm "msg"    # Commit con mensaje
-git ca          # Commit amend
-git can         # Commit amend sin editar mensaje
-```
+Todos los aliases estan definidos en el bloque `[alias]` del `.gitconfig`.
 
-### Branches
-```bash
-git b           # Listar branches locales
-git ba          # Listar todas las branches (local + remote)
-git bd branch   # Borrar branch (safe)
-git bD branch   # Forzar borrado de branch
-```
+### Status e informacion
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git s` | `git status -sb` | Status corto con nombre de branch |
+| `git st` | `git status` | Status completo |
+| `git last` | `git log -1 HEAD --stat` | Ultimo commit con resumen de archivos cambiados |
+
+### Add y staging
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git a` | `git add` | Agregar archivo(s) especificos |
+| `git aa` | `git add --all` | Agregar todos los cambios |
+| `git ap` | `git add --patch` | Staging interactivo por hunk |
+
+### Commit
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git c` | `git commit` | Commit abriendo editor |
+| `git cm` | `git commit -m` | Commit con mensaje en linea |
+| `git ca` | `git commit --amend` | Modificar ultimo commit (abre editor) |
+| `git can` | `git commit --amend --no-edit` | Modificar ultimo commit sin cambiar el mensaje |
+
+### Branch
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git b` | `git branch` | Listar branches locales |
+| `git ba` | `git branch -a` | Listar branches locales y remotas |
+| `git bd` | `git branch -d` | Eliminar branch (solo si esta mergeada) |
+| `git bD` | `git branch -D` | Forzar eliminacion de branch |
+| `git branches` | `git branch -a` | Alias largo equivalente a `git ba` |
 
 ### Checkout
-```bash
-git co branch   # Cambiar a branch
-git cob new     # Crear y cambiar a nueva branch
-```
 
-### Log & History
-```bash
-git l           # Log oneline con graph
-git lg          # Log de todas las branches con graph
-git lgg         # Log detallado con colores y autor
-git tree        # Árbol visual completo del repositorio
-```
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git co` | `git checkout` | Cambiar de branch o restaurar archivo |
+| `git cob` | `git checkout -b` | Crear y cambiar a nueva branch |
+
+### Log e historial
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git l` | `git log --oneline --graph --decorate` | Log compacto con grafo de la branch actual |
+| `git lg` | `git log --oneline --graph --decorate --all` | Log compacto con grafo de todas las branches |
+| `git lgg` | `git log --graph --pretty=format:'...' --abbrev-commit` | Log detallado con colores, autor y fecha relativa |
+| `git tree` | igual que `lgg` con `--all` | Vista de arbol completa del repositorio |
 
 ### Diff
-```bash
-git d           # Diff de cambios no staged
-git ds          # Diff de cambios staged
-git dw          # Diff palabra por palabra
-```
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git d` | `git diff` | Cambios no staged (usa Delta automaticamente) |
+| `git ds` | `git diff --staged` | Cambios en staging area |
+| `git dw` | `git diff --word-diff` | Diff a nivel de palabra |
 
 ### Stash
-```bash
-git sl          # Listar stashes
-git ss "msg"    # Guardar stash con mensaje
-git sp          # Pop último stash
-git sa          # Apply último stash (sin remover)
-```
 
-### Remote
-```bash
-git p           # Push
-git pl          # Pull
-git pf          # Push force-with-lease (más seguro)
-git r           # Ver remotes
-```
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git sl` | `git stash list` | Ver lista de stashes |
+| `git ss` | `git stash save` | Guardar stash con mensaje |
+| `git sp` | `git stash pop` | Aplicar y eliminar el ultimo stash |
+| `git sa` | `git stash apply` | Aplicar el ultimo stash sin eliminarlo |
 
-### Utilidades
-```bash
-git unstage file    # Quitar archivo de staging
-git undo            # Deshacer último commit (soft reset)
-git cleanup         # Borrar branches mergeadas
-git contributors    # Ver contribuidores con conteo de commits
-```
+### Reset
 
-## Pull & Push Strategy
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git unstage` | `git reset HEAD --` | Quitar archivo(s) del staging area |
+| `git undo` | `git reset --soft HEAD^` | Deshacer el ultimo commit (conserva cambios en staging) |
 
-### Pull Configuration
+### Push, pull y remote
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git p` | `git push` | Push a la rama remota configurada |
+| `git pl` | `git pull` | Pull desde la rama remota |
+| `git pf` | `git push --force-with-lease` | Push forzado seguro (falla si el remoto tiene commits nuevos) |
+| `git r` | `git remote -v` | Ver lista de remotes con sus URLs |
+| `git remotes` | `git remote -v` | Alias largo equivalente a `git r` |
+
+### Tags y utilidades
+
+| Alias | Comando completo | Descripcion |
+|-------|-----------------|-------------|
+| `git tags` | `git tag -l` | Listar todos los tags |
+| `git contributors` | `git shortlog -sn` | Ver contribuidores ordenados por numero de commits |
+| `git cleanup` | `!git branch --merged \| grep -v ...` | Eliminar branches locales ya mergeadas (excluye main, master, develop) |
+
+---
+
+## Configuracion de Pull y Push
+
+### Pull
+
 ```toml
 [pull]
-rebase = false      # Merge strategy (no rebase)
-ff = only          # Solo fast-forward
+    rebase = false
+    ff     = only
 ```
 
-**Estrategia de Pull**:
-- Pull solo hace fast-forward por defecto
-- Requiere rebase manual si hay divergencia
-- Previene merge commits accidentales
+| Opcion | Valor | Efecto |
+|--------|-------|--------|
+| `rebase` | `false` | El pull usa merge, no rebase |
+| `ff` | `only` | El pull solo procede si es fast-forward; rechaza si hay divergencia |
 
-### Push Configuration
+Con `ff = only`, si tu branch y la rama remota divergieron, Git devuelve un error en lugar de crear un merge commit automatico. Esto fuerza a resolver la divergencia explicitamente con rebase o merge manual.
+
+### Push
+
 ```toml
 [push]
-default = current          # Push branch actual al mismo nombre en remote
-followTags = true         # Push tags junto con commits
-autoSetupRemote = true    # Auto-crear rama remota si no existe
+    default         = current
+    followTags      = true
+    autoSetupRemote = true
 ```
 
-**Flujo de Trabajo**:
-```bash
-# Primera vez pusheando nueva branch
-git push
-# Git automáticamente crea 'origin/feature-branch'
+| Opcion | Valor | Efecto |
+|--------|-------|--------|
+| `default` | `current` | Push la branch actual al remote con el mismo nombre |
+| `followTags` | `true` | Incluye tags anotados al hacer push |
+| `autoSetupRemote` | `true` | Crea la rama remota automaticamente si no existe (elimina necesidad de `--set-upstream`) |
 
-# Siguientes pushes
-git push  # Detecta automáticamente el remote
-```
-
-## Fetch Configuration
+### Fetch
 
 ```toml
 [fetch]
-prune = true           # Borrar referencias remotas eliminadas
-pruneTagas = true      # Borrar tags remotos eliminados
+    prune     = true
+    pruneTags = true
 ```
 
-**Auto-limpieza**:
-- `git fetch` automáticamente limpia ramas remotas eliminadas
-- Mantiene sincronización limpia con repositorio remoto
+| Opcion | Valor | Efecto |
+|--------|-------|--------|
+| `prune` | `true` | Elimina referencias locales a ramas remotas que ya no existen |
+| `pruneTags` | `true` | Elimina referencias locales a tags remotos que ya no existen |
 
-## Git Rerere (Reuse Recorded Resolution)
+---
+
+## Optimizaciones
+
+### Rerere (Reuse Recorded Resolution)
 
 ```toml
 [rerere]
-enabled = true
+    enabled = true
 ```
 
-**Qué hace Rerere**:
-- Recuerda cómo resolviste conflictos anteriores
-- Si el mismo conflicto aparece de nuevo, lo resuelve automáticamente
-- Útil en rebases repetidos o cherry-picks
+Rerere guarda la resolucion de cada conflicto de merge. Si el mismo conflicto aparece de nuevo (por ejemplo, en rebases repetidos o cherry-picks), Git lo resuelve automaticamente usando la resolucion guardada.
 
-## Colores
-
-### Branch Colors
 ```bash
-# Branch actual: amarillo inverso
-# Branches locales: amarillo
-# Branches remotas: verde
+# Ver resoluciones guardadas
+ls .git/rr-cache/
+
+# Borrar todas las resoluciones (reiniciar rerere)
+git rerere forget
 ```
 
-### Diff Colors
-```bash
-# Meta info: amarillo bold
-# Headers: magenta bold
-# Líneas removidas: rojo bold
-# Líneas agregadas: verde bold
+### Compresion
+
+```toml
+[core]
+    compression = 9
 ```
 
-### Status Colors
-```bash
-# Archivos agregados: verde
-# Archivos modificados: amarillo
-# Archivos sin track: rojo
+Nivel de compresion zlib para objetos de Git (escala 0-9). El valor `9` maximiza la compresion a costa de mayor uso de CPU. Util en repositorios grandes con historial extenso.
+
+### Protocolo version 2
+
+```toml
+[protocol]
+    version = 2
 ```
 
-## Workflows Comunes
+Git Protocol v2 reduce la cantidad de datos transferidos en `git fetch` al permitir que el servidor filtre referencias antes de enviarlas al cliente. Mejora la velocidad en repositorios con muchas referencias (branches, tags).
 
-### Workflow 1: Feature Branch con Delta
+### Autocorrect
+
+```toml
+[help]
+    autocorrect = 1
+```
+
+Si escribes un comando con typo, Git lo corrige automaticamente despues de `1` decimo de segundo (100ms). Por ejemplo, `git stauts` ejecuta `git status` automaticamente.
+
+---
+
+## Colores del terminal
+
+Los colores del terminal (distintos a los colores de Delta) aplican cuando Delta no esta activo o para elementos de la UI de Git.
+
+### Branch
+
+```toml
+[color "branch"]
+    current = yellow reverse
+    local   = yellow
+    remote  = green
+```
+
+### Diff
+
+```toml
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old  = red bold
+    new  = green bold
+```
+
+### Status
+
+```toml
+[color "status"]
+    added     = green
+    changed   = yellow
+    untracked = red
+```
+
+---
+
+## Configuracion de usuario y repositorio
+
+```toml
+[user]
+    name  = Jonatan Tlilayatzi Cruz
+    email = tlilayatzi.jonatan@outlook.com
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor   = nvim
+    filemode = false
+
+[credential]
+    helper = osxkeychain
+```
+
+| Opcion | Valor | Descripcion |
+|--------|-------|-------------|
+| `init.defaultBranch` | `main` | Nombre de branch inicial en `git init` |
+| `core.filemode` | `false` | Ignora cambios en permisos de archivo (util en entornos con distintos sistemas de archivos) |
+| `credential.helper` | `osxkeychain` | Usa el keychain de macOS para guardar credenciales de HTTPS |
+
+---
+
+## Workflows comunes
+
+### Feature branch con Delta
 
 ```bash
-# 1. Crear feature branch
+# 1. Crear branch
 git cob feature/nueva-funcionalidad
 
-# 2. Hacer cambios
-# ... editar archivos ...
+# 2. Ver cambios antes de agregar
+git d  # side-by-side con syntax highlighting
 
-# 3. Ver diferencias con Delta
-git d  # Side-by-side diff hermoso
+# 3. Staging interactivo
+git ap  # Seleccionar hunks especificos
 
-# 4. Agregar y commitear
-git aa
+# 4. Commit
 git cm "feat: agregar nueva funcionalidad"
 
-# 5. Push
-git p  # Auto-configura remote
+# 5. Push (crea la rama remota automaticamente)
+git p
 ```
 
-### Workflow 2: Resolver Conflictos con nvimdiff
+### Resolver conflictos con nvimdiff
 
 ```bash
-# 1. Pull y detectar conflicto
+# 1. Pull con conflicto
 git pl
-# CONFLICT (content): Merge conflict in file.js
+# CONFLICT (content): Merge conflict in archivo.js
 
-# 2. Abrir merge tool visual
+# 2. Abrir merge tool
 git mergetool
-# Neovim se abre con 3 paneles
+# Neovim abre con LOCAL / REMOTE arriba y MERGED abajo
 
-# 3. Resolver conflictos en Neovim
-# LOCAL ← tu versión
-# REMOTE → versión remota
-# MERGED ← resultado final
+# 3. Navegar entre conflictos
+# ]c  →  siguiente conflicto
+# [c  →  conflicto anterior
 
-# 4. Guardar y salir
+# 4. Resolver y guardar
 :wqa
 
 # 5. Commit merge
-git cm "merge: resolver conflictos en file.js"
+git cm "merge: resolver conflictos en archivo.js"
 ```
 
-### Workflow 3: Stash para Cambiar de Contexto
+### Stash para cambio de contexto
 
 ```bash
-# 1. Trabajando en feature A
-# ... cambios no commiteados ...
-
-# 2. Necesitas cambiar a feature B urgente
+# Guardar trabajo en progreso
 git ss "WIP: feature A mitad"
 
-# 3. Cambiar a otra branch
+# Cambiar de branch
 git co feature-b
-# ... trabajar en feature B ...
 
-# 4. Volver a feature A
+# Recuperar trabajo
 git co feature-a
-git sp  # Recuperar stash
+git sp
 ```
 
-### Workflow 4: Review con Tree View
+### Limpieza despues de merge
 
 ```bash
-# Ver historial visual completo
+# Eliminar branches mergeadas localmente
+git cleanup
+
+# Sincronizar referencias remotas eliminadas
+git fetch
+# (prune y pruneTags se ejecutan automaticamente)
+```
+
+### Historial visual
+
+```bash
+# Ver arbol de commits con grafo
 git tree
 
-# Output:
-# * 7a3f2e1 - (HEAD -> main) feat: add auth (2 hours ago) <Usuario>
-# * b4d2c1a - fix: resolve merge conflict (3 hours ago) <Usuario>
-# | * 9e5f3b2 - (feature/ui) feat: new UI component (1 day ago) <Usuario>
+# Ejemplo de output:
+# * 7a3f2e1 - (HEAD -> main) feat: add auth (2 hours ago) <Jonatan>
+# * b4d2c1a - fix: resolve conflict (3 hours ago) <Jonatan>
+# | * 9e5f3b2 - (feature/ui) feat: new component (1 day ago) <Jonatan>
 # |/
-# * c8a1d4b - chore: update dependencies (2 days ago) <Usuario>
+# * c8a1d4b - chore: update deps (2 days ago) <Jonatan>
 ```
 
-### Workflow 5: Clean Up Merged Branches
+---
 
-```bash
-# Después de mergear varias features
-git cleanup
-# Borra automáticamente branches mergeadas (excepto main/master/develop)
-
-# Antes:
-# * main
-#   feature/auth (merged)
-#   feature/ui (merged)
-#   feature/api (merged)
-
-# Después:
-# * main
-```
-
-## Comparación: Delta vs Git Diff Estándar
-
-| Feature | Git Diff Estándar | Git Delta |
-|---------|-------------------|-----------|
-| Syntax Highlighting | ❌ | ✅ |
-| Side-by-Side | ❌ | ✅ |
-| Line Numbers | ❌ | ✅ |
-| Color Themes | Básico | Catppuccin Mocha |
-| Hyperlinks | ❌ | ✅ |
-| Navigation | ❌ | ✅ (n/N) |
-| Readability | Baja | Alta |
-
-## Solución de Problemas
+## Solucion de problemas
 
 ### Delta no muestra colores
 
 ```bash
-# Verificar que delta esté instalado
+# Verificar instalacion
 which delta
-# Debería mostrar: /usr/local/bin/delta
 
-# Verificar que está configurado como pager
+# Verificar que esta configurado como pager
 git config --get core.pager
-# Debería mostrar: delta
+# Esperado: delta
 
-# Reinstalar si es necesario
-brew install git-delta  # macOS
-cargo install git-delta # Desde fuente
+# Instalar si falta
+brew install git-delta
+```
+
+### Delta no respeta side-by-side
+
+Delta cambia a vista vertical automaticamente si el ancho de terminal es menor a 160 columnas. Para forzar siempre el modo columnas:
+
+```bash
+git config --global delta.side-by-side true
 ```
 
 ### nvimdiff no abre en mergetool
 
 ```bash
-# Verificar configuración
+# Verificar configuracion
 git config --get merge.tool
-# Debería mostrar: nvimdiff
+# Esperado: nvimdiff
 
-# Verificar que Neovim esté instalado
+# Verificar que Neovim esta instalado
 which nvim
-# Debería mostrar path de Neovim
 
-# Configurar manualmente si falta
+# Configurar manualmente
 git config --global merge.tool nvimdiff
 ```
 
-### Delta no respeta side-by-side en terminal pequeña
+### Rerere no resuelve conflictos automaticamente
 
 ```bash
-# Delta automáticamente cambia a modo vertical si el ancho es <160 columnas
-# Forzar side-by-side siempre:
-git config --global delta.side-by-side true
-git config --global delta.wrap-max-lines unlimited
-```
-
-### Rerere no está funcionando
-
-```bash
-# Habilitar rerere
-git config --global rerere.enabled true
-
-# Verificar que está activado
+# Verificar que esta habilitado
 git config --get rerere.enabled
-# Debería mostrar: true
+# Esperado: true
 
-# Ver resoluciones guardadas
+# Ver resoluciones en cache
 ls .git/rr-cache/
+
+# Habilitar si esta desactivado
+git config --global rerere.enabled true
 ```
 
-### Aliases no funcionan
+### Pull rechazado con ff = only
 
 ```bash
-# Verificar que .gitconfig está siendo leído
+# Error: fatal: Not possible to fast-forward, aborting.
+# Solucion 1: rebase local sobre el remoto
+git pull --rebase
+
+# Solucion 2: merge explicito
+git fetch
+git merge origin/main
+```
+
+### Aliases no disponibles
+
+```bash
+# Verificar que .gitconfig esta siendo leido
 git config --list --show-origin | grep alias
 
-# Debería mostrar aliases desde ~/.gitconfig
-
-# Recargar configuración
-source ~/.zshrc
+# Verificar symlink de Stow
+ls -la ~/.gitconfig
+# Esperado: ~/.gitconfig -> ~/dotfiles/git/.gitconfig
 ```
 
-## Tips Pro
+---
 
-### 1. Navegación en Delta
+## Comparativa Delta vs diff estandar
 
-```bash
-# Dentro de un git diff con Delta:
-n    # Siguiente cambio
-N    # Cambio anterior
-q    # Salir
-```
+| Caracteristica | Git diff | Git Delta |
+|----------------|----------|-----------|
+| Syntax highlighting | No | Si |
+| Vista side-by-side | No | Si |
+| Numeros de linea | No | Si |
+| Tema de colores | Basico ANSI | Catppuccin Mocha |
+| Hyperlinks | No | Si |
+| Navegacion (n/N) | No | Si |
+| Encabezado de hunk | Solo `@@` | Archivo + linea + codigo |
+| Diff intra-linea | No | Si (enfasis) |
 
-### 2. Diff de Branch Completo
+---
 
-```bash
-# Ver todos los cambios entre branches
-git d main..feature-branch
+## Recursos
 
-# Ver solo archivos modificados
-git d --name-only main..feature-branch
-```
-
-### 3. Log con Búsqueda
-
-```bash
-# Buscar commits por mensaje
-git l --grep="feat"
-
-# Buscar commits por autor
-git l --author="Tu Nombre"
-
-# Buscar commits por fecha
-git l --since="2 weeks ago"
-```
-
-### 4. Stash Selectivo
-
-```bash
-# Stash solo archivos específicos
-git stash push -m "WIP" file1.js file2.js
-
-# Stash con untracked files
-git stash -u
-```
-
-### 5. Cherry-pick con Delta
-
-```bash
-# Ver commit antes de cherry-pick
-git show <commit-hash>  # Delta muestra diff hermoso
-
-# Cherry-pick
-git cherry-pick <commit-hash>
-```
-
-## Integración con Otras Herramientas
-
-### LazyGit
-
-LazyGit usa la configuración de Git automáticamente:
-- Delta se activa en diffs dentro de LazyGit
-- nvimdiff se usa para conflictos desde LazyGit
-- Todos los aliases están disponibles
-
-**Desde Neovim**:
-```vim
-<leader>gg    " Abrir LazyGit
-```
-
-### Tmux
-
-Ver cambios de Git en pane de Tmux:
-```bash
-# En un pane
-git tree
-
-# En otro pane
-nvim file.js
-```
-
-### Shell Aliases (Zsh)
-
-Aliases adicionales desde `.zshrc`:
-```bash
-g       # git
-gst     # git status
-gco     # git checkout
-gcm     # git commit -m
-gpl     # git pull
-gp      # git push
-lg      # lazygit
-```
-
-## Recursos Adicionales
-
-- [Git Delta Documentation](https://github.com/dandavison/delta)
-- [Catppuccin for Delta](https://github.com/catppuccin/delta)
-- [Neovim Diffview Plugin](https://github.com/sindrets/diffview.nvim)
+- [Git Delta - GitHub](https://github.com/dandavison/delta)
+- [Catppuccin para Delta](https://github.com/catppuccin/delta)
 - [Pro Git Book](https://git-scm.com/book/en/v2)
-
-## Referencias
-
-- [Git Delta GitHub](https://github.com/dandavison/delta)
-- [Git Official Docs](https://git-scm.com/doc)
 - [Neovim Diff Mode](https://neovim.io/doc/user/diff.html)
+- [Git Protocol v2](https://git-scm.com/docs/protocol-v2)
