@@ -23,6 +23,9 @@ Prompt minimalista, rápido y altamente configurable escrito en Rust con tema Ca
 - **Node.js**: Versión de Node cuando detecta `package.json`
 - **Python**: Versión de Python en proyectos Python
 - **Rust**: Versión de Rust en proyectos Cargo
+- **Go**: Versión de Go en proyectos Go
+- **.NET**: Versión de .NET en proyectos C#
+- **Bun** 🍞: Versión de Bun cuando detecta `bun.lockb` (color pink `#f5c2e7`)
 - **Docker**: Contexto de Docker activo
 - **Kubernetes**: Contexto y namespace actual
 
