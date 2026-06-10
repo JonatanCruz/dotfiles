@@ -17,6 +17,7 @@
 	filemode = false
 	# Mejor compresión
 	compression = 9
+	excludesfile = ~/.gitignore_global
 
 [interactive]
 	diffFilter = delta --color-only
