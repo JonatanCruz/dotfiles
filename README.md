@@ -35,6 +35,8 @@ cd ~/dotfiles && ./install.sh
 
 The installer detects your OS, verifies dependencies, handles conflicts with backups, and applies configurations.
 
+> 💡 **Daily maintenance**: once installed, use `just` (the task runner) for everything. Run `just` with no args to see all available commands (`bootstrap`, `health`, `update-plugins`, `bench-zsh`, `stow-check`, etc.). Requires `brew install just hyperfine`.
+
 <details>
 <summary><strong>Ubuntu 24.04 — One-command setup</strong></summary>
 
