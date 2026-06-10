@@ -1,304 +1,358 @@
+![Tmux](https://img.shields.io/badge/tmux-%23a6e3a1?style=for-the-badge&logo=tmux&logoColor=white&color=1e1e2e)
+
 # Tmux - Terminal Multiplexer
 
-Configuración moderna de Tmux con TPM, SessionX, Resurrect, Continuum, navegación Vim y tema Catppuccin Mocha transparente.
+Configuración moderna de Tmux con TPM, SessionX, Resurrect, Continuum, navegación Vim y status bar minimalista con colores Catppuccin Mocha.
 
-## Características Principales
+## Caracteristicas Principales
 
-- **🎨 Catppuccin Mocha**: Colores via status bar custom (sin plugin externo)
-- **📋 SessionX**: Gestión avanzada de sesiones con FZF y Zoxide
-- **💾 Resurrect + Continuum**: Persistencia automática de sesiones
-- **🔄 Vim-Tmux-Navigator**: Navegación seamless entre panes de Tmux y splits de Neovim
-- **📝 Thumbs**: Copia rápida de texto/URLs sin mouse
-- **⚡ Status Bar Minimalista**: Solo tabs y nombre de sesión
-- **🔗 Integración Completa**: Con Neovim, Yazi, LazyGit
+- **Catppuccin Mocha**: Colores aplicados via status bar custom (sin plugin externo de tema)
+- **SessionX**: Gestion avanzada de sesiones con FZF y Zoxide
+- **Resurrect + Continuum**: Persistencia y restauracion automatica de sesiones
+- **vim-tmux-navigator**: Navegacion seamless entre panes de Tmux y splits de Neovim
+- **aserowy/tmux.nvim**: Integracion profunda con Neovim para resize vim-aware
+- **Thumbs**: Copia rapida de texto y URLs sin mouse
+- **Status bar minimalista**: Solo tabs y nombre de sesion, posicionado en la parte superior
 
 ## Prefix Key
 
 **Prefix**: `Ctrl+s` (no el tradicional `Ctrl+b`)
 
+La tecla prefix se reenvia a la aplicacion con `Ctrl+s Ctrl+s`.
+
 ## Plugins Instalados
 
-| Plugin | Descripción |
+| Plugin | Descripcion |
 |--------|-------------|
-| **TPM** | Tmux Plugin Manager |
-| **SessionX** | Gestión de sesiones con FZF + Zoxide |
-| **Resurrect** | Guardar/restaurar sesiones |
-| **Continuum** | Auto-save cada 15 minutos |
-| **vim-tmux-navigator** | Navegación Vim/Tmux |
-| **aserowy/tmux.nvim** | Integración profunda con Neovim (resize vim-aware) |
-| **Thumbs** | Copia rápida de texto |
-| **Yank** | Copia al clipboard del sistema |
-| **tmux-fzf** | FZF dentro de Tmux (buscar sesiones, windows, panes) |
-| **tmux-fzf-url** | Seleccionar/copiar URLs de la terminal con FZF |
-| **tmux-which-key** | Muestra keybindings disponibles (like Vim's which-key) |
+| `tmux-plugins/tpm` | Tmux Plugin Manager |
+| `tmux-plugins/tmux-sensible` | Opciones razonables por defecto |
+| `tmux-plugins/tmux-yank` | Copia al clipboard del sistema |
+| `tmux-plugins/tmux-resurrect` | Guardar y restaurar sesiones manualmente |
+| `tmux-plugins/tmux-continuum` | Auto-save de sesiones cada 15 minutos |
+| `christoomey/vim-tmux-navigator` | Navegacion Vim/Tmux con Ctrl+hjkl |
+| `aserowy/tmux.nvim` | Integracion profunda con Neovim (resize vim-aware) |
+| `fcsonline/tmux-thumbs` | Copia rapida de texto visible en pantalla |
+| `sainnhe/tmux-fzf` | FZF dentro de Tmux (sesiones, windows, panes) |
+| `wfxr/tmux-fzf-url` | Seleccionar y abrir URLs del buffer con FZF |
+| `omerxx/tmux-sessionx` | Gestion avanzada de sesiones con FZF + Zoxide |
+| `alexwforsythe/tmux-which-key` | Muestra keybindings disponibles (estilo which-key de Vim) |
 
-## Keybindings Esenciales
+## Keybindings
 
-### Gestión de Sesiones
+### Sesiones
 
-```bash
-# SessionX (recomendado)
-Prefix + s          # Abrir SessionX con FZF
-                    # Busca por nombre o path
-                    # Enter para crear/cambiar
-
-# Tradicional
-Prefix + d          # Detach de sesión
-Prefix + $          # Renombrar sesión
-Prefix + w          # Lista de sesiones tradicional
-```
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + s` | Abrir SessionX (FZF + Zoxide) |
+| `Prefix + d` | Detach de la sesion actual |
+| `Prefix + $` | Renombrar sesion |
+| `Prefix + w` | Lista de sesiones tradicional |
 
 ### Panes
 
-```bash
-# Splits
-Prefix + v          # Split vertical (|)
-Prefix + h          # Split horizontal (-)
+#### Splits
 
-# Navegación (Vim-style)
-Ctrl + h/j/k/l      # Navegar entre panes (¡también funciona en Neovim!)
+| Keybinding | Accion | Resultado |
+|-----------|--------|-----------|
+| `Prefix + v` | Split vertical | Divide el pane en dos filas (arriba/abajo) |
+| `Prefix + h` | Split horizontal | Divide el pane en dos columnas (izquierda/derecha) |
 
-# Redimensionar
-Alt + h/j/k/l       # Resize panes (hold para repetir)
-Prefix + H/J/K/L    # Resize alternativo
+Ambos splits se abren en el directorio actual del pane.
 
-# Otros
-Prefix + x          # Cerrar pane
-Prefix + m          # Zoom pane (fullscreen toggle)
-Prefix + q          # Mostrar números de panes
-```
+#### Navegacion
+
+| Keybinding | Accion |
+|-----------|--------|
+| `Ctrl + h` | Ir al pane de la izquierda |
+| `Ctrl + j` | Ir al pane de abajo |
+| `Ctrl + k` | Ir al pane de arriba |
+| `Ctrl + l` | Ir al pane de la derecha |
+
+La navegacion con `Ctrl+hjkl` funciona sin prefix y es transparente entre Neovim y Tmux.
+
+#### Resize
+
+| Keybinding | Accion |
+|-----------|--------|
+| `Alt + h` | Reducir pane hacia la izquierda |
+| `Alt + j` | Reducir pane hacia abajo |
+| `Alt + k` | Expandir pane hacia arriba |
+| `Alt + l` | Expandir pane hacia la derecha |
+
+El resize con `Alt+hjkl` es vim-aware: si el foco esta en Neovim, envia el atajo a Neovim en lugar de redimensionar el pane de Tmux.
+
+#### Otros
+
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + m` | Zoom/unzoom del pane actual (fullscreen toggle) |
+| `Prefix + x` | Cerrar pane |
+| `Prefix + q` | Mostrar numeros de panes |
 
 ### Ventanas
 
-```bash
-Prefix + c          # Nueva ventana
-Prefix + n/p        # Siguiente/anterior ventana
-Prefix + 0-9        # Ir a ventana específica
-Prefix + ,          # Renombrar ventana
-Prefix + &          # Cerrar ventana
-```
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + c` | Nueva ventana |
+| `Prefix + n` | Siguiente ventana |
+| `Prefix + p` | Ventana anterior |
+| `Prefix + 1-9` | Ir a ventana por numero |
+| `Prefix + ,` | Renombrar ventana |
+| `Prefix + &` | Cerrar ventana |
 
-### Copy Mode
+### Copy Mode (Vi)
 
-```bash
-Prefix + [          # Entrar a copy mode
-/                   # Buscar hacia adelante
-?                   # Buscar hacia atrás
-n/N                 # Siguiente/anterior match
-Space               # Iniciar selección
-Enter               # Copiar selección
-y                   # Copiar al clipboard del sistema
-q                   # Salir de copy mode
-```
+El modo de copia usa keybindings de Vi (`mode-keys vi`).
 
-### Thumbs (Copia Rápida)
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + [` | Entrar a copy mode |
+| `/` | Buscar hacia adelante |
+| `?` | Buscar hacia atras |
+| `n` / `N` | Siguiente / anterior coincidencia |
+| `Space` | Iniciar seleccion |
+| `Enter` | Copiar seleccion |
+| `y` | Copiar al clipboard del sistema |
+| `q` | Salir de copy mode |
 
-```bash
-Prefix + Space      # Activar Thumbs
-[letra]             # Copiar el elemento marcado
-```
+### Thumbs (Copia Rapida)
+
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + Space` | Activar Thumbs |
+| `[letra]` | Copiar el elemento marcado |
+
+Thumbs resalta texto, rutas, hashes y URLs visibles en pantalla y permite copiarlos sin usar el mouse.
 
 ### Utilidades
 
-```bash
-Prefix + r          # Recargar configuración
-Prefix + \          # Toggle status bar
-Prefix + I          # Instalar plugins
-Prefix + U          # Actualizar plugins
-Prefix + Ctrl+s     # Guardar sesión manualmente
+| Keybinding | Accion |
+|-----------|--------|
+| `Prefix + r` | Recargar configuracion |
+| `Prefix + \` | Toggle status bar |
+| `Prefix + Ctrl+s` | Guardar sesion manualmente (Resurrect) |
+| `Prefix + I` | Instalar plugins (TPM) |
+| `Prefix + U` | Actualizar plugins (TPM) |
+
+## Configuracion
+
+### Opciones Generales
+
+| Opcion | Valor | Descripcion |
+|--------|-------|-------------|
+| `prefix` | `Ctrl+s` | Tecla de acceso |
+| `base-index` | `1` | Las ventanas empiezan desde 1, no 0 |
+| `pane-base-index` | `1` | Los panes empiezan desde 1, no 0 |
+| `escape-time` | `0` | Sin delay al presionar Escape (critico para Neovim) |
+| `history-limit` | `30000` | Lineas de historial por pane |
+| `mouse` | `on` | Soporte de mouse habilitado |
+| `set-clipboard` | `on` | Integracion con clipboard del sistema |
+| `renumber-windows` | `on` | Renumera ventanas al cerrar alguna |
+| `detach-on-destroy` | `off` | No sale de Tmux al cerrar la ultima sesion |
+| `mode-keys` | `vi` | Vi keybindings en copy mode |
+| `status-position` | `top` | Status bar en la parte superior |
+
+### True Color y Undercurl
+
+```
+set-option -sa terminal-overrides ",xterm*:Tc"
+set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'
+set -as terminal-overrides ',*:Setulc=\E[58::2::...'
+```
+
+Habilita colores 24-bit (True Color), undercurl y colores de subrayado para Neovim.
+
+### Status Bar
+
+El status bar es minimalista y usa colores Catppuccin Mocha directamente, sin depender del plugin `catppuccin/tmux`:
+
+- **Fondo**: transparente (`bg=default`)
+- **Izquierda**: vacia
+- **Derecha**: nombre de sesion en azul (`#89b4fa`)
+- **Ventanas**: texto en gris (`#6c7086`), ventana activa en azul bold (`#89b4fa`)
+- **Posicion**: parte superior de la terminal
+
+El status bar se puede ocultar con `Prefix + \` para ganar espacio vertical. Se oculta automaticamente si solo hay una ventana abierta.
+
+### Configuracion de Plugins
+
+**SessionX**:
+```
+bind:        Prefix + s
+modo zoxide: activado
+altura:      85%
+ancho:       75%
+```
+
+**Resurrect + Continuum**:
+```
+auto-restore:          on
+estrategia para nvim:  session (restaura sesion de Neovim)
 ```
 
 ## Workflows Recomendados
 
-### Desarrollo de Proyectos
+### Workspace de Desarrollo
 
 ```bash
-# 1. Abrir Tmux
-tmux
-
-# 2. Abrir SessionX
+# 1. Abrir o crear sesion con SessionX
 Prefix + s
+# Escribir nombre del proyecto o parte del path
+# Enter para abrir/crear
 
-# 3. Buscar proyecto (usa zoxide)
-# Escribe: "dotfiles" o parte del path
-# Enter para crear/abrir sesión
+# 2. Organizar el workspace
+Prefix + v    # Split arriba/abajo (editor arriba, terminal abajo)
+Prefix + h    # Split izquierda/derecha (editor + servidor)
 
-# 4. Organizar workspace
-Prefix + v    # Split vertical
-Prefix + h    # Split horizontal
+# Layout resultante tipico:
+# ┌────────────────┬────────────────┐
+# │    Neovim      │  npm run dev   │
+# │    Editor      │  (servidor)    │
+# ├────────────────┴────────────────┤
+# │         Terminal / Git          │
+# └─────────────────────────────────┘
+```
 
-# Resultado típico:
-# ┌─────────────┬─────────────┐
-# │   Neovim    │   Server    │
-# │   Editor    │   npm run   │
-# ├─────────────┴─────────────┤
-# │      Terminal/Git         │
-# └───────────────────────────┘
+### Navegacion Vim-Tmux
+
+```bash
+# Desde cualquier pane (Neovim o terminal):
+Ctrl + h    # Ir a la izquierda
+Ctrl + j    # Ir abajo
+Ctrl + k    # Ir arriba
+Ctrl + l    # Ir a la derecha
+
+# No hace falta soltar Neovim para moverte entre panes
 ```
 
 ### Persistencia de Sesiones
 
 ```bash
-# Auto-save cada 15 minutos (Continuum)
-# No necesitas hacer nada
+# Continuum guarda automaticamente cada 15 minutos
+# No se requiere accion
 
-# Guardar manualmente
+# Guardar manualmente antes de apagar:
 Prefix + Ctrl+s
 
-# Cerrar terminal directamente
-# La próxima vez que abras tmux:
-# - Tus sesiones estarán ahí
-# - Con el mismo layout
-# - En los mismos directorios
+# La proxima vez que abras Tmux, las sesiones se restauran
+# con el mismo layout, directorios y sesion de Neovim
 ```
 
-### Navegación Vim-Tmux
+## Comandos de Linea de Comandos
 
 ```bash
-# En Neovim o Tmux:
-Ctrl + h    # Ir a la izquierda (pane o split)
-Ctrl + j    # Ir abajo
-Ctrl + k    # Ir arriba
-Ctrl + l    # Ir a la derecha
-
-# ¡Funciona seamlessly entre Neovim y Tmux!
-```
-
-## Configuración
-
-### Status Bar Minimalista
-
-El status bar muestra solo:
-- Lista de ventanas (tabs)
-- Nombre de sesión actual
-
-Se puede ocultar con `Prefix + \` para más espacio vertical.
-
-### Background Transparente
-
-La configuración está optimizada para terminales modernos con soporte de transparencia:
-- Catppuccin Mocha con background transparente
-- Se integra perfectamente con WezTerm, Alacritty, iTerm2
-
-### Historial
-
-- 30,000 líneas de historial
-- Compartido entre panes
-- Accesible con Copy Mode
-
-### True Color + Undercurl
-
-```bash
-set-option -sa terminal-overrides ",xterm*:Tc"
-set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'
-```
-
-Soporte completo de colores 24-bit y undercurl para Neovim.
-
-## Solución de Problemas
-
-### Los plugins no se cargan
-
-```bash
-# 1. Verificar TPM
-ls ~/.tmux/plugins/tpm
-
-# 2. Reinstalar plugins
-# Dentro de tmux:
-Prefix + I
-
-# 3. Recargar tmux
-Prefix + r
-```
-
-### SessionX no encuentra proyectos
-
-```bash
-# Zoxide necesita indexar directorios primero
-cd ~/proyecto1
-cd ~/proyecto2
-
-# Verificar base de datos
-zoxide query -ls
-
-# Ahora Prefix + s debería encontrarlos
-```
-
-### Navegación Vim-Tmux no funciona
-
-```bash
-# Verificar plugin en Neovim
-# En ~/.config/nvim debe estar configurado
-# christoomey/vim-tmux-navigator
-
-# Recarga tmux:
-Prefix + r
-
-# Recarga Neovim:
-:source $MYVIMRC
-```
-
-### Alt+hjkl no redimensiona (macOS con WezTerm)
-
-El atajo podría estar siendo capturado por WezTerm.
-
-**Solución alternativa**:
-```bash
-# Usa el método tradicional:
-Prefix + H/J/K/L
-```
-
-## Comandos Útiles de Tmux
-
-```bash
-# Listar sesiones
+# Listar sesiones activas
 tmux ls
 
-# Crear sesión con nombre
+# Crear sesion con nombre
 tmux new -s proyecto
 
-# Adjuntar a sesión existente
+# Adjuntar a sesion existente
 tmux attach -t proyecto
 
-# Renombrar sesión (desde dentro)
-Prefix + $
-
-# Matar sesión
+# Matar una sesion
 tmux kill-session -t proyecto
 
 # Matar todas las sesiones
 tmux kill-server
 ```
 
-## Integración con Otras Herramientas
+## Integracion con Otras Herramientas
 
-- **Neovim**: Navegación seamless con `Ctrl+h/j/k/l`
-- **Zsh**: Aliases `tn`, `ta`, `tl`, `tk` para gestión rápida
-- **LazyGit**: Se abre en pane flotante desde Neovim
-- **Yazi**: File manager integrado
+| Herramienta | Integracion |
+|------------|-------------|
+| **Neovim** | Navegacion seamless con `Ctrl+hjkl` y resize vim-aware con `Alt+hjkl` |
+| **Zsh** | Aliases `tn`, `ta`, `tl`, `tk` para gestion rapida de sesiones |
+| **LazyGit** | Se abre en ventana flotante desde Neovim |
+| **Yazi** | File manager integrado al flujo de trabajo |
+| **Zoxide** | SessionX usa la base de datos de zoxide para encontrar proyectos |
 
-## Tips Pro
+## Solucion de Problemas
 
-1. **Usa SessionX siempre** - Más rápido que `tmux attach`
-2. **Nombra tus sesiones** - Más fácil de encontrar con FZF
-3. **Thumbs para copiar** - Olvídate del mouse
-4. **Zoom con Prefix+m** - Foco total en un pane
-5. **Status bar minimalista** - El código es el protagonista
-6. **Toggle status bar** - `Prefix + \` para más espacio vertical
-7. **Deja que Continuum guarde** - No te preocupes por perder trabajo
-8. **Copy Mode** - Busca en el output con `/`
-9. **Alt+hjkl para resize** - Ajusta panes sin soltar Neovim
+### Los plugins no se cargan
+
+```bash
+# Verificar que TPM esta instalado
+ls ~/.tmux/plugins/tpm
+
+# Si no existe, instalar TPM:
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+# Dentro de una sesion Tmux, instalar plugins:
+Prefix + I
+
+# Recargar configuracion:
+Prefix + r
+```
+
+### SessionX no encuentra proyectos
+
+SessionX depende de zoxide para sugerir directorios. Zoxide necesita indexar los directorios visitando primero:
+
+```bash
+cd ~/proyecto1
+cd ~/proyecto2
+
+# Verificar que zoxide los indexo
+zoxide query -ls
+
+# Ahora Prefix + s deberia encontrarlos
+```
+
+### La navegacion Ctrl+hjkl no funciona
+
+```bash
+# Verificar que vim-tmux-navigator esta configurado en Neovim
+# El plugin christoomey/vim-tmux-navigator debe estar en lua/plugins/
+
+# Recargar Tmux:
+Prefix + r
+
+# Recargar Neovim:
+:source $MYVIMRC
+```
+
+### Alt+hjkl no redimensiona en macOS
+
+El atajo puede ser interceptado por el emulador de terminal (WezTerm, iTerm2, etc.).
+
+Solucion alternativa: usar `Prefix + hjkl` (con prefix) para navegar panes directamente, o configurar el emulador de terminal para pasar los atajos `Alt+hjkl` a Tmux.
+
+### El status bar no aparece o tiene colores incorrectos
+
+La configuracion de tema esta en la seccion final del `.tmux.conf` (seccion 7). Esa seccion debe cargarse despues de `run '~/.tmux/plugins/tpm/tpm'` para que sobrescriba los estilos de los plugins.
+
+```bash
+# Recargar configuracion:
+Prefix + r
+
+# Si persiste, reinicar Tmux completamente:
+tmux kill-server && tmux
+```
+
+## Tips
+
+1. Usa SessionX siempre para cambiar de proyecto, es mas rapido que `tmux attach`.
+2. Nombra tus sesiones descriptivamente para encontrarlas con FZF.
+3. Usa Thumbs (`Prefix + Space`) para copiar rutas, hashes o URLs sin el mouse.
+4. El zoom con `Prefix + m` es util para foco total en un pane sin cerrar los demas.
+5. Deja que Continuum guarde automaticamente; solo usa `Prefix + Ctrl+s` antes de apagar.
+6. Usa Copy Mode (`Prefix + [`) para buscar en el output del terminal con `/`.
+7. El status bar se puede ocultar con `Prefix + \` cuando necesitas mas espacio vertical.
 
 ## Recursos Adicionales
 
 - [Workflows Avanzados de Tmux](../advanced/tmux-workflows.md)
 - [Keybindings Completos](../guides/keybindings.md)
-- [Integración con Otras Herramientas](../advanced/integration.md)
+- [Integracion con Otras Herramientas](../advanced/integration.md)
 
 ## Referencias
 
 - [Tmux Documentation](https://github.com/tmux/tmux/wiki)
-- [TPM](https://github.com/tmux-plugins/tpm)
+- [TPM - Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
 - [SessionX](https://github.com/omerxx/tmux-sessionx)
-- [Catppuccin for Tmux](https://github.com/catppuccin/tmux)
-- [Vim-Tmux-Navigator](https://github.com/christoomey/vim-tmux-navigator)
+- [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator)
+- [aserowy/tmux.nvim](https://github.com/aserowy/tmux.nvim)
+- [tmux-fzf](https://github.com/sainnhe/tmux-fzf)
+- [tmux-fzf-url](https://github.com/wfxr/tmux-fzf-url)
+- [tmux-which-key](https://github.com/alexwforsythe/tmux-which-key)
