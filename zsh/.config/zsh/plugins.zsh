@@ -1,18 +1,30 @@
 # ==============================================================================
 # PLUGINS - Carga de plugins y aplicaciones
 # ==============================================================================
-# El orden de carga importa: zsh-syntax-highlighting DEBE SER EL ÚLTIMO
+# No usamos un gestor de plugins (zinit/antidote/etc) por diseño:
+#   - 5 plugins estables, cero crecimiento → no hay job-to-be-done que cubrir
+#   - submodules dan lock implícito vía SHA commiteado en .gitmodules
+#   - lazy manual (abajo) ya captura el ~80% del beneficio de turbo mode
+#   - cero dependencias externas → antifragilidad (no rompemos si X muere)
+# Para updatear: ./scripts/update-plugins.sh
+# Para benchmark: alias `zsh-bench` (en aliases/utils.zsh)
+#
+# Orden crítico: zsh-syntax-highlighting DEBE SER EL ÚLTIMO plugin (parsea
+# el buffer en cada keystroke; cualquier widget registrado después no se
+# colorea correctamente).
 
-# Plugins de Zsh (orden crítico: syntax-highlighting DEBE ser el último plugin)
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
 source ~/.zsh/zsh-you-should-use/you-should-use.plugin.zsh
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh  # MUST BE LAST PLUGIN
 
-# Integración de herramientas
-source <(fzf --zsh)              # FZF (keep immediate - essential for interactive use)
+# FZF se carga eager: lo usamos en cada sesión interactiva (Ctrl-R, Ctrl-T).
+# Lazy load aquí solo introduciría latencia en el primer uso sin ahorro real.
+source <(fzf --zsh)
 
-# Lazy load zoxide (100-150ms savings total for zoxide/direnv/gh)
+# Lazy load: comandos que solo se usan ocasionalmente. La primera invocación
+# define el comando real y se ejecuta normalmente; las siguientes son directas.
+# Ahorra ~150ms en startup interactivo (zoxide/direnv/gh combinados).
 _lazy_zoxide() {
   unset -f z zi
   eval "$(zoxide init zsh)"
@@ -20,7 +32,6 @@ _lazy_zoxide() {
 function z() { _lazy_zoxide; z "$@"; }
 function zi() { _lazy_zoxide; zi "$@"; }
 
-# Lazy load direnv
 _lazy_direnv() {
   unset -f direnv
   eval "$(direnv hook zsh)"
