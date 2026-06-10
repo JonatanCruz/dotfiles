@@ -3,17 +3,20 @@
 # ==============================================================================
 # STATUSLINE PERSONALIZADO PARA CLAUDE CODE
 # ==============================================================================
-# Script que genera una línea de estado personalizada con información del
-# modelo, directorio actual y rama de git.
+# Filosofía: minimalista, accionable. Cada elemento previene un fallo:
+#   - context % → evita auto-compact sorpresa
+#   - 5h rate limit → evita Black Swan de quedarse sin tokens
+#   - git status (dirty/ahead/behind) → evita commits a branch equivocada
+#   - 200k warning → evita factura 2x en sesiones largas
+#   - worktree (condicional) → evita confusión entre worktrees paralelos
 # ==============================================================================
 
 # shellcheck disable=SC2034  # Color variables are used in echo statements
-# Colores ANSI (Catppuccin Mocha)
 RESET="\033[0m"
 BOLD="\033[1m"
 DIM="\033[2m"
 
-# Catppuccin Mocha colors
+# Catppuccin Mocha
 ROSEWATER="\033[38;2;245;224;220m"
 FLAMINGO="\033[38;2;242;205;205m"
 PINK="\033[38;2;245;194;231m"
@@ -38,113 +41,155 @@ SURFACE2="\033[38;2;88;91;112m"
 SURFACE1="\033[38;2;69;71;90m"
 SURFACE0="\033[38;2;49;50;68m"
 
-# Lee el JSON de stdin
 input=$(cat)
 
-# Debug: guardar input para inspección si es necesario
-# echo "$input" > /tmp/claude-statusline-debug.json
-
-# Extrae información usando jq con múltiples fallbacks
+# ---------- Extracción JSON ----------
 if command -v jq >/dev/null 2>&1; then
     model_name=$(echo "$input" | jq -r '.model.display_name // .model.displayName // .display_name // .displayName // .modelDisplayName // .model.id // .id // empty' 2>/dev/null)
     current_dir=$(echo "$input" | jq -r '.workspace.current_dir // .workspace.project_dir // .workingDirectory // .working_directory // .cwd // empty' 2>/dev/null)
-    project_dir=$(echo "$input" | jq -r '.workspace.project_dir // .projectDirectory // .project_directory // empty' 2>/dev/null)
+    ctx_pct=$(echo "$input"     | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
+    exceeds_200k=$(echo "$input"| jq -r '.exceeds_200k_tokens // false' 2>/dev/null)
+    five_h_pct=$(echo "$input"  | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
+    five_h_reset=$(echo "$input"| jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
+    worktree_name=$(echo "$input"| jq -r '.worktree.name // empty' 2>/dev/null)
 else
-    # Fallback si jq no está disponible
-    model_name=""
-    current_dir=""
-    project_dir=""
+    model_name=""; current_dir=""; ctx_pct=""; exceeds_200k="false"
+    five_h_pct=""; five_h_reset=""; worktree_name=""
 fi
 
-# Si no obtuvimos el modelo del JSON, intentar de variables de entorno o default
-if [ -z "$model_name" ]; then
-    model_name="${CLAUDE_MODEL:-Sonnet 4.5}"
-fi
+[ -z "$model_name" ] && model_name="${CLAUDE_MODEL:-Sonnet 4.5}"
+[ -z "$current_dir" ] && current_dir="$PWD"
 
-# Si no obtuvimos directorio del JSON, usar PWD
-if [ -z "$current_dir" ]; then
-    current_dir="$PWD"
-fi
-
-# Detecta el sistema operativo
+# ---------- OS / SSH ----------
 os_icon=""
 case "$(uname -s)" in
-    Darwin)
-        os_icon=$'\uf179'  # macOS (Apple logo)
-        ;;
+    Darwin) os_icon=$'' ;;
     Linux)
-        # Detecta distribución específica si es posible
         if [ -f /etc/os-release ]; then
             . /etc/os-release
             case "$ID" in
-                ubuntu) os_icon=$'\uf31b' ;;  # Ubuntu logo
-                debian) os_icon=$'\uf306' ;;  # Debian logo
-                fedora) os_icon=$'\uf30a' ;;  # Fedora logo
-                arch) os_icon=$'\uf303' ;;    # Arch logo
-                *) os_icon=$'\uf17c' ;;       # Linux genérico
+                ubuntu) os_icon=$'' ;;
+                debian) os_icon=$'' ;;
+                fedora) os_icon=$'' ;;
+                arch)   os_icon=$'' ;;
+                *)      os_icon=$'' ;;
             esac
         else
-            os_icon=$'\uf17c'  # Linux genérico
+            os_icon=$''
         fi
         ;;
-    MINGW*|MSYS*|CYGWIN*)
-        os_icon=$'\uf17a'  # Windows
-        ;;
-    *)
-        os_icon=$'\uf128'  # Desconocido (question mark)
-        ;;
+    MINGW*|MSYS*|CYGWIN*) os_icon=$'' ;;
+    *) os_icon=$'' ;;
 esac
 
-# Detecta si estamos en SSH
 ssh_hostname=""
 if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-    # Estamos en SSH, obtener hostname
     ssh_hostname=$(hostname -s 2>/dev/null || hostname | cut -d'.' -f1)
 fi
 
-# Obtén el nombre del directorio actual (basename)
 dir_name=$(basename "$current_dir")
 
-# Obtén la rama de git si estamos en un repositorio
-git_branch=""
+# ---------- Git (branch + dirty + ahead/behind) ----------
+git_segment=""
 if git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
     git_branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
-    # Si no hay rama (detached HEAD), muestra el commit corto
     if [ -z "$git_branch" ]; then
-        git_branch=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
-        [ -n "$git_branch" ] && git_branch="detached@${git_branch}"
+        short=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
+        [ -n "$short" ] && git_branch="detached@${short}"
+    fi
+
+    # Dirty marker (any staged/unstaged/untracked change)
+    dirty=""
+    if [ -n "$(git -C "$current_dir" status --porcelain 2>/dev/null)" ]; then
+        dirty="${YELLOW}●${RESET}"
+    fi
+
+    # Ahead/behind vs upstream (silent if no upstream)
+    ahead_behind=""
+    counts=$(git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+    if [ -n "$counts" ]; then
+        behind=$(echo "$counts" | awk '{print $1}')
+        ahead=$(echo "$counts"  | awk '{print $2}')
+        [ "$ahead"  -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${GREEN}↑${ahead}${RESET}"
+        [ "$behind" -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${RED}↓${behind}${RESET}"
+    fi
+
+    if [ -n "$git_branch" ]; then
+        icon_git_branch=$''
+        git_segment=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE}${icon_git_branch} ${git_branch}${RESET}${dirty}${ahead_behind}"
     fi
 fi
 
-# Iconos Nerd Font (usando códigos Unicode)
-icon_folder=$'\uf07c'     # Folder icon
-icon_git_branch=$'\ue0a0' # Git branch icon
-icon_server=$'\uf233'     # Server icon
-
-# Construye la línea de estado en formato lineal compacto
-status_line=""
-
-# Modelo como elemento principal (prominente)
-status_line+="${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
-
-# Separador
-status_line+=" ${DIM}${OVERLAY0}│${RESET}"
-
-# Directorio
-status_line+=" ${BLUE}${icon_folder} ${dir_name}${RESET}"
-
-# Rama de git (si existe)
-if [ -n "$git_branch" ]; then
-    status_line+=" ${DIM}${OVERLAY0}│${RESET} ${MAUVE}${icon_git_branch} ${git_branch}${RESET}"
+# ---------- Worktree (solo si aplica y difiere del repo principal) ----------
+worktree_segment=""
+if [ -n "$worktree_name" ] && [ "$worktree_name" != "$dir_name" ]; then
+    worktree_segment=" ${DIM}${OVERLAY0}│${RESET} ${TEAL}🌳 ${worktree_name}${RESET}"
 fi
 
-# Sistema operativo (icono) - inmediatamente después de git
-status_line+=" ${DIM}${OVERLAY0}│${RESET} ${BLUE}${os_icon}${RESET}"
+# ---------- Context % con barra de 5 bloques + color por threshold ----------
+ctx_segment=""
+if [ -n "$ctx_pct" ] && [ "$ctx_pct" != "null" ]; then
+    ctx_int=$(printf '%.0f' "$ctx_pct" 2>/dev/null || echo "0")
+    # Color thresholds: <50 green, 50-79 yellow, 80+ red
+    if   [ "$ctx_int" -lt 50 ]; then ctx_color="$GREEN"
+    elif [ "$ctx_int" -lt 80 ]; then ctx_color="$YELLOW"
+    else                              ctx_color="$RED"
+    fi
+    # 5-block bar (each block = 20%)
+    filled=$(( ctx_int / 20 ))
+    [ "$filled" -gt 5 ] && filled=5
+    bar=""
+    for i in 1 2 3 4 5; do
+        if [ "$i" -le "$filled" ]; then bar="${bar}▏"; else bar="${bar}░"; fi
+    done
+    ctx_segment=" ${DIM}${OVERLAY0}│${RESET} ${ctx_color}🧠 ${ctx_int}% ${bar}${RESET}"
+fi
 
-# Hostname (solo si estamos en SSH) - al lado del OS
+# ---------- 5h rate limit + reset time ----------
+rate_segment=""
+if [ -n "$five_h_pct" ] && [ "$five_h_pct" != "null" ]; then
+    rate_int=$(printf '%.0f' "$five_h_pct" 2>/dev/null || echo "0")
+    if   [ "$rate_int" -lt 50 ]; then rate_color="$GREEN"
+    elif [ "$rate_int" -lt 80 ]; then rate_color="$YELLOW"
+    else                              rate_color="$RED"
+    fi
+    reset_str=""
+    if [ -n "$five_h_reset" ] && [ "$five_h_reset" != "null" ]; then
+        if date -r "$five_h_reset" +"%H:%M" >/dev/null 2>&1; then
+            reset_str=$(date -r "$five_h_reset" +"%H:%M")        # macOS
+        elif date -d "@$five_h_reset" +"%H:%M" >/dev/null 2>&1; then
+            reset_str=$(date -d "@$five_h_reset" +"%H:%M")       # GNU/Linux
+        fi
+    fi
+    if [ -n "$reset_str" ]; then
+        rate_segment=" ${DIM}${OVERLAY0}│${RESET} ${rate_color}⏱ 5h ${rate_int}% →${reset_str}${RESET}"
+    else
+        rate_segment=" ${DIM}${OVERLAY0}│${RESET} ${rate_color}⏱ 5h ${rate_int}%${RESET}"
+    fi
+fi
+
+# ---------- 200k threshold warning (solo cuando aplica) ----------
+warn_segment=""
+if [ "$exceeds_200k" = "true" ]; then
+    warn_segment=" ${DIM}${OVERLAY0}│${RESET} ${RED}⚠${RESET}"
+fi
+
+# ---------- Construcción final ----------
+icon_folder=$''
+icon_server=$''
+
+status_line=""
+status_line+="${BOLD}${PEACH}󰧑 ${model_name}${RESET}"
+status_line+=" ${DIM}${OVERLAY0}│${RESET}"
+status_line+=" ${BLUE}${icon_folder} ${dir_name}${RESET}"
+status_line+="${git_segment}"
+status_line+="${worktree_segment}"
+status_line+="${ctx_segment}"
+status_line+="${rate_segment}"
+status_line+="${warn_segment}"
+status_line+=" ${DIM}${OVERLAY0}│${RESET} ${BLUE}${os_icon}${RESET}"
 if [ -n "$ssh_hostname" ]; then
     status_line+=" ${YELLOW}${icon_server} ${ssh_hostname}${RESET}"
 fi
 
-# Output de la línea de estado
 echo -e "$status_line"

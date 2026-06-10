@@ -54,5 +54,5 @@ nvim/.config/nvim/lazy-lock.json
 # === SERENA MEMORY (session-only memories) ===
 .serena/
 
-# === CLAUDE CODE (local-only settings) ===
-.claude/
+# === CLAUDE CODE (local-only settings at repo root, NOT the stow package) ===
+/.claude/
