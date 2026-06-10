@@ -1,0 +1,35 @@
+# Global gitignore — aplica a todos los repos
+# Configurado vía: git config --global core.excludesfile ~/.gitignore_global
+
+# ----- macOS -----
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+Icon?
+._*
+
+# Files that might appear in the root of a volume
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+
+# ----- Editores -----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.netrwhist
+
+# ----- Otros -----
+*.bak
+*.tmp
+.history/
