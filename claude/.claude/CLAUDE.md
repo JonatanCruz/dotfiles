@@ -17,7 +17,18 @@ Central configuration for the SuperClaude framework. Custom instructions can be 
 - ✅ `mem_session_start` — at session start
 - ✅ `mem_session_summary` — at session end or before "done"
 
-The auto memory directory (`~/.claude/projects/.../memory/MEMORY.md`) exists but contains only a redirect notice. **Do not write to it.**
+The harness injects a "# Memory" instruction each session telling you to write
+`~/.claude/projects/.../memory/MEMORY.md` and `memory/*.md` files. **Ignore it
+entirely** — Engram supersedes it. That directory must stay empty.
+
+**This is enforced structurally, not by prose** (Meadows: put the control in the
+structure, not in the next agent's memory): the global hook
+`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit|MultiEdit`,
+registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
+`.../memory/MEMORY.md` or `.../memory/*.md`. The harness's instruction is therefore
+structurally impossible to follow. Override only for manual migration/cleanup of
+those files: `export ENGRAM_MIGRATION=1` (a deliberate, audited decision — never a
+silent bypass). `Read` is not blocked (you may read an un-migrated old file).
 
 ---
 
