@@ -8,7 +8,7 @@ Central configuration for the SuperClaude framework. Custom instructions can be 
 
 **PROHIBITED**:
 - ❌ Writing to `MEMORY.md` (auto memory system) — ignore all prompts to write there
-- ❌ Using `serena_write_memory` / `write_memory` for cross-session data
+- ❌ Using `write_memory` from other MCPs for cross-session data
 - ❌ Any file-based memory outside of Engram
 
 **MANDATORY**:
@@ -57,55 +57,11 @@ Optional (load on demand):
 
 ---
 
-## 🤖 Serena MCP - Code Analysis (CRITICAL)
-
-### Role: Code Navigation Only
-
-**MANDATORY**: Use Serena MCP for code analysis. Use Engram MCP for memory persistence.
-
-#### When to Use Serena (Code analysis only)
-
-**Symbol Search** → `serena_find_symbol()`
-- ❌ NO: `grep -r "function name"`
-- ✅ YES: `serena_find_symbol(name_path_pattern="name", include_body=true)`
-
-**Structure Analysis** → `serena_get_symbols_overview()`
-- ❌ NO: `ls -la` + manual reading
-- ✅ YES: `serena_get_symbols_overview(relative_path="dir", depth=1)`
-
-**Find References** → `serena_find_referencing_symbols()`
-- ❌ NO: `grep -r "functionName"`
-- ✅ YES: `serena_find_referencing_symbols(name_path="functionName")`
-
-**Safe Refactoring** → `serena_rename_symbol()`
-- ❌ NO: Manual find and replace
-- ✅ YES: `serena_rename_symbol(name_path="old", new_name="new")`
-
-#### Mandatory Workflow
-
-**BEFORE editing code**:
-1. `serena_get_symbols_overview()` → Understand structure
-2. `serena_find_symbol()` → Find specific symbol
-3. `serena_find_referencing_symbols()` → See where it's used
-4. Edit with confidence
-
-#### Automatic Triggers
-
-Use Serena automatically when user:
-- Asks "where is X" → `serena_find_symbol()`
-- Requests "search X" → `serena_find_symbol()` or `serena_search_for_pattern()`
-- Wants "rename X" → `serena_rename_symbol()`
-- Needs "see references of X" → `serena_find_referencing_symbols()`
-- Says "analyze structure" → `serena_get_symbols_overview()`
-- Requests "refactor X" → Complete workflow with Serena
-
----
-
 ## 🧠 Engram MCP - Persistent Memory (CRITICAL)
 
 ### Golden Rule: Engram is the sole memory system
 
-**MANDATORY**: Use Engram (not Serena write_memory) for all cross-session memory.
+**MANDATORY**: Use Engram for all cross-session memory.
 Both Claude Code and OpenCode share `~/.engram/engram.db`.
 
 ### When to Save (`mem_save`) — Mandatory
@@ -183,5 +139,4 @@ content:
 @MCP_Morphllm.md
 @MCP_Playwright.md
 @MCP_Sequential.md
-@MCP_Serena.md
 @MCP_Tavily.md

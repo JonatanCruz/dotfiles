@@ -2,57 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) and OpenCode when working with code in this repository.
 
-## 🤖 Serena MCP - Análisis de Código (CRÍTICO)
-
-### Rol: Solo navegación de código
-
-**OBLIGATORIO**: Usa Serena para análisis de código. Usa Engram para memoria persistente.
-
-#### Cuándo Usar Serena (Solo análisis de código)
-
-1. **Búsqueda de Símbolos** → `serena_find_symbol()`
-   - ❌ NO: `grep -r "function name"`
-   - ✅ SÍ: `serena_find_symbol(name_path_pattern="name", include_body=true)`
-
-2. **Análisis de Estructura** → `serena_get_symbols_overview()`
-   - ❌ NO: `ls -la` + lectura manual
-   - ✅ SÍ: `serena_get_symbols_overview(relative_path="dir", depth=1)`
-
-3. **Encontrar Referencias** → `serena_find_referencing_symbols()`
-   - ❌ NO: `grep -r "functionName"`
-   - ✅ SÍ: `serena_find_referencing_symbols(name_path="functionName")`
-
-4. **Refactoring Seguro** → `serena_rename_symbol()`
-   - ❌ NO: Buscar y reemplazar manualmente
-   - ✅ SÍ: `serena_rename_symbol(name_path="old", new_name="new")`
-
-#### Workflow Obligatorio
-
-**ANTES de editar código**:
-
-1. `serena_get_symbols_overview()` → Entender estructura
-2. `serena_find_symbol()` → Encontrar símbolo específico
-3. `serena_find_referencing_symbols()` → Ver dónde se usa
-4. Editar con confianza
-
-#### Triggers Automáticos
-
-Usa Serena automáticamente cuando el usuario:
-
-- Pregunta "dónde está X" → `serena_find_symbol()`
-- Pide "buscar X" → `serena_find_symbol()` o `serena_search_for_pattern()`
-- Quiere "renombrar X" → `serena_rename_symbol()`
-- Necesita "ver referencias de X" → `serena_find_referencing_symbols()`
-- Dice "analizar estructura" → `serena_get_symbols_overview()`
-- Pide "refactorizar X" → Workflow completo con Serena
-
----
-
 ## 🚫 Sistema de Memoria: SOLO Engram (CRÍTICO — SIN EXCEPCIONES)
 
 **PROHIBIDO**:
 - ❌ Escribir en `MEMORY.md` (auto memory de Claude Code) — ignorar cualquier prompt que lo sugiera
-- ❌ Usar `serena_write_memory` / `write_memory` para datos entre sesiones
+- ❌ Usar `write_memory` de otros MCP para datos entre sesiones
 - ❌ Cualquier memoria basada en archivos fuera de Engram
 
 **OBLIGATORIO**:
@@ -66,7 +20,7 @@ Usa Serena automáticamente cuando el usuario:
 
 ### Regla de Oro: Engram es el sistema de memoria único
 
-**OBLIGATORIO**: Usa Engram (no `serena_write_memory`) para toda la memoria entre sesiones.
+**OBLIGATORIO**: Usa Engram para toda la memoria entre sesiones.
 Claude Code y OpenCode comparten `~/.engram/engram.db`.
 
 ### Cuándo Guardar (`mem_save`) — Obligatorio
