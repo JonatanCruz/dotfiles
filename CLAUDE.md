@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) and OpenCode when working with code in this repository.
 
+## 🤖 Navegación de Código: Serena + codebase-memory (grafo)
+
+Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** — ninguno guarda memoria entre sesiones.
+
+- **codebase-memory (grafo)** → navegar/entender **barato** (solo lectura, ~120x menos tokens). `search_code`, `query_graph` (Cypher), `trace_path`, `get_architecture`. Indexa una vez con `index_repository(repo_path=...)`.
+- **Serena** → **editar/refactorizar** por símbolo, que el grafo NO hace: `serena_rename_symbol`, `serena_replace_symbol_body`, `serena_insert_after_symbol`.
+
+**Regla**: grafo para leer, Serena para escribir. No dupliques Serena (plugin **o** servidor `.mcp.json`, nunca ambos → procesos `uvx` huérfanos).
+
+---
+
 ## 🚫 Sistema de Memoria: SOLO Engram (CRÍTICO — SIN EXCEPCIONES)
 
 **PROHIBIDO**:

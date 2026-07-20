@@ -32,6 +32,29 @@ silent bypass). `Read` is not blocked (you may read an un-migrated old file).
 
 ---
 
+## 🤖 Code Navigation: Serena + codebase-memory (grafo)
+
+Dos MCP complementarios para código. **Engram sigue siendo el único sistema de memoria** — ninguno de estos dos guarda memoria entre sesiones.
+
+### codebase-memory (grafo) → navegar/entender barato
+Grafo de conocimiento pre-indexado. **Solo lectura**, ~120x menos tokens que grep/leer el repo. Úsalo primero para preguntas estructurales:
+- `search_code` / `search_graph` → buscar símbolos y patrones
+- `query_graph` (Cypher) → quién llama a qué, dependencias
+- `trace_path` → trazar cadenas de llamadas
+- `get_architecture` → vista de capas/módulos
+- Antes de consultar, indexa una vez: `index_repository(repo_path=...)`
+
+### Serena → editar/refactorizar por símbolo
+Lo que el grafo NO hace (es de solo lectura). Úsalo para modificar código:
+- `serena_rename_symbol` → renombrar respetando todas las referencias
+- `serena_replace_symbol_body` → reemplazar cuerpo de función/método
+- `serena_insert_after_symbol` / `insert_before_symbol` → insertar código
+- `serena_find_symbol` / `find_referencing_symbols` → navegación (equivalente al grafo; prefiere el grafo por coste)
+
+**Regla práctica**: grafo para leer, Serena para escribir. No dupliques Serena (plugin en `settings.json` **o** servidor en `.mcp.json`, nunca ambos — la doble config deja procesos `uvx` huérfanos).
+
+---
+
 ## Core Framework
 @FLAGS.md
 @PRINCIPLES.md
