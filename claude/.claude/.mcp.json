@@ -26,6 +26,9 @@
       "command": "/bin/sh",
       "args": ["${HOME}/.claude/engram-mcp.sh"]
     },
+    "codebase-memory": {
+      "command": "codebase-memory-mcp"
+    },
     "magic": {
       "command": "npx",
       "args": [
