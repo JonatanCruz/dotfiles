@@ -217,6 +217,11 @@
       "command": ["/home/linuxbrew/.linuxbrew/bin/engram", "mcp"],
       "enabled": true,
       "timeout": 10000
+    },
+    "codebase-memory-mcp": {
+      "type": "local",
+      "command": ["codebase-memory-mcp"],
+      "enabled": true
     }
   },
 
