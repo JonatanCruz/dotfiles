@@ -159,7 +159,10 @@
     "ralph-loop@claude-plugins-official": false,
     "engram@engram": true,
     "firecrawl@claude-plugins-official": true,
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "terraform@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "engram": {
