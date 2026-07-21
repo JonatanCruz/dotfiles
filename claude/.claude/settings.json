@@ -14,13 +14,13 @@
       "Read(./**/*password*)",
       "Read(./.aws/**)",
       "Read(./.ssh/**)",
-      "Write(./secrets/**)"
+      "Edit(./secrets/**)"
     ],
     "ask": [
       "Read(./.env)",
       "Read(./.env.*)",
-      "Write(./.env)",
-      "Write(./.env.*)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
       "Bash(rm :*)",
       "Bash(git push --force:*)",
       "Bash(git reset --hard:*)",
