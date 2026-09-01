@@ -174,7 +174,7 @@ list_snapshots() {
             fi
 
             printf "%-5s %-40s %-10s %-20s\n" "$index" "$name" "$size" "$date"
-            ((index++))
+            ((++index))
         fi
     done
 
@@ -261,10 +261,10 @@ rollback_snapshot() {
 
             if cp -r "$item" "$target_path" 2>/dev/null; then
                 print_success "Restored: $basename"
-                ((restored++))
+                ((++restored))
             else
                 print_error "Failed to restore: $basename"
-                ((failed++))
+                ((++failed))
             fi
         fi
     done
