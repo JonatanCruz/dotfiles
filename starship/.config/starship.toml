@@ -1,4 +1,8 @@
-# ~/.config/starship.toml (Tema Catppuccin Mocha Minimalista)
+# ==============================================================================
+# GENERADO POR theme/apply.sh — NO EDITAR A MANO
+# ==============================================================================
+# Fuente: theme/palette.sh + theme/templates/starship.tpl
+# Para cambiar colores: edita la paleta y corre `theme/apply.sh`.
 
 # Esquema para autocompletado en editores.
 "$schema" = 'https://starship.rs/config-schema.json'
@@ -141,3 +145,4 @@ style = "#fab387" # Peach Catppuccin Mocha
 success_symbol = "[➜](#a6e3a1)" # Green Catppuccin Mocha
 error_symbol = "[➜](#f38ba8)" # Red Catppuccin Mocha
 vimcmd_symbol = "[❮](#cba6f7)" # Mauve Catppuccin Mocha
+

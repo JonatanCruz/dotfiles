@@ -28,61 +28,12 @@
 # ============================================================================
 # DELTA (Diff Viewer Mejorado)
 # ============================================================================
+# Los colores viven en .gitconfig-colors, GENERADO desde theme/palette.sh.
+# Para cambiarlos: edita la paleta y corre `theme/apply.sh`. No edites el
+# archivo incluido a mano.
 
-[delta]
-	# Usar syntax highlighting
-	features = catppuccin-mocha
-	navigate = true
-	light = false
-	side-by-side = true
-	line-numbers = true
-
-	# Colores personalizados
-	syntax-theme = Catppuccin-mocha
-
-	# Ancho de línea
-	max-line-length = 512
-
-	# Mostrar cambios intra-línea
-	hyperlinks = true
-
-	# File headers
-	file-style = bold "#fab387"
-	file-decoration-style = "#fab387" ul
-
-	# Line numbers
-	line-numbers-left-format = "{nm:>4}┊"
-	line-numbers-right-format = "{np:>4}│"
-	line-numbers-left-style = "#6c7086"
-	line-numbers-right-style = "#6c7086"
-
-	# Hunks
-	hunk-header-style = file line-number syntax
-	hunk-header-decoration-style = "#cba6f7" box
-
-[delta "catppuccin-mocha"]
-	# Colores base de Catppuccin Mocha
-	minus-style = syntax "#442d30"
-	minus-emph-style = syntax "#6e3f44"
-	plus-style = syntax "#2e3d32"
-	plus-emph-style = syntax "#3e5a3e"
-	map-styles = "bold purple => syntax #cba6f7, bold cyan => syntax #89dceb"
-
-	# Paleta de Colores Catppuccin Mocha
-	# Base: #1e1e2e
-	# Mantle: #181825
-	# Crust: #11111b
-	# Text: #cdd6f4
-	# Subtext0: #a6adc8
-	# Overlay0: #6c7086
-	# Surface0: #313244
-	# Mauve (Purple): #cba6f7
-	# Sky (Cyan): #89dceb
-	# Green: #a6e3a1
-	# Peach (Orange): #fab387
-	# Pink: #f5c2e7
-	# Red: #f38ba8
-	# Yellow: #f9e2af
+[include]
+	path = ~/.gitconfig-colors
 
 # ============================================================================
 # MERGE Y DIFF
@@ -102,6 +53,10 @@
 [diff]
 	tool = nvimdiff
 	colorMoved = default
+	# histogram da diffs mucho más claros en código movido/reordenado,
+	# justo donde delta side-by-side ayuda menos.
+	algorithm = histogram
+	mnemonicPrefix = true
 
 [difftool]
 	prompt = false
@@ -124,7 +79,7 @@
 
 [fetch]
 	prune = true
-	pruneTagas = true
+	pruneTags = true
 
 # ============================================================================
 # ALIASES ÚTILES
@@ -238,6 +193,24 @@
 
 [rerere]
 	enabled = true
+	# Sin autoupdate, rerere recuerda la resolución pero te obliga a
+	# re-confirmarla a mano — media función.
+	autoupdate = true
+
+[commit]
+	# Incluye el diff como comentario en la plantilla del mensaje
+	verbose = true
+
+[branch]
+	# Ramas ordenadas por commit más reciente, no alfabéticamente
+	sort = -committerdate
+
+[tag]
+	# Ordena versiones como esperarías (v1.9 antes de v1.10)
+	sort = -version:refname
+
+[column]
+	ui = auto
 
 [help]
 	autocorrect = 1

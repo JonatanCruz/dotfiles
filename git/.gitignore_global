@@ -33,3 +33,6 @@ Temporary Items
 *.bak
 *.tmp
 .history/
+
+# Configuración local de Claude Code (no versionar, es por máquina)
+**/.claude/settings.local.json

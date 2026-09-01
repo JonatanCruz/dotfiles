@@ -1,0 +1,36 @@
+# ==============================================================================
+# GENERADO POR theme/apply.sh — NO EDITAR A MANO
+# ==============================================================================
+# Fuente: theme/palette.sh + theme/templates/gitconfig-colors.tpl
+# Para cambiar colores: edita la paleta y corre `theme/apply.sh`.
+# Incluido desde .gitconfig via [include].
+
+[delta]
+	features = catppuccin-mocha
+	navigate = true
+	light = false
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = Catppuccin-mocha
+	max-line-length = 512
+	hyperlinks = true
+
+	file-style = bold "#fab387"
+	file-decoration-style = "#fab387" ul
+
+	line-numbers-left-format = "{nm:>4}┊"
+	line-numbers-right-format = "{np:>4}│"
+	line-numbers-left-style = "#6c7086"
+	line-numbers-right-style = "#6c7086"
+
+	hunk-header-style = file line-number syntax
+	hunk-header-decoration-style = "#cba6f7" box
+
+[delta "catppuccin-mocha"]
+	# Fondos de diff derivados: el color mezclado con el fondo base, para que
+	# el resaltado no compita con el texto. Antes eran hex fijos sin origen.
+	minus-style = syntax "#4d3649"
+	minus-emph-style = syntax "#6f475c"
+	plus-style = syntax "#394545"
+	plus-emph-style = syntax "#4a5d53"
+	map-styles = "bold purple => syntax #cba6f7, bold cyan => syntax #89dceb"
