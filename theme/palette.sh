@@ -1,6 +1,13 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
 # ==============================================================================
 # PALETA - Fuente de verdad de colores (Catppuccin Mocha)
 # ==============================================================================
+# NOTA shellcheck: este archivo se consume con `source`, nunca se ejecuta. Sus
+# variables se leen por indirección (${!name}) desde theme/apply.sh al expandir
+# los tokens de las plantillas, así que el análisis estático no puede verlas
+# usadas. De ahí el disable de SC2034 para todo el archivo.
+# shellcheck disable=SC2034
 # Formato neutral (shell) para que lo consuman tanto scripts como plantillas.
 # La paleta oficial: https://github.com/catppuccin/catppuccin#-palette
 #
