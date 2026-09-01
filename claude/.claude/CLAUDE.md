@@ -75,8 +75,11 @@ Optional (load on demand):
 - BUSINESS_PANEL_REFERENCE.md - Business panel quick reference (consolidated)
 
 ## OpenCode Adaptations
-@OPENCODE_QUALITY_PROTOCOL.md
-@OPENCODE_SLASH_COMMANDS.md
+Solo aplican al harness OpenCode, NO a Claude Code. Sin `@` a propósito:
+importarlos costaba ~8.1k tokens en cada sesión de Claude Code sin aportar
+nada. Los archivos siguen en `~/.claude/` para cuando uses OpenCode.
+- OPENCODE_QUALITY_PROTOCOL.md
+- OPENCODE_SLASH_COMMANDS.md
 
 ---
 
@@ -157,9 +160,12 @@ content:
 # ===================================================
 
 # MCP Documentation
-@MCP_Context7.md
-@MCP_Magic.md
-@MCP_Morphllm.md
-@MCP_Playwright.md
-@MCP_Sequential.md
-@MCP_Tavily.md
+Guías de uso por servidor MCP. Sin `@` a propósito: solo importan cuando se usa
+ese MCP concreto, y cargarlas siempre costaba ~3.6k tokens por sesión. Léelas
+bajo demanda desde `~/.claude/` cuando vayas a usar el servidor correspondiente.
+- MCP_Context7.md — documentación técnica de librerías
+- MCP_Magic.md — generación de componentes de UI
+- MCP_Morphllm.md — edición por patrones
+- MCP_Playwright.md — pruebas en navegador
+- MCP_Sequential.md — razonamiento estructurado
+- MCP_Tavily.md — búsqueda web (~1.8k tokens, la más pesada)
