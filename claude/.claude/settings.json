@@ -55,6 +55,28 @@
             "type": "command",
             "command": "~/.claude/hooks/redirect-code-search-to-mcp.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-silent-grep-glob-failure.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/engram-recall-antes-de-delegar.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-defiendas-contaminacion.sh"
           }
         ]
       }
