@@ -11,9 +11,15 @@
 # playwright, chrome-devtools, tavily, ...) and their language servers. These
 # accumulate for weeks — a single 37-day zombie was found holding ~680 MB.
 #
-# WHAT IT DOES: lists root `claude` processes older than N days, EXCLUDING the
-# current session (never suicides), and kills each full process tree by its
-# root (SIGTERM → cascades to children). Dry-run by default.
+# WHAT IT DOES: lists root `claude` processes older than N days, and kills each
+# full process tree by its root (SIGTERM → cascades to children). Dry-run by
+# default.
+#
+# Age alone is NOT enough to reap: a session left open in a tmux pane for weeks
+# is old but very much in use. A session is only reaped when it is old AND no
+# longer attached to a terminal (see session_liveness_reason). Excluded from
+# reaping: the current session (never suicides), and any old session still
+# attached to a live terminal — those are only reported.
 #
 # Usage:
 #   reap-stale-claude.sh                 # dry-run, default threshold (7 days)
@@ -113,6 +119,37 @@ tree_rss_mb() {
     ps -o rss= -p "$pids" 2>/dev/null | awk '{s+=$1} END {printf "%.0f", s/1024}'
 }
 
+# Is a session still attached to a live terminal?
+# Prints the reason it looks alive, or nothing if it looks abandoned.
+#
+# Age alone does NOT mean abandoned: a session left open in a tmux pane for
+# weeks is still someone's working session. What separates the two is the
+# TERMINAL, not the clock:
+#
+#   - STAT ending in "+"  -> in the foreground process group of its terminal
+#   - TTY present in /dev -> its controlling terminal still exists
+#
+# Killing the terminal without /exit (the case this script exists for) leaves
+# neither: the process loses the "+" and its tty becomes "?" or a dangling
+# /dev/pts entry.
+#
+# Deliberately NOT used as a liveness signal: having children. An abandoned
+# session is precisely the one holding ~200 orphaned MCP processes, so
+# "has children" would protect the exact thing we came to reap.
+session_liveness_reason() {
+    local pid="$1" stat tty reasons=()
+
+    stat="$(ps -o stat= -p "$pid" 2>/dev/null | tr -d ' ')"
+    tty="$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')"
+
+    [[ "$stat" == *+* ]] && reasons+=("foreground")
+    [[ -n "$tty" && "$tty" != "?" && -e "/dev/$tty" ]] && reasons+=("tty $tty alive")
+
+    [[ ${#reasons[@]} -gt 0 ]] || return 0
+    local IFS=', '
+    echo "${reasons[*]}"
+}
+
 # Root claude PIDs: the actual session processes, not bg helpers/daemons/forks.
 # We match argv starting with "claude" and exclude bg-pty-host, daemon, spare,
 # and the version-dir fork children (those have a --session-id in argv but are
@@ -169,7 +206,7 @@ main() {
 
     print_section "Scanning claude sessions"
 
-    local -a stale_pids=() stale_desc=()
+    local -a stale_pids=() stale_desc=() alive_desc=()
     local total_mb=0 root ppid secs mb days_fmt
 
     while read -r root ppid; do
@@ -188,11 +225,32 @@ main() {
             mb="$(tree_rss_mb "$root")"
             days_fmt=$(( secs / 86400 ))
             local hrs=$(( (secs % 86400) / 3600 ))
+
+            # Old but still attached to a terminal: someone's open session.
+            # Report it, never reap it.
+            local live_reason
+            live_reason="$(session_liveness_reason "$root")"
+            if [[ -n "$live_reason" ]]; then
+                alive_desc+=("PID $root · age ${days_fmt}d ${hrs}h · ~${mb} MB · ${live_reason}")
+                continue
+            fi
+
             stale_pids+=("$root")
             stale_desc+=("PID $root · age ${days_fmt}d ${hrs}h · ~${mb} MB")
             total_mb=$(( total_mb + mb ))
         fi
     done < <(find_root_claude_pids)
+
+    # Surface protected sessions explicitly: otherwise an old-but-live session
+    # just vanishes from the report and it looks like the scan missed it.
+    if [[ ${#alive_desc[@]} -gt 0 ]]; then
+        print_info "Skipping ${BOLD}${#alive_desc[@]}${NC} old session(s) still attached to a terminal:"
+        local d
+        for d in "${alive_desc[@]}"; do
+            echo "    • ${d}"
+        done
+        echo
+    fi
 
     if [[ ${#stale_pids[@]} -eq 0 ]]; then
         print_success "No stale claude sessions older than ${DAYS} day(s). Nothing to reap."
@@ -223,6 +281,16 @@ main() {
     print_section "Terminating"
     local killed=0
     for root in "${stale_pids[@]}"; do
+        # Re-check right before signalling: the confirmation prompt can sit
+        # there for a while, and a session that got re-attached in the meantime
+        # must not be killed on stale information.
+        local live_now
+        live_now="$(session_liveness_reason "$root")"
+        if [[ -n "$live_now" ]]; then
+            print_warning "Skipping PID $root — became active (${live_now})"
+            continue
+        fi
+
         if kill -TERM "$root" 2>/dev/null; then
             print_success "SIGTERM → PID $root"
             killed=$(( killed + 1 ))
