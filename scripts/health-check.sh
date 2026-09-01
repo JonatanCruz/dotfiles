@@ -53,17 +53,17 @@ print_section() {
 
 check_pass() {
     echo -e "  ${GREEN}✓${NC} $1"
-    ((CHECKS_PASSED++))
+    ((++CHECKS_PASSED))
 }
 
 check_fail() {
     echo -e "  ${RED}✗${NC} $1"
-    ((CHECKS_FAILED++))
+    ((++CHECKS_FAILED))
 }
 
 check_warn() {
     echo -e "  ${YELLOW}⚠${NC}  $1"
-    ((CHECKS_WARNING++))
+    ((++CHECKS_WARNING))
 }
 
 # ==============================================================================

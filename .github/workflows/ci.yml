@@ -92,6 +92,8 @@ jobs:
           - docker
           - claude
           - git
+          - opencode
+          - mise
 
     steps:
       - name: Checkout repository

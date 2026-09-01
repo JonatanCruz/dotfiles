@@ -267,10 +267,10 @@ apply_stow_packages() {
 
         if stow -R "$pkg" 2>&1 | grep -q "LINK\|UNLINK"; then
             print_success "Stowed: $pkg"
-            ((success++))
+            ((++success))
         else
             print_warning "Failed to stow: $pkg"
-            ((failed++))
+            ((++failed))
         fi
     done
 
