@@ -123,9 +123,10 @@ check_binaries() {
 check_symlinks() {
     print_section "Symlink Verification"
 
+    # tmux is deliberately absent here: it supports two valid layouts
+    # (~/.tmux.conf and ~/.config/tmux/) and is checked separately below.
     local symlinks=(
         "$HOME/.config/nvim:nvim"
-        "$HOME/.config/tmux:tmux"
         "$HOME/.config/zsh:zsh"
         "$HOME/.zsh:zsh-plugins"
         "$HOME/.config/starship.toml:starship"
@@ -157,6 +158,34 @@ check_symlinks() {
             check_warn "$(basename "$path") not found (package not installed)"
         fi
     done
+
+    # tmux accepts either the classic ~/.tmux.conf or the XDG ~/.config/tmux/.
+    # This repo uses the classic one; checking only for the XDG path reported a
+    # missing package that was in fact correctly linked.
+    local tmux_path=""
+    if [ -L "$HOME/.tmux.conf" ]; then
+        tmux_path="$HOME/.tmux.conf"
+    elif [ -L "$HOME/.config/tmux" ]; then
+        tmux_path="$HOME/.config/tmux"
+    fi
+
+    if [ -n "$tmux_path" ]; then
+        local tmux_target
+        if [[ "$OS" == "macOS" ]]; then
+            tmux_target=$(python3 -c "import os; print(os.path.realpath('$tmux_path'))" 2>/dev/null)
+        else
+            tmux_target=$(readlink -f "$tmux_path" 2>/dev/null)
+        fi
+        if [[ "$tmux_target" == *"$DOTFILES_DIR/tmux"* ]]; then
+            check_pass "$(basename "$tmux_path") → tmux"
+        else
+            check_warn "$(basename "$tmux_path") symlink points elsewhere: $tmux_target"
+        fi
+    elif [ -e "$HOME/.tmux.conf" ] || [ -e "$HOME/.config/tmux" ]; then
+        check_warn "tmux config exists but is not a symlink"
+    else
+        check_warn "tmux config not found (package not installed)"
+    fi
 }
 
 # ==============================================================================
@@ -249,7 +278,11 @@ check_zsh() {
         local name
         name=$(basename "$plugin")
         if [ -d "$plugin" ]; then
-            if [ -d "$plugin/.git" ]; then
+            # These plugins are git SUBMODULES, where .git is a FILE holding a
+            # "gitdir:" pointer into the parent's .git/modules/ — not a
+            # directory. Testing for a directory could never pass here.
+            # git rev-parse handles both layouts.
+            if git -C "$plugin" rev-parse --is-inside-work-tree &>/dev/null; then
                 check_pass "$name installed (git submodule)"
             else
                 check_warn "$name exists but not a git repository"
