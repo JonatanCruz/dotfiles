@@ -151,3 +151,84 @@ dip() {
 lip() {
   pgrep -fl "ssh.*-L [0-9]+:localhost:[0-9]+" || echo "Sin forwards activos"
 }
+
+# ==============================================================================
+# RSYNC-ON-CHANGE
+# ==============================================================================
+# Portado de basecamp/omarchy (default/bash/fns/rsyncing).
+# Sincroniza un directorio local a un destino remoto cada vez que cambia.
+#
+# Dos ideas del original que vale la pena conservar:
+#  1. Multiplexado SSH (ControlMaster + ControlPersist): una sola conexión por
+#     login, así el gestor de credenciales pide la clave una vez y no en cada
+#     rsync.
+#  2. El proceso se auto-etiqueta pasando 'rsw-watch' como $0 al shell hijo,
+#     de modo que lsw/dsw lo encuentran con pgrep SIN archivos de PID que se
+#     queden obsoletos.
+#
+# Cambios para macOS:
+#  - inotifywait -> fswatch -1 (espera un evento y sale, igual que inotifywait)
+#  - setsid --fork no existe -> nohup en subshell
+#  - pgrep -af -> -fl (el -a de Linux no imprime la cmdline en macOS)
+#
+# Requiere: brew install fswatch
+
+# rsw <origen> <destino> — sincroniza en background ante cada cambio
+rsw() {
+  (( $# != 2 )) && { echo "Uso: rsw <origen> <destino-rsync>" >&2; return 1 }
+
+  command -v fswatch &>/dev/null || {
+    echo "rsw: falta fswatch (brew install fswatch)" >&2
+    return 1
+  }
+
+  local src="${1%/}" dest="$2"
+  [[ -d "$src" ]] || { echo "rsw: '$src' no es un directorio" >&2; return 1 }
+
+  # Una sola conexión SSH reutilizada por login
+  local sockets="${XDG_RUNTIME_DIR:-$HOME/.ssh/sockets}"
+  mkdir -p "$sockets"
+  local rsh="ssh -o ControlMaster=auto -o ControlPath=$sockets/rsw-%r@%h:%p -o ControlPersist=yes"
+
+  # $0 del shell hijo es 'rsw-watch': así lo descubren lsw/dsw
+  # El script va en UNA línea a propósito: pgrep -fl imprime la cmdline
+  # completa, y un script multilínea produce una "coincidencia" por línea,
+  # rompiendo el parseo de lsw.
+  ( nohup env RSYNC_RSH="$rsh" bash -c 'rsync -a "$1/" "$2"; while fswatch -1 -r "$1" >/dev/null; do rsync -a "$1/" "$2"; done' rsw-watch "$src" "$dest" >/dev/null 2>&1 & )
+
+  echo "Sincronizando $src -> $dest"
+}
+
+# lsw — lista los watchers activos
+lsw() {
+  local line pid rest found=0
+  # Solo las líneas que llevan la etiqueta rsw-watch seguida de los 2 paths
+  for line in ${(f)"$(pgrep -fl 'rsw-watch ' 2>/dev/null)"}; do
+    [[ "$line" == *"rsw-watch "* ]] || continue
+    pid="${line%% *}"
+    rest="${line##*rsw-watch }"
+    echo "$pid: ${rest% *} -> ${rest##* }"
+    found=1
+  done
+  (( found )) || echo "Sin watchers activos"
+}
+
+# dsw — para todos los watchers
+dsw() {
+  local pid found=0
+  for pid in ${(f)"$(pgrep -f 'rsw-watch ')"}; do
+    [[ -z "$pid" ]] && continue
+    # Captura los paths ANTES de matar, para saber qué fswatch huérfano matar:
+    # nohup desacopla la jerarquía, así que pkill -P no lo alcanza.
+    local cmdline src_path
+    cmdline="$(ps -o command= -p "$pid" 2>/dev/null)"
+    src_path="${${cmdline##*rsw-watch }%% *}"
+
+    if kill "$pid" 2>/dev/null; then
+      [[ -n "$src_path" ]] && pkill -f "fswatch -1 -r $src_path" 2>/dev/null
+      echo "Watcher detenido (pid $pid)"
+      found=1
+    fi
+  done
+  (( found )) || echo "Sin watchers activos"
+}
