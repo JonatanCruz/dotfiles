@@ -404,6 +404,46 @@ export COLORTERM=truecolor
 /share
 ```
 
+## Bootstrap: mise (versiones de runtimes)
+
+`mise` sustituye a nvm + pyenv como gestor único. Maneja versiones distintas
+**por proyecto y por servidor** desde una sola herramienta.
+
+La config base está versionada en `mise/.config/mise/config.toml` y se aplica
+con Stow. En cada servidor nuevo hay que instalar el binario una vez:
+
+```bash
+# macOS / Linux con Homebrew
+brew install mise
+
+# Linux sin brew
+curl https://mise.run | sh
+
+# Luego, desde el repo:
+stow mise
+mise install          # instala las versiones declaradas en la config global
+```
+
+### Uso diario
+
+```bash
+mise use node@20      # fija node 20 en el proyecto actual (crea mise.toml)
+mise ls               # qué hay instalado
+mise outdated         # qué se puede actualizar
+mise install          # instala lo declarado que falte
+```
+
+Cada proyecto puede declarar sus versiones en `mise.toml`. Los archivos
+`.nvmrc` y `.python-version` de proyectos existentes **también funcionan**
+(`idiomatic_version_file_enable_tools` en la config global lo habilita).
+
+`mise activate` instala un hook de precmd que reescribe el PATH al cambiar de
+directorio; no usa shims, así que `node` es el binario real y no un wrapper.
+Cuesta ~20ms de arranque; a cambio, el primer `node` ya no paga los ~310ms que
+costaba el lazy-load de nvm.
+
+---
+
 ## Bootstrap: Engram Plugin
 
 Engram es el sistema de memoria persistente. El `settings.json` lo habilita automáticamente vía Stow, pero el plugin debe instalarse una vez en cada nuevo servidor:

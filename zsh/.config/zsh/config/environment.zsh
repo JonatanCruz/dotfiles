@@ -29,32 +29,26 @@ elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
-# NVM (Node Version Manager) - Lazy loaded for performance (200-300ms savings)
-export NVM_DIR="$HOME/.nvm"
-
-# Lazy load NVM only when needed
-_lazy_nvm() {
-  unset -f nvm node npm npx
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-}
-
-# Use 'function' keyword to prevent alias expansion during parsing
-function nvm() { _lazy_nvm; nvm "$@"; }
-function node() { _lazy_nvm; node "$@"; }
-function npm() { _lazy_nvm; npm "$@"; }
-function npx() { _lazy_nvm; npx "$@"; }
+# ==============================================================================
+# MISE - Gestor único de versiones (sustituye nvm + pyenv)
+# ==============================================================================
+# Versiones distintas por proyecto Y por servidor desde una sola herramienta.
+# La config base está versionada en mise/.config/mise/config.toml; cada
+# proyecto la sobrescribe con su mise.toml (o .nvmrc/.python-version, que mise
+# lee gracias a idiomatic_version_file_enable_tools).
+#
+# `mise activate` instala un hook de precmd que reescribe el PATH al cambiar de
+# directorio. No usa shims, así que `node` es el binario real y no un wrapper:
+# más rápido por invocación y sin romper el hash de comandos de zsh.
+#
+# Guard por si el servidor aún no tiene mise: el shell arranca igual.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
 
 # Bun (JavaScript Runtime & Toolkit)
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-# pyenv (Python Version Manager)
-export PYENV_ROOT="$HOME/.pyenv"
-if [ -d "$PYENV_ROOT/bin" ]; then
-  export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init -)"
-fi
 
 # Paths adicionales
 export PATH="$HOME/.local/bin:$PATH"
