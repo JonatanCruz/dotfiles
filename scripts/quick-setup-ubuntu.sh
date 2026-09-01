@@ -248,7 +248,7 @@ step_9_stow() {
 
         if stow -R "$pkg" 2>&1 | grep -q "LINK\|UNLINK"; then
             print_success "✓ $pkg"
-            ((stowed++))
+            ((++stowed))
         else
             print_warning "✗ $pkg (puede requerir backup manual)"
         fi
