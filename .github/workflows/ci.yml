@@ -187,6 +187,25 @@ jobs:
           extra_args: --only-verified
 
   # ==============================================================================
+  # CLAUDE HOOKS VERSIONADOS
+  # ==============================================================================
+  # settings.json cita hooks por ruta. Uno que exista solo en la máquina donde
+  # se escribió falla EN SILENCIO en cualquier otro servidor. Sin continue-on-
+  # error a propósito: es exactamente lo que este job tiene que frenar.
+  hooks-versioned:
+    name: Claude Hooks Versioned
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check hooks cited in settings.json are versioned
+        run: |
+          chmod +x scripts/check-hooks-versioned.sh
+          ./scripts/check-hooks-versioned.sh
+
+  # ==============================================================================
   # HEALTH CHECK SCRIPT TEST
   # ==============================================================================
   health-check-test:
@@ -295,4 +314,5 @@ jobs:
           echo "- Stow dry-run tests" >> $GITHUB_STEP_SUMMARY
           echo "- Neovim config validation" >> $GITHUB_STEP_SUMMARY
           echo "- Security scanning (TruffleHog)" >> $GITHUB_STEP_SUMMARY
+          echo "- Claude hooks versioned" >> $GITHUB_STEP_SUMMARY
           echo "- Integration testing" >> $GITHUB_STEP_SUMMARY
