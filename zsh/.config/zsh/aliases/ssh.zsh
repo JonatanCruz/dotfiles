@@ -101,3 +101,53 @@ ssh() {
     done
   )
 }
+
+# ==============================================================================
+# PORT FORWARDING
+# ==============================================================================
+# Portado de basecamp/omarchy (default/bash/fns/ssh-port-forwarding).
+# Sin estado: los procesos se descubren por su propia línea de comando con
+# pgrep, así que no hay archivos de PID que se queden obsoletos.
+#
+# Caso de uso del manual de Omarchy: reenviar el puerto de un dev server
+# remoto a localhost da privilegios de secure-context sin certificados SSL,
+# permitiendo probar websockets y service workers contra una caja remota.
+#
+# Cambios: `command ssh` para saltar el wrapper de reconexión de arriba (un
+# forward con -f -N no es interactivo), y `pgrep -fl` porque el -a de Linux
+# no imprime la línea de comando en macOS.
+
+# fip <host> <puerto> [puerto...] — abre forwards en background
+fip() {
+  (( $# < 2 )) && { echo "Uso: fip <host> <puerto1> [puerto2] ..." >&2; return 1 }
+  local host="$1"
+  shift
+  local port
+  for port in "$@"; do
+    if [[ "$port" != <-> ]]; then
+      echo "fip: '$port' no es un puerto válido" >&2
+      continue
+    fi
+    if command ssh -f -N -L "${port}:localhost:${port}" "$host"; then
+      echo "Forward activo: localhost:$port -> $host:$port"
+    fi
+  done
+}
+
+# dip <puerto> [puerto...] — cierra forwards
+dip() {
+  (( $# == 0 )) && { echo "Uso: dip <puerto1> [puerto2] ..." >&2; return 1 }
+  local port
+  for port in "$@"; do
+    if pkill -f "ssh.*-L ${port}:localhost:${port}"; then
+      echo "Forward cerrado en el puerto $port"
+    else
+      echo "No había forward en el puerto $port"
+    fi
+  done
+}
+
+# lip — lista los forwards activos
+lip() {
+  pgrep -fl "ssh.*-L [0-9]+:localhost:[0-9]+" || echo "Sin forwards activos"
+}
