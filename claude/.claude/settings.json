@@ -24,7 +24,8 @@
       "Bash(git reset --hard:*)",
       "Bash(npm publish:*)",
       "Bash(brew uninstall:*)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "enableAllProjectMcpServers": true,
   "hooks": {
@@ -149,40 +150,40 @@
     "padding": 0
   },
   "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
-    "github@claude-plugins-official": true,
-    "serena@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
+    "github@claude-plugins-official": false,
+    "serena@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": false,
+    "code-review@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
-    "figma@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "laravel-boost@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": false,
+    "figma@claude-plugins-official": false,
+    "pyright-lsp@claude-plugins-official": false,
+    "laravel-boost@claude-plugins-official": false,
     "learning-output-style@claude-plugins-official": true,
-    "sentry@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "csharp-lsp@claude-plugins-official": true,
-    "php-lsp@claude-plugins-official": true,
-    "jdtls-lsp@claude-plugins-official": true,
-    "stripe@claude-plugins-official": true,
-    "clangd-lsp@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true,
-    "greptile@claude-plugins-official": true,
-    "kotlin-lsp@claude-plugins-official": true,
+    "sentry@claude-plugins-official": false,
+    "gopls-lsp@claude-plugins-official": false,
+    "rust-analyzer-lsp@claude-plugins-official": false,
+    "csharp-lsp@claude-plugins-official": false,
+    "php-lsp@claude-plugins-official": false,
+    "jdtls-lsp@claude-plugins-official": false,
+    "stripe@claude-plugins-official": false,
+    "clangd-lsp@claude-plugins-official": false,
+    "swift-lsp@claude-plugins-official": false,
+    "lua-lsp@claude-plugins-official": false,
+    "greptile@claude-plugins-official": false,
+    "kotlin-lsp@claude-plugins-official": false,
     "ralph-loop@claude-plugins-official": false,
     "engram@engram": true,
     "firecrawl@claude-plugins-official": true,
-    "ruby-lsp@claude-plugins-official": true,
+    "ruby-lsp@claude-plugins-official": false,
     "superpowers@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "terraform@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": false,
+    "terraform@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "engram": {
@@ -203,5 +204,6 @@
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "auto",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "theme": "custom:catppuccin-mocha"
 }
