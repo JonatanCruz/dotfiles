@@ -102,6 +102,10 @@
 [diff]
 	tool = nvimdiff
 	colorMoved = default
+	# histogram da diffs mucho más claros en código movido/reordenado,
+	# justo donde delta side-by-side ayuda menos.
+	algorithm = histogram
+	mnemonicPrefix = true
 
 [difftool]
 	prompt = false
@@ -124,7 +128,7 @@
 
 [fetch]
 	prune = true
-	pruneTagas = true
+	pruneTags = true
 
 # ============================================================================
 # ALIASES ÚTILES
@@ -238,6 +242,24 @@
 
 [rerere]
 	enabled = true
+	# Sin autoupdate, rerere recuerda la resolución pero te obliga a
+	# re-confirmarla a mano — media función.
+	autoupdate = true
+
+[commit]
+	# Incluye el diff como comentario en la plantilla del mensaje
+	verbose = true
+
+[branch]
+	# Ramas ordenadas por commit más reciente, no alfabéticamente
+	sort = -committerdate
+
+[tag]
+	# Ordena versiones como esperarías (v1.9 antes de v1.10)
+	sort = -version:refname
+
+[column]
+	ui = auto
 
 [help]
 	autocorrect = 1

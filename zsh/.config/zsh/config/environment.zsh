@@ -6,6 +6,14 @@
 export EDITOR='nvim'
 export PAGER='less'
 
+# Man pages con syntax highlighting via bat.
+# MANROFFOPT="-c" evita que groff emita secuencias de subrayado que bat no
+# interpreta; col -bx limpia backspaces y tabs antes de pasar a bat.
+if command -v bat &>/dev/null; then
+  export MANROFFOPT="-c"
+  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+fi
+
 # Asegurar que $TERM esté definido (necesario para tput en entornos sin terminal)
 [[ -z "$TERM" ]] && export TERM=xterm-256color
 
