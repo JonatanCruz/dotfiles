@@ -153,7 +153,7 @@
     "frontend-design@claude-plugins-official": false,
     "context7@claude-plugins-official": true,
     "github@claude-plugins-official": false,
-    "serena@claude-plugins-official": false,
+    "serena@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": false,
     "code-review@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": true,
