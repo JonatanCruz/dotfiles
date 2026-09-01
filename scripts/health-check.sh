@@ -335,6 +335,36 @@ check_submodules() {
 }
 
 # ==============================================================================
+# STALE CLAUDE SESSIONS
+# ==============================================================================
+
+check_stale_claude() {
+    print_section "Stale Claude Sessions"
+
+    local reaper="$DOTFILES_DIR/scripts/reap-stale-claude.sh"
+
+    if [ ! -x "$reaper" ]; then
+        check_warn "reap-stale-claude.sh not found (skipping)"
+        return
+    fi
+
+    # Read-only: run the reaper in dry-run mode and report only.
+    # health-check must never kill processes — it diagnoses, it doesn't act.
+    local output
+    output=$("$reaper" 2>/dev/null || true)
+
+    if echo "$output" | grep -q "Nothing to reap"; then
+        check_pass "No stale Claude sessions"
+    elif echo "$output" | grep -q "Found"; then
+        local summary
+        summary=$(echo "$output" | grep "Found" | sed -E 's/\x1b\[[0-9;]*m//g; s/^[^F]*//; s/:$//')
+        check_warn "$summary — run: scripts/reap-stale-claude.sh --kill"
+    else
+        check_warn "Could not determine stale-session state"
+    fi
+}
+
+# ==============================================================================
 # SUMMARY
 # ==============================================================================
 
@@ -378,6 +408,7 @@ main() {
     check_zsh
     check_tmux
     check_submodules
+    check_stale_claude
 
     print_summary
 }
