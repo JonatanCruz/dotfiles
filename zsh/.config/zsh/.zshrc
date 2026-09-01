@@ -32,6 +32,7 @@ source "${ZDOTDIR}/aliases/utils.zsh"
 source "${ZDOTDIR}/aliases/docker.zsh"
 source "${ZDOTDIR}/aliases/gcloud.zsh"
 source "${ZDOTDIR}/aliases/node.zsh"
+source "${ZDOTDIR}/aliases/ssh.zsh"
 
 # ==============================================================================
 # PLUGINS Y HERRAMIENTAS
