@@ -1,0 +1,35 @@
+# ==============================================================================
+# MISE - Gestor único de versiones de runtimes
+# ==============================================================================
+# Sustituye a nvm + pyenv. Estas son las versiones BASE que se instalan en
+# cualquier servidor nuevo; cada proyecto puede sobrescribirlas con su propio
+# mise.toml (o .tool-versions / .nvmrc / .python-version, que mise también lee).
+#
+# Comandos:
+#   mise install          instala todo lo declarado aquí
+#   mise use node@22      fija una versión en el proyecto actual
+#   mise ls               qué hay instalado
+#   mise outdated         qué se puede actualizar
+#
+# Las versiones van sin fijar al parche (ej. "22" y no "22.20.0") a propósito:
+# entre servidores importa la major, y fijar el parche obligaría a commitear
+# cada bump. Un proyecto que necesite exactitud lo declara en su propio archivo.
+
+[tools]
+node = "22"      # LTS actual
+python = "3.13"  # estable; el 3.14 aún es reciente para todos los servidores
+
+[settings]
+# Instala automáticamente una versión que falte al entrar a un proyecto que la
+# declara, en vez de fallar con "version not installed".
+auto_install = true
+
+# Leer los archivos de versión "idiomáticos" de cada ecosistema. Por defecto
+# mise SOLO lee mise.toml/.tool-versions: sin esto, un proyecto con .nvmrc o
+# .python-version quedaría sin versión declarada al migrar desde nvm/pyenv.
+idiomatic_version_file_enable_tools = ["node", "python", "ruby", "java"]
+
+# Verificar checksums al instalar node. Estos dotfiles corren en varios
+# servidores; que la descarga sea verificable importa más que el segundo extra.
+[settings.node]
+verify = true
