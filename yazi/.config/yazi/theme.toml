@@ -1,4 +1,8 @@
-# ~/.config/yazi/theme.toml (Catppuccin Mocha Transparent)
+# ==============================================================================
+# GENERADO POR theme/apply.sh — NO EDITAR A MANO
+# ==============================================================================
+# Fuente: theme/palette.sh + theme/templates/yazi-theme.tpl
+# Para cambiar colores: edita la paleta y corre `theme/apply.sh`.
 
 [mgr]
 cwd          = { fg = "#f5c2e7", bold = true } # Pink for current path
@@ -32,3 +36,4 @@ progress_error  = { fg = "#f38ba8" }
 [tab]
 active   = { fg = "#cdd6f4", bg = "#45475a", bold = true }
 inactive = { fg = "#6c7086" }
+

@@ -51,6 +51,8 @@ Un token inexistente aborta con error en vez de emitir vacío.
 | `gitconfig-colors.tpl` | `git/.gitconfig-colors` | `[include]` en `.gitconfig` |
 | `tmux-colors.tpl` | `tmux/.tmux-colors.conf` | `source-file` en `.tmux.conf` |
 | `claude-theme.tpl` | `claude/.claude/themes/catppuccin-mocha.json` | ver abajo |
+| `starship.tpl` | `starship/.config/starship.toml` | el archivo ES el destino |
+| `yazi-theme.tpl` | `yazi/.config/yazi/theme.toml` | el archivo ES el destino |
 
 ### Activar el tema de Claude Code
 
@@ -76,5 +78,4 @@ abiertas se retintan sin reiniciar.
   (mismos 26 colores, formato Lua). nvim carga Lua nativo, así que generarla
   por sed sería más frágil que mantener las dos en paralelo. Si cambias la
   paleta, actualiza también ese archivo.
-- **starship** y **yazi** aún tienen sus hex a mano. Migrarlos es mecánico:
-  crear la plantilla y añadir la entrada a `TARGETS` en `apply.sh`.
+Ya no queda ningún config con colores editados a mano fuera de nvim.

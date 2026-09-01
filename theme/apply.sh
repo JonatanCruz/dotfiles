@@ -31,6 +31,8 @@ declare -a TARGETS=(
   "gitconfig-colors.tpl:git/.gitconfig-colors"
   "tmux-colors.tpl:tmux/.tmux-colors.conf"
   "claude-theme.tpl:claude/.claude/themes/catppuccin-mocha.json"
+  "starship.tpl:starship/.config/starship.toml"
+  "yazi-theme.tpl:yazi/.config/yazi/theme.toml"
 )
 
 # Resuelve un token a su valor final.
@@ -69,7 +71,10 @@ resolve_token() {
 render() {
   local tpl="$1" line out token value
   out=""
-  # read -r sin IFS conserva espacios; el || [[ -n ]] captura última línea sin \n
+  # read -r sin IFS conserva espacios; el || [[ -n ]] captura última línea sin \n.
+  # OJO: este bucle no puede distinguir "termina en \n" de "no termina en \n"
+  # (ambos dan la misma secuencia de líneas), así que el newline final se
+  # restituye explícitamente más abajo según lo que tenga la plantilla.
   while IFS= read -r line || [[ -n "$line" ]]; do
     while [[ "$line" =~ \{\{[[:space:]]*([^}]+)[[:space:]]*\}\} ]]; do
       token="${BASH_REMATCH[1]}"
@@ -86,6 +91,15 @@ render() {
     done
     out+="$line"$'\n'
   done < "$tpl"
+
+  # El bucle siempre deja un \n final; quítalo si la plantilla no lo tenía.
+  # OJO: $(tail -c 1) NO sirve aquí — la sustitución de comandos se come los
+  # newlines finales, así que devolvería vacío en ambos casos. Hay que
+  # comparar el byte crudo.
+  if [[ "$(tail -c 1 "$tpl" | xxd -p)" != "0a" ]]; then
+    out="${out%$'\n'}"
+  fi
+
   printf '%s' "$out"
 }
 
@@ -96,9 +110,12 @@ for entry in "${TARGETS[@]}"; do
 
   [[ -f "$tpl" ]] || { echo "apply.sh: falta la plantilla $tpl" >&2; exit 1; }
 
-  if ! rendered="$(render "$tpl")"; then
+  # $(...) se come TODOS los newlines finales, así que render() emite un
+  # centinela y aquí se recorta: lo que quede es el contenido exacto.
+  if ! rendered="$(render "$tpl"; printf 'X')"; then
     exit 1
   fi
+  rendered="${rendered%X}"
 
   if (( CHECK_ONLY )); then
     if [[ ! -f "$dest" ]] || ! diff -q <(printf '%s' "$rendered") "$dest" &>/dev/null; then
