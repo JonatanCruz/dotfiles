@@ -1,24 +1,31 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: Bash). Cierra el AGUJERO del `cbm-code-discovery-gate`:
-# ese gate solo intercepta las tools Grep|Glob, así que un `grep` ejecutado DENTRO
-# de Bash lo esquiva por completo — que es exactamente lo que pasó toda la sesión
-# 2026-07-20 (el dueño lo señaló 3 veces: "si tenemos los MCPs ¿por qué no los ocupas?").
+# PreToolUse (matcher: Bash) — bloquea la búsqueda de CÓDIGO con grep/sed vía Bash
+# cuando hay un índice de código disponible.
 #
-# Por qué existe (Meadows, la filosofía que ya usa este repo en las Reglas #12/#13/#14):
-# el control tiene que vivir en la ESTRUCTURA, no en la memoria del próximo agente.
-# Un recordatorio en prosa no previene el "error competente" — el agente que CREE que
-# está usando las herramientas correctas. Este hook hace que caer en grep sobre código
-# sea un acto CONSCIENTE, no el camino de menor resistencia.
+# Cierra el hueco de los gates que interceptan las tools Grep|Glob: un `grep` corrido
+# dentro de Bash las esquiva por completo.
 #
-# Qué hace: NO bloquea (exit 0 siempre). Inyecta un recordatorio dirigido cuando el
-# comando es una búsqueda de CÓDIGO. Deliberadamente NO se mete con búsquedas sobre
-# logs, JSON, YAML, configs o salidas de gcloud/gh — ahí grep es la herramienta correcta
-# y bloquearlo sería el falso positivo que el panel rechazó en la Regla #14
-# ("hook heurístico que adivine → falsos positivos → --no-verify crónico").
+# El control vive en la estructura, no en la memoria del agente. Un aviso sólo previene
+# el error que el agente ya sabe que está cometiendo; no previene al que cree que está
+# usando la herramienta correcta. Por eso falla cerrado.
+#
+# ALCANCE — bloquea sólo donde el error es caro:
+#   · sí: búsquedas sobre fuentes de código
+#   · no: logs, JSON, YAML, configs, salidas de CLIs (ahí grep ES la herramienta)
+#   · no: un archivo único ya identificado (leerlo/filtrarlo es legítimo)
+# Bloquear de más entrena a saltarse el gate, y ahí se pierden las dos cosas.
+#
+# Un índice ve lo que grep no puede: quién llama a qué a través de inyección de
+# dependencias, un docstring completo en vez del fragmento que entró en la línea
+# matcheada, el impacto real de un cambio. Leer código en pedazos produce diagnósticos
+# que el archivo entero habría desmentido.
+#
+# Override consciente y auditable — se escribe a propósito, no es un bypass silencioso:
+#   CBM_CHECKED=1 <comando>
 #
 # Contrato Claude Code:
-#   - stdin: JSON { tool_input: { command }, ... }
-#   - exit 0 = permitir. El JSON de salida inyecta additionalContext al modelo.
+#   stdin: JSON { tool_input: { command }, ... }
+#   exit 0 = permitir · exit 2 = bloquear (stderr vuelve al modelo)
 
 set -uo pipefail
 
@@ -32,27 +39,42 @@ fi
 
 [ -z "$cmd" ] && exit 0
 
-# ¿Es una búsqueda de texto? (grep/rg/ag/sed/find sobre nombres)
+# El agente ya midió con el índice y necesita grep para algo puntual.
+printf '%s' "$cmd" | grep -qE '(^|[[:space:]])CBM_CHECKED=1' && exit 0
+
+# ¿Es una búsqueda de texto?
 printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]]|$)' || exit 0
 
-# ¿Apunta a CÓDIGO? Extensiones de código o directorios de fuentes del monorepo.
-# Si no toca código (logs, tfstate, csv, salida de gcloud/gh), no molestamos.
-printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|py|go|rs|java|kt|rb|php|swift)\b|services/[a-z-]+/src|packages/[a-z-]+/src|apps/[a-z-]+/src' || exit 0
+# ¿Apunta a código? Extensiones de fuentes, o directorios de fuentes de layouts comunes
+# (monorepo por paquetes, o `src/` a secas). Si no toca código, no molestamos.
+printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/])(src|lib|app)([[:space:]/]|$)' || exit 0
 
-# Excepción: si el comando ya está acotado a un archivo único que el agente YA
-# identificó, leer/filtrar ese archivo con grep es legítimo y barato.
-# Heurística: un solo path concreto .ts sin comodines ni -r/-R.
-if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|py|go)\b' \
+# Un solo path concreto sin recursión ni comodines: el archivo ya está identificado.
+if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b' \
    && ! printf '%s' "$cmd" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
   exit 0
 fi
 
-cat <<'JSON'
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "additionalContext": "RECORDATORIO ESTRUCTURAL (hook redirect-code-search-to-mcp): estás por buscar en CÓDIGO con grep/sed vía Bash. Este proyecto tiene MCPs indexados que responden mejor y en UNA llamada:\n\n- ¿Quién llama a X? ¿qué rompe si cambio X? → mcp__codebase-memory-mcp__trace_path (mode=calls|cross_service). grep NO ve el cableado por inyección de dependencias — así se perdió la cadena CircuitBreaker(Retrying(...)) el 2026-07-20.\n- ¿Dónde está definido X? ¿qué símbolos hay? → mcp__codebase-memory-mcp__search_graph o mcp__plugin_serena_serena__find_symbol (include_body/include_info da el docstring COMPLETO, no fragmentos).\n- ¿Qué impacto tiene este cambio/diff? → mcp__codebase-memory-mcp__detect_changes (since=<ref>).\n- ¿Arquitectura, capas, clusters? → mcp__codebase-memory-mcp__get_architecture.\n- Búsqueda de texto pero enriquecida con el grafo → mcp__codebase-memory-mcp__search_code.\n\nProyecto indexado: 'home-jonatan-DESARROLLO-PLATAFORMA' (NO 'PLATAFORMA'). Serena requiere activate_project('PLATAFORMA') una vez por sesión.\n\nPOR QUÉ IMPORTA: leer en pedazos con grep produjo 3 diagnósticos sucesivos y equivocados en una sola sesión, porque el test/docstring que los invalidaba estaba fuera del fragmento leído. Si ya mediste con el MCP y necesitás grep para algo puntual, seguí adelante — este aviso no bloquea."
-  }
-}
-JSON
-exit 0
+cat >&2 <<'MSG'
+🛑 BLOQUEADO (redirect-code-search-to-mcp): buscar en CÓDIGO con grep/sed vía Bash.
+
+Usá el índice de código. Responde en una llamada y ve lo que grep no puede:
+
+  ¿quién llama a X? ¿qué rompe si lo cambio?  → trace_path
+  ¿dónde está definido X? ¿qué símbolos hay?  → search_graph / find_symbol
+  ¿qué impacto tiene este diff?               → detect_changes
+  ¿arquitectura, capas, módulos?              → get_architecture
+  texto, pero enriquecido con el grafo        → search_code
+
+(Herramientas mcp__codebase-memory-mcp__* y mcp__plugin_serena_serena__*. Si el
+repo todavía no está indexado: index_repository. Serena pide activate_project.)
+
+Por qué bloquea en vez de avisar: avisando se ignora. Y grep sobre código miente por
+construcción — no ve una env leída por indirección, ni una dependencia inyectada, ni
+el docstring que estaba tres líneas más arriba del match.
+
+Si YA mediste con el índice y necesitás grep para algo puntual, escribilo a propósito:
+
+    CBM_CHECKED=1 <tu comando>
+MSG
+exit 2

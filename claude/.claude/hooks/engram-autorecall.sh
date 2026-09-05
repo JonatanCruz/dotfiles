@@ -3,7 +3,7 @@
 #
 # PROBLEMA QUE RESUELVE (2026-07-13, feedback del dueño): las memorias de Engram
 # existen pero no se consultan en el momento de actuar — el agente afirma desde
-# memoria stale ("2 vendedores piloto") teniendo los datos reales guardados.
+# memoria stale ("2 usuarios de prueba") teniendo los datos reales guardados.
 # Una instrucción de prosa ("busca antes de opinar") no previene el error
 # competente; este hook pone el control en la ESTRUCTURA (Meadows): en cada
 # prompt del usuario, consulta el FTS de Engram e inyecta las memorias

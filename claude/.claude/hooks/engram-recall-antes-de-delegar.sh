@@ -29,7 +29,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 INPUT="$(cat 2>/dev/null || true)"
 
 # El texto del encargo es `tool_input.prompt`. Se le suma `description` porque
-# suele nombrar el dominio en pocas palabras ("el bot pregunta a distributors").
+# suele nombrar el dominio en pocas palabras ("el bot pregunta a partners").
 PROMPT="$(printf '%s' "$INPUT" | jq -r '
   [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
 ' 2>/dev/null || true)"

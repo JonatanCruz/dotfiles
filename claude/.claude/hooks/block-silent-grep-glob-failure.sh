@@ -15,7 +15,7 @@
 #
 # En una sola sesión esto produjo TRES conclusiones equivocadas:
 #   1. "el bot no tiene restos del monitoreo viejo"  → falso, sí los tenía
-#   2. "svc-recharge no menciona al bot"             → falso, 106 menciones
+#   2. "svc-orders no menciona al bot"             → falso, 106 menciones
 #   3. "montoRecargaCents no existe"                 → falso, y por poco desmiento
 #                                                      el hallazgo correcto de un agente
 #
@@ -78,7 +78,7 @@ QUÉ HACER:
        mcp__codebase-memory-mcp__search_code    (texto, enriquecido con el grafo)
        mcp__codebase-memory-mcp__search_graph   (símbolos: funciones, clases, rutas)
        mcp__codebase-memory-mcp__trace_path     (quién llama a qué)
-     Proyecto: `PLATAFORMA`. Si el índice está viejo, REINDEXÁ — no vuelvas a grep.
+     Proyecto: `proyecto`. Si el índice está viejo, REINDEXÁ — no vuelvas a grep.
 
   2. Si de verdad necesitás grep (logs, JSON, YAML, salida de gcloud/gh):
        poné comillas →  --include="*.ts"

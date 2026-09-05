@@ -52,5 +52,5 @@ echo "Un uso vivo NO es razón para conservar: es el trabajo a reparar después 
 echo "Medí para saber QUÉ REPARAR, no para decidir SI borrás."
 echo ""
 echo "El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder el"
-echo "padrón deja vendedores sin vender). Romper código ≠ romper el negocio."
+echo "registro deja proveedores sin vender). Romper código ≠ romper el negocio."
 exit 0
