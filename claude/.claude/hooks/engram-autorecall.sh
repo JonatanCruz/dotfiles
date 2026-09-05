@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # engram-autorecall.sh — UserPromptSubmit hook
 #
-# PROBLEMA QUE RESUELVE (2026-07-13, feedback del dueño): las memorias de Engram
-# existen pero no se consultan en el momento de actuar — el agente afirma desde
-# memoria stale ("2 usuarios de prueba") teniendo los datos reales guardados.
-# Una instrucción de prosa ("busca antes de opinar") no previene el error
-# competente; este hook pone el control en la ESTRUCTURA (Meadows): en cada
-# prompt del usuario, consulta el FTS de Engram e inyecta las memorias
-# relevantes al contexto del turno. El recall deja de depender de disciplina.
+# QUÉ RESUELVE: las memorias existen pero no se consultan en el momento de
+# actuar, y el agente termina afirmando desde memoria stale teniendo el dato real
+# guardado. Una instrucción de prosa ("buscá antes de opinar") no previene ese
+# error, porque el agente cree que ya sabe. Este hook pone el recall en la
+# estructura: en cada prompt consulta el FTS de Engram e inyecta lo relevante al
+# turno, sin depender de que alguien se acuerde de buscar.
 #
-# Fail-open: cualquier error → exit 0 sin output (nunca bloquea el trabajo).
+# POR QUÉ NO BLOQUEA: inyectar contexto no tiene contraparte destructiva, y un
+# recall vacío no es un error — es la mayoría de los turnos. Fail-open estricto:
+# cualquier fallo (sin DB, sin sqlite3, sin jq) sale 0 y en silencio.
 
 set -uo pipefail
 

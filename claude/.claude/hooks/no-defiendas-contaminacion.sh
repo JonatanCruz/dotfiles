@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
-# no-defiendas-contaminacion.sh — PreToolUse sobre la herramienta de agentes
+# no-defiendas-contaminacion.sh — PreToolUse sobre la herramienta de agentes.
 #
-# PROBLEMA QUE RESUELVE (2026-08-13): al encargar un borrado de contaminación
-# legacy, escribo una cláusula de escape que suena a prudencia y funciona como
-# veto: *"si al medir encontrás que SÍ se usa, decilo y no lo borres"*. El dueño
-# lo cazó y lo nombró: *"ahí está el error, no defiendas, primero rompe y luego
-# repara"*.
+# QUÉ VIGILA: la cláusula de escape en un encargo de BORRADO. Suena a prudencia
+# —"si al medir encontrás que sí se usa, no lo borres"— y funciona como veto: el
+# agente delegado mide, encuentra un uso vivo, y conserva lo que había que
+# eliminar. El encargo se anula a sí mismo sin que nadie lo note.
 #
-# No es la primera vez. El mismo patrón está corregido en memoria al menos tres
-# veces (2026-08-06, 2026-08-10, 2026-08-13) y siguió ocurriendo — porque una
-# nota en memoria depende de que yo la lea en el momento exacto en que estoy
-# por escribir la cláusula, y ese es justo el momento en que no la leo.
+# POR QUÉ ES UN HOOK Y NO UNA NOTA: la regla se rompe en el instante de ESCRIBIR
+# el encargo, que es justo cuando no se releen las notas. El control tiene que
+# estar en ese instante, no en la memoria del que escribe.
 #
-# El dueño lo nombró textual: *"se te está olvidando a cada rato y ya ni sé
-# cuántas memorias has guardado con esto"*. Escribir la regla otra vez sería
-# repetir el error. Este hook la pone en la ESTRUCTURA (Meadows), en el único
-# instante donde se rompe: el encargo, ANTES de que el agente lo ejecute.
+# POR QUÉ AVISA Y NO BLOQUEA: distinguir un veto indebido de un límite legítimo
+# ("no borres la tabla de la que depende el cobro") exige entender el dominio, y
+# eso un patrón de texto no lo hace. Bloquear sobre esa señal ambigua frenaría
+# encargos correctos. Acá el aviso alcanza porque llega ANTES de mandar el
+# encargo, con el texto exacto a reescribir señalado: el costo de corregirlo es
+# una edición, no un incidente.
 #
-# NO bloquea — señala el texto exacto que hay que reescribir y sale 0.
-
+# El patrón es deliberadamente ESTRECHO —las formas concretas del veto— porque
+# una heurística amplia gritaría en cada delegación y moriría por desconfianza.
+#
 set -uo pipefail
 
 command -v jq >/dev/null 2>&1 || exit 0
@@ -45,12 +46,12 @@ ESCAPES="$(printf '%s' "$PROMPT" | grep -oiE \
 echo "🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:"
 printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/'
 echo ""
-echo "La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»"
+echo "La regla: «se elimina, no se renombra, no se traduce, se va y punto»"
 echo "· «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara»."
 echo ""
 echo "Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar."
 echo "Medí para saber QUÉ REPARAR, no para decidir SI borrás."
 echo ""
-echo "El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder el"
-echo "registro deja proveedores sin vender). Romper código ≠ romper el negocio."
+echo "El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae»."
+echo "Romper código ≠ romper el negocio."
 exit 0

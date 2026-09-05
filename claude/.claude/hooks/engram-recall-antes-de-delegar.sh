@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
-# engram-recall-antes-de-delegar.sh — PreToolUse hook sobre la herramienta de agentes
+# engram-recall-antes-de-delegar.sh — PreToolUse sobre la herramienta de agentes.
 #
-# PROBLEMA QUE RESUELVE (2026-08-13, feedback del dueño): `engram-autorecall.sh`
-# corre en `UserPromptSubmit`, o sea SOLO cuando el dueño escribe. Cuando el
-# agente principal DELEGA trabajo, ningún hook consulta la memoria — y ese es
-# justo el momento en que el olvido cuesta caro: el encargo sale escrito desde
-# el código, ignorando decisiones que el dueño ya tomó en sesiones anteriores.
+# EL HUECO QUE CIERRA: el autorecall corre en `UserPromptSubmit`, o sea sólo
+# cuando escribe el usuario. Al DELEGAR, ningún hook consulta la memoria — y ese
+# es justo el momento en que el olvido cuesta caro: el encargo sale redactado
+# desde el código, ignorando decisiones ya tomadas en sesiones anteriores. El
+# agente delegado entonces investiga lo ya resuelto y lo reporta como hallazgo.
 #
-# Costo medido ese día: se encargó mover el gate del bot preguntando un destino
-# YA decidido, y se reportó como "hallazgo" la ubicación de una tabla que YA
-# estaba deliberada. El dueño lo nombró: *"¿de qué sirve estar escribiendo en la
-# memoria una y otra vez la misma regla?"* — porque escribir sin leer acumula.
+# POR QUÉ EN LA ESTRUCTURA: el recall no puede depender de que el agente recuerde
+# buscar, porque el que olvidó la decisión no sabe que la olvidó. Acá la memoria
+# relevante llega sola, ANTES de que el encargo se ejecute.
 #
-# El recall no puede depender de que el agente recuerde buscar (es el mismo
-# "error competente" de las Reglas #11/#13/#14: el agente que CREE que cumple).
-# Este hook lo pone en la estructura: al delegar, la memoria relevante llega
-# sola, ANTES de que el encargo se ejecute.
+# FILTRO: sólo `decision`/`architecture`/`preference`/`feedback`. Al delegar
+# importa lo que se DECIDIÓ, no el registro de un bugfix; filtrar es lo que
+# separa la señal del ruido y evita que el aviso se vuelva ignorable.
 #
-# NO bloquea: inyecta contexto y sale 0. Fail-open ante cualquier error.
-
+# NO BLOQUEA: inyecta contexto y sale 0. Fail-open ante cualquier error.
+#
 set -uo pipefail
 
 DB="$HOME/.engram/engram.db"
@@ -54,8 +52,7 @@ KEYWORDS="$(printf '%s' "$PROMPT" \
 FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"", (i>1?" OR ":""), $i}}')"
 [ -n "$FTS_QUERY" ] || exit 0
 
-# Sólo `decision` y `architecture`: al delegar importa lo que el dueño DECIDIÓ,
-# no el registro de un bugfix. Filtrar acá es lo que separa la señal del ruido.
+# Ver el filtro explicado en el encabezado: decisiones, no bugfixes.
 RESULTS="$(sqlite3 -separator '|' "$DB" "
   SELECT o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 260), substr(o.created_at, 1, 10)
   FROM observations_fts f
@@ -76,5 +73,5 @@ printf '%s\n' "$RESULTS" | while IFS='|' read -r TYPE TITLE EXCERPT DATE; do
 done
 echo ""
 echo "Si alguna CONTRADICE el encargo que estás por lanzar, corregí el encargo ANTES de mandarlo:"
-echo "el agente trabaja con lo que le diste, no con lo que el dueño decidió en otra sesión."
+echo "el agente trabaja con lo que le diste, no con lo que se decidió en otra sesión."
 exit 0

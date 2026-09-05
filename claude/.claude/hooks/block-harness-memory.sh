@@ -16,7 +16,7 @@
 # Override consciente y auditable: export ENGRAM_MIGRATION=1 (para migrar/limpiar
 # esos archivos a mano), NUNCA un bypass silencioso.
 
-set -euo pipefail
+set -uo pipefail
 
 # Override explícito para tareas de migración/limpieza del propio directorio.
 if [[ "${ENGRAM_MIGRATION:-}" == "1" ]]; then
@@ -24,7 +24,7 @@ if [[ "${ENGRAM_MIGRATION:-}" == "1" ]]; then
 fi
 
 # Leer el payload del hook (JSON por stdin).
-input="$(cat)"
+input="$(cat 2>/dev/null || true)"
 
 # Extraer el path destino del tool_input. Cubre Write (file_path),
 # Edit/MultiEdit (file_path). jq si está disponible; fallback a grep.
