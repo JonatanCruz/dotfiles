@@ -127,18 +127,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # `stable`, no `unstable`: con el nightly el CI corre contra una versión
-      # que cambia sola, y se rompe sin que nadie toque el repo (fue el caso
-      # con `vim.lsp.with`, eliminada en 0.12 — main pasó de verde a rojo en
-      # tres días). Para probar contra el nightly, mejor un job aparte que
-      # pueda fallar sin bloquear los PRs.
+      # Versión FIJA, no un canal. El PPA `unstable` (nightly) cambia sola y
+      # rompe el CI sin que nadie toque el repo — fue lo que pasó cuando 0.12
+      # eliminó `vim.lsp.with` y main pasó de verde a rojo en tres días. Y el
+      # PPA `stable` va al otro extremo: sirve 0.9.5, demasiado antigua para
+      # esta config (winborder es 0.11+).
+      #
+      # Al fijar la versión, actualizarla es un commit deliberado y revisable.
       - name: Install Neovim
+        env:
+          NVIM_VERSION: v0.11.4
         run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository -y ppa:neovim-ppa/stable
-          sudo apt-get update
-          sudo apt-get install -y neovim
+          curl -fsSL -o /tmp/nvim.tar.gz \
+            "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
+          sudo tar -C /opt -xzf /tmp/nvim.tar.gz
+          sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
           nvim --version | head -1
 
       - name: Setup Neovim config
