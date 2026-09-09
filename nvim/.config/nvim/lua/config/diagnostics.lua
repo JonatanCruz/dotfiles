@@ -59,14 +59,10 @@ vim.diagnostic.config({
   },
 })
 
--- Configuración de ventanas flotantes para hover
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "rounded",
-  max_width = 80,
-})
-
--- Configuración de ventanas flotantes para signature help
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-  border = "rounded",
-  max_width = 80,
-})
+-- Bordes de las ventanas flotantes (hover, signature help, diagnósticos).
+--
+-- Antes se envolvían los handlers con `vim.lsp.with()`, pero esa función se
+-- eliminó en Neovim 0.12 (deprecada en 0.11). `winborder` es la opción global
+-- que la sustituye: aplica a TODAS las ventanas flotantes de una vez, sin
+-- tener que envolver cada handler por separado.
+vim.o.winborder = "rounded"
