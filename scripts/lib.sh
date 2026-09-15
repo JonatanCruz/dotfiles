@@ -43,31 +43,26 @@ readonly NC='\033[0m'  # No Color
 # ==============================================================================
 
 # Print success message with green checkmark
-# Usage: print_success "Operation completed"
 print_success() {
     echo -e "${GREEN}✓${NC} $1"
 }
 
 # Print error message with red X
-# Usage: print_error "Operation failed"
 print_error() {
     echo -e "${RED}✗${NC} $1"
 }
 
 # Print warning message with yellow triangle
-# Usage: print_warning "This might cause issues"
 print_warning() {
     echo -e "${YELLOW}⚠${NC}  $1"
 }
 
 # Print info message with blue icon
-# Usage: print_info "For your information"
 print_info() {
     echo -e "${BLUE}ℹ${NC}  $1"
 }
 
 # Print section step with arrow
-# Usage: print_step "Processing files..."
 print_step() {
     echo -e "\n${BOLD}${BLUE}→${NC} ${BOLD}$1${NC}"
 }

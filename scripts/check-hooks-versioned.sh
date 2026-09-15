@@ -7,8 +7,7 @@
 # solo en la máquina donde se escribió y nunca se versiona, en cualquier otro
 # servidor Claude Code lo invoca, no lo encuentra y falla EN SILENCIO.
 #
-# Ese patrón ya se repitió tres veces (#14, #21, y una vez más al sincronizar
-# un servidor a mano). Este script lo convierte en un fallo de CI.
+# Ya ocurrió tres veces; este script lo convierte en un fallo de CI.
 #
 # Detecta dos derivas, en direcciones opuestas:
 #   - FANTASMA: citado en settings.json pero no versionado -> rompe otros servers
