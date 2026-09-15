@@ -24,10 +24,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install ShellCheck
+      # zsh no viene preinstalado en el runner de Ubuntu. Sin él, el paso de
+      # lint de zsh no comprobaba nada: fallaba con `zsh: command not found`
+      # en cada fichero, enmascarado por `continue-on-error`.
+      - name: Install ShellCheck and zsh
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck
+          sudo apt-get install -y shellcheck zsh
 
       - name: Lint shell scripts
         run: |
@@ -43,11 +46,23 @@ jobs:
           # real es zsh/.config/zsh/.zshrc) y trataba `2>/dev/null` y `|| true`
           # como literales, porque dentro de una lista `for` no son redirección.
           # Con continue-on-error el job no podía fallar nunca.
+          command -v zsh >/dev/null || { echo "✗ zsh no está instalado"; exit 1; }
+
           failed=0
+          checked=0
           while IFS= read -r file; do
             echo "Checking $file"
             zsh -n "$file" || failed=1
+            checked=$((checked + 1))
           done < <(find zsh -type f \( -name '*.zsh' -o -name '.zshrc' \))
+
+          # Si el find no encuentra nada, el job pasaría sin comprobar nada:
+          # exactamente el fallo silencioso que este paso venía arrastrando.
+          if [ "$checked" -eq 0 ]; then
+            echo "✗ No se encontró ningún fichero de zsh que comprobar"
+            exit 1
+          fi
+          echo "Ficheros comprobados: $checked"
 
           if [ "$failed" -ne 0 ]; then
             echo "✗ Errores de sintaxis en la configuración de zsh"
