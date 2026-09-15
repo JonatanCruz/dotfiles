@@ -214,7 +214,7 @@
     },
     "engram": {
       "type": "local",
-      "command": ["/home/linuxbrew/.linuxbrew/bin/engram", "mcp"],
+      "command": ["engram", "mcp"],
       "enabled": true,
       "timeout": 10000
     },

@@ -64,19 +64,27 @@ check_dependencies() {
 # LISTADO DE PAQUETES
 # ==============================================================================
 
-# Definir paquetes disponibles con sus descripciones
-declare -A PACKAGE_DESCRIPTIONS=(
-    ["nvim"]="Neovim - Editor de texto modular con LSP"
-    ["zsh"]="Zsh - Shell configuration con aliases y módulos"
-    ["zsh-plugins"]="Zsh Plugins - Autosuggestions, syntax-highlighting, etc."
-    ["tmux"]="Tmux - Terminal multiplexer configuration"
-    ["starship"]="Starship - Prompt personalizado y minimalista"
-    ["yazi"]="Yazi - File manager terminal"
-    ["wezterm"]="WezTerm - Terminal emulator"
-    ["docker"]="Docker - Completion y configuración"
-    ["claude"]="Claude Code - Configuración para Claude Code CLI"
-    ["opencode"]="OpenCode - Configuración para OpenCode CLI"
-)
+# Descripción de cada paquete.
+#
+# Se usa un `case` y no un array asociativo (`declare -A`) porque éste requiere
+# bash 4+. macOS trae /bin/bash 3.2.57 y no lo actualiza (bash 4 es GPLv3), así
+# que en un Mac sin Homebrew `declare -A` aborta el script en la primera línea
+# con un error que no dice nada útil.
+package_description() {
+    case "$1" in
+        nvim)        echo "Neovim - Editor de texto modular con LSP" ;;
+        zsh)         echo "Zsh - Shell configuration con aliases y módulos" ;;
+        zsh-plugins) echo "Zsh Plugins - Autosuggestions, syntax-highlighting, etc." ;;
+        tmux)        echo "Tmux - Terminal multiplexer configuration" ;;
+        starship)    echo "Starship - Prompt personalizado y minimalista" ;;
+        yazi)        echo "Yazi - File manager terminal" ;;
+        wezterm)     echo "WezTerm - Terminal emulator" ;;
+        docker)      echo "Docker - Completion y configuración" ;;
+        claude)      echo "Claude Code - Configuración para Claude Code CLI" ;;
+        opencode)    echo "OpenCode - Configuración para OpenCode CLI" ;;
+        *)           echo "$1" ;;
+    esac
+}
 
 # Orden de paquetes para mostrar
 PACKAGE_ORDER=("nvim" "zsh" "zsh-plugins" "tmux" "starship" "yazi" "wezterm" "docker" "claude" "opencode")
@@ -100,14 +108,19 @@ show_package_menu() {
     echo ""
 
     local packages
-    mapfile -t packages < <(get_available_packages | tr ' ' '\n')
+    # `mapfile` es de bash 4+; se lee con un bucle para no excluir a macOS.
+    packages=()
+    while IFS= read -r pkg; do
+        [ -n "$pkg" ] && packages+=("$pkg")
+    done < <(get_available_packages | tr ' ' '\n')
 
     echo -e "${BOLD}Paquetes disponibles:${NC}\n"
 
     # Mostrar paquetes con números
     for i in "${!packages[@]}"; do
         local pkg="${packages[$i]}"
-        local desc="${PACKAGE_DESCRIPTIONS[$pkg]}"
+        local desc
+        desc="$(package_description "$pkg")"
         printf "  ${CYAN}%2d)${NC} ${BOLD}%-15s${NC} %s\n" $((i+1)) "$pkg" "$desc"
     done
 
@@ -147,8 +160,14 @@ show_package_menu() {
                 done
 
                 if [ "$valid" = true ] && [ ${#SELECTED_PACKAGES[@]} -gt 0 ]; then
-                    # Eliminar duplicados
-                    mapfile -t SELECTED_PACKAGES < <(printf '%s\n' "${SELECTED_PACKAGES[@]}" | sort -u)
+                    # Eliminar duplicados (sin `mapfile`, que es de bash 4+).
+                    # Se acumula en un array aparte porque el bucle lee de la
+                    # misma variable que se está reescribiendo.
+                    local _deduped=()
+                    while IFS= read -r _pkg; do
+                        [ -n "$_pkg" ] && _deduped+=("$_pkg")
+                    done < <(printf '%s\n' "${SELECTED_PACKAGES[@]}" | sort -u)
+                    SELECTED_PACKAGES=("${_deduped[@]}")
                     print_success "${#SELECTED_PACKAGES[@]} paquete(s) seleccionado(s): ${SELECTED_PACKAGES[*]}"
                     return 0
                 fi
@@ -346,7 +365,7 @@ main() {
     echo ""
     echo -e "${BOLD}Paquetes a instalar:${NC}"
     for pkg in "${SELECTED_PACKAGES[@]}"; do
-        echo "  • $pkg - ${PACKAGE_DESCRIPTIONS[$pkg]}"
+        echo "  • $pkg - $(package_description "$pkg")"
     done
     echo ""
 
