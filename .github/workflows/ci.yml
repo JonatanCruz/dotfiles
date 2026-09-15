@@ -276,6 +276,34 @@ jobs:
           chmod +x scripts/check-hooks-versioned.sh
           ./scripts/check-hooks-versioned.sh
 
+      # Las listas de paquetes de los instaladores se mantienen a mano, así que
+      # un paquete nuevo se añade al repo y nunca se enlaza. Pasó con `mise`.
+      #
+      # bootstrap.sh es el instalador general y debe enlazarlo todo: ahí la
+      # divergencia falla. quick-setup-ubuntu.sh es un subconjunto deliberado
+      # para servidores sin escritorio, así que solo avisa.
+      - name: Check installers list every stow package
+        run: |
+          packages_of() {
+            grep -oE 'local packages=\([^)]*\)' "$1" \
+              | sed 's/local packages=(//; s/)//' | tr ' ' '\n' | sort -u
+          }
+
+          real=$(ls -d */ | tr -d '/' \
+            | grep -vE '^(docs|claudedocs|scripts|theme|test-results)$' | sort)
+
+          missing=$(comm -23 <(echo "$real") <(packages_of scripts/bootstrap.sh))
+          if [ -n "$missing" ]; then
+            echo "✗ scripts/bootstrap.sh no enlaza: $(echo "$missing" | tr '\n' ' ')"
+            echo "  Añádelos a su array 'packages' o exclúyelos aquí si es a propósito."
+            exit 1
+          fi
+
+          diff=$(comm -23 <(echo "$real") <(packages_of scripts/quick-setup-ubuntu.sh))
+          [ -n "$diff" ] && echo "⚠ quick-setup-ubuntu.sh omite: $(echo "$diff" | tr '\n' ' ')"
+
+          echo "✓ bootstrap.sh enlaza todos los paquetes del repo"
+
   # ==============================================================================
   # HEALTH CHECK SCRIPT TEST
   # ==============================================================================
