@@ -127,13 +127,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Versión FIJA, no un canal. El PPA `unstable` (nightly) cambia sola y
+      # rompe el CI sin que nadie toque el repo — fue lo que pasó cuando 0.12
+      # eliminó `vim.lsp.with` y main pasó de verde a rojo en tres días. Y el
+      # PPA `stable` va al otro extremo: sirve 0.9.5, demasiado antigua para
+      # esta config (winborder es 0.11+).
+      #
+      # Al fijar la versión, actualizarla es un commit deliberado y revisable.
       - name: Install Neovim
+        env:
+          NVIM_VERSION: v0.11.4
         run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository -y ppa:neovim-ppa/unstable
-          sudo apt-get update
-          sudo apt-get install -y neovim
+          curl -fsSL -o /tmp/nvim.tar.gz \
+            "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
+          sudo tar -C /opt -xzf /tmp/nvim.tar.gz
+          sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+          nvim --version | head -1
 
       - name: Setup Neovim config
         run: |
@@ -143,12 +152,42 @@ jobs:
             echo "✓ Neovim config copied"
           fi
 
+      # lazy.nvim genera helptags al instalar plugins, y en Neovim >= 0.12 eso
+      # requiere el parser de treesitter de `vimdoc`, que no viene con el
+      # paquete del PPA. Sin él, la instalación aborta con
+      # `No parser for language "vimdoc"`.
+      - name: Install treesitter parsers needed for helptags
+        run: |
+          nvim --headless -c "lua pcall(vim.treesitter.language.add, 'vimdoc')" -c "quitall" 2>&1 || true
+          nvim --headless -c "TSInstallSync! vimdoc" -c "quitall" 2>&1 | tail -5 || true
+          echo "✓ Intento de instalar el parser vimdoc completado"
+
+      # Instalar plugins en un paso APARTE del test: clonar ~50 repos produce
+      # mucha salida (nombres de plugins, progreso de git) que no dice nada
+      # sobre si la config carga. Mezclarlo con el test es lo que hacía que
+      # cualquier línea con la palabra "error" tumbara el build.
+      - name: Install plugins
+        run: |
+          echo "📦 Instalando plugins (la salida no decide el resultado)..."
+          nvim --headless "+Lazy! sync" -c "quitall" 2>&1 | tail -20 || true
+          echo "✓ Instalación de plugins completada"
+
       - name: Test Neovim config load
         run: |
           echo "🧪 Testing Neovim config load..."
+          set +e
           nvim --headless -c "echo 'Config loaded successfully'" -c "quitall" 2>&1 | tee nvim-test.log
+          exit_code=${PIPESTATUS[0]}
+          set -e
 
-          if grep -qi "error" nvim-test.log; then
+          # Se buscan marcadores de error REALES de Neovim, no la palabra
+          # "error" suelta: el log lleva nombres de plugins y rutas (este repo
+          # tiene lua/utils/error_handler.lua) que antes daban falsos positivos.
+          if [ "$exit_code" -ne 0 ]; then
+            echo "❌ Neovim salió con código $exit_code"
+            cat nvim-test.log
+            exit 1
+          elif grep -qE "^(E[0-9]+:|Error detected|Error executing|Failed to load module)" nvim-test.log; then
             echo "❌ Neovim config has errors"
             cat nvim-test.log
             exit 1
