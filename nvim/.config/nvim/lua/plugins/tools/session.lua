@@ -62,8 +62,6 @@ return {
       vim.cmd("qa")
     end, { desc = "Quit and save session", silent = true })
 
-    -- Auto-save de sesión al salir de Neovim
-    -- (persistence.nvim ya maneja esto internamente con VimLeavePre)
-    -- No necesitamos autocmd adicional
+    -- persistence.nvim ya auto-guarda en VimLeavePre; no añadir autocmd.
   end,
 }

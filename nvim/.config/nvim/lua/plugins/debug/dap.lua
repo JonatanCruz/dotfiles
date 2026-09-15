@@ -3,10 +3,6 @@
 -- ===================================================================
 -- Plugin principal de debugging con configuraciones para múltiples lenguajes
 -- Lazy load: se activa con keybindings bajo <leader>d
---
--- FUSIÓN COMPLETA: debug/dap.lua + tools/dap.lua
--- Incluye: DAP Core, DAP UI, Virtual Text, Mason Integration
--- Lenguajes: Node.js, TypeScript, React, Python
 
 return {
   -- Plugin principal de DAP
@@ -266,14 +262,16 @@ return {
       })
 
       -- ===============================================================
-      -- HIGHLIGHT GROUPS (DRACULA THEME)
+      -- HIGHLIGHT GROUPS
       -- ===============================================================
-      vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#ff5555" }) -- Dracula red
-      vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#f1fa8c" }) -- Dracula yellow
-      vim.api.nvim_set_hl(0, "DapBreakpointRejected", { fg = "#6272a4" }) -- Dracula comment
-      vim.api.nvim_set_hl(0, "DapStopped", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#44475a" }) -- Dracula current line
-      vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#8be9fd" }) -- Dracula cyan
+      -- Hex heredados de Dracula, NO derivados de utils/colors.lua. El tema
+      -- activo es Catppuccin Mocha: migrar a colors.catppuccin.* al tocarlos.
+      vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#ff5555" })
+      vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#f1fa8c" })
+      vim.api.nvim_set_hl(0, "DapBreakpointRejected", { fg = "#6272a4" })
+      vim.api.nvim_set_hl(0, "DapStopped", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#44475a" })
+      vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#8be9fd" })
 
       -- ===============================================================
       -- CONFIGURACIÓN DE ADAPTADORES

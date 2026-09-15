@@ -6,25 +6,15 @@
 # ----------------------------------------------------------------------------
 # IDENTIDAD
 # ----------------------------------------------------------------------------
-# El bloque [user] NO se versiona: este repositorio es público y, si llevara
-# una identidad, cualquiera que hiciera `stow git` firmaría sus commits con
-# ella sin darse cuenta.
-#
-# Crea ~/.gitconfig-local (no versionado) con tus datos:
+# [user] no se versiona: el repo es público y quien hiciera `stow git` firmaría
+# sus commits con una identidad ajena. Crea ~/.gitconfig-local con tus datos:
 #
 #     [user]
 #         name  = Tu Nombre
 #         email = tu@email.com
 #
-# Git ignora en silencio un `include` cuyo fichero no existe, así que hasta
-# que lo crees pedirá la identidad en el primer commit, que es lo correcto.
-#
-# Para separar identidades por proyecto (trabajo vs personal), usa includeIf:
-#
-#     [includeIf "gitdir:~/trabajo/"]
-#         path = ~/.gitconfig-trabajo
-#
-# La barra final importa: `~/trabajo/` cubre el subárbol, `~/trabajo` no.
+# Para separar identidades por directorio, usa [includeIf "gitdir:~/trabajo/"]
+# (la barra final importa: cubre el subárbol).
 
 [include]
 	path = ~/.gitconfig-local

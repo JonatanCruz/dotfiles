@@ -16,9 +16,8 @@ fi
 # que solo se hace una vez al día; el resto de arranques usan -C (confía en el
 # dump existente sin comprobarlo).
 #
-# FIX: antes usaba ${XDG_CACHE_HOME}, que NO está definida en este setup — la
-# ruta evaluaba a "/.zcompdump" (raíz), el glob nunca encontraba nada y siempre
-# caía al else. Resultado: compinit corría SIN caché en cada arranque.
+# El default `:-$HOME/.cache` no es opcional: XDG_CACHE_HOME no está definida
+# aquí, y sin él la ruta evalúa a "/.zcompdump" y la caché nunca se usa.
 autoload -Uz compinit
 _zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
 [[ -d "${_zcompdump:h}" ]] || mkdir -p "${_zcompdump:h}"

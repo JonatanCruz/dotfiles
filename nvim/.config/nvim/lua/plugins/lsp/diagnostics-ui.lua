@@ -42,7 +42,8 @@ return {
     event = "LspAttach",
     keys = {
       {
-        "<leader>ul",
+        -- uL y no ul: <leader>ul ya es `set list` en config/keymaps.lua
+        "<leader>uL",
         function()
           require("lsp_lines").toggle()
         end,

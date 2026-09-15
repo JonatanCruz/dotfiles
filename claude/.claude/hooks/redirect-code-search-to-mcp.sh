@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook (matcher: Bash). Cierra el AGUJERO del `cbm-code-discovery-gate`:
 # ese gate solo intercepta las tools Grep|Glob, así que un `grep` ejecutado DENTRO
-# de Bash lo esquiva por completo — que es exactamente lo que pasó toda la sesión
-# 2026-07-20 (el dueño lo señaló 3 veces: "si tenemos los MCPs ¿por qué no los ocupas?").
+# de Bash lo esquiva por completo.
 #
 # Por qué existe (Meadows, la filosofía que ya usa este repo en las Reglas #12/#13/#14):
 # el control tiene que vivir en la ESTRUCTURA, no en la memoria del próximo agente.
