@@ -40,7 +40,7 @@ return {
     },
     opts = {
       -- ===============================================================
-      -- ICONOS (DRACULA THEME)
+      -- ICONOS
       -- ===============================================================
       icons = {
         expanded = "▾",
@@ -193,47 +193,48 @@ return {
       end
 
       -- ===============================================================
-      -- HIGHLIGHT GROUPS (DRACULA THEME)
+      -- HIGHLIGHT GROUPS
       -- ===============================================================
-      -- Colores consistentes con el tema Dracula
+      -- Hex heredados de Dracula, NO derivados de utils/colors.lua. El tema
+      -- activo es Catppuccin Mocha: migrar a colors.catppuccin.* al tocarlos.
 
       -- Elementos expandidos/colapsados
-      vim.api.nvim_set_hl(0, "DapUIScope", { fg = "#bd93f9" }) -- Dracula purple
-      vim.api.nvim_set_hl(0, "DapUIType", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIDecoration", { fg = "#6272a4" }) -- Dracula comment
-      vim.api.nvim_set_hl(0, "DapUIThread", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapUIStoppedThread", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUISource", { fg = "#bd93f9" }) -- Dracula purple
-      vim.api.nvim_set_hl(0, "DapUILineNumber", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIFloatBorder", { fg = "#6272a4" }) -- Dracula comment
+      vim.api.nvim_set_hl(0, "DapUIScope", { fg = "#bd93f9" })
+      vim.api.nvim_set_hl(0, "DapUIType", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIDecoration", { fg = "#6272a4" })
+      vim.api.nvim_set_hl(0, "DapUIThread", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapUIStoppedThread", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUISource", { fg = "#bd93f9" })
+      vim.api.nvim_set_hl(0, "DapUILineNumber", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIFloatBorder", { fg = "#6272a4" })
 
       -- Valores y variables
-      vim.api.nvim_set_hl(0, "DapUIVariable", { fg = "#f8f8f2" }) -- Dracula foreground
-      vim.api.nvim_set_hl(0, "DapUIValue", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapUIModifiedValue", { fg = "#ffb86c", bold = true }) -- Dracula orange
+      vim.api.nvim_set_hl(0, "DapUIVariable", { fg = "#f8f8f2" })
+      vim.api.nvim_set_hl(0, "DapUIValue", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapUIModifiedValue", { fg = "#ffb86c", bold = true })
 
       -- Frames y breakpoints
-      vim.api.nvim_set_hl(0, "DapUIFrameName", { fg = "#f8f8f2" }) -- Dracula foreground
-      vim.api.nvim_set_hl(0, "DapUIBreakpointsPath", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIBreakpointsInfo", { fg = "#50fa7b" }) -- Dracula green
+      vim.api.nvim_set_hl(0, "DapUIFrameName", { fg = "#f8f8f2" })
+      vim.api.nvim_set_hl(0, "DapUIBreakpointsPath", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIBreakpointsInfo", { fg = "#50fa7b" })
       vim.api.nvim_set_hl(0, "DapUIBreakpointsCurrentLine", {
         fg = "#50fa7b",
         bold = true,
-      }) -- Dracula green bold
+      })
 
       -- Watches
-      vim.api.nvim_set_hl(0, "DapUIWatchesEmpty", { fg = "#6272a4" }) -- Dracula comment
-      vim.api.nvim_set_hl(0, "DapUIWatchesValue", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapUIWatchesError", { fg = "#ff5555" }) -- Dracula red
+      vim.api.nvim_set_hl(0, "DapUIWatchesEmpty", { fg = "#6272a4" })
+      vim.api.nvim_set_hl(0, "DapUIWatchesValue", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapUIWatchesError", { fg = "#ff5555" })
 
       -- Controles
-      vim.api.nvim_set_hl(0, "DapUIPlayPause", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapUIRestart", { fg = "#50fa7b" }) -- Dracula green
-      vim.api.nvim_set_hl(0, "DapUIStop", { fg = "#ff5555" }) -- Dracula red
-      vim.api.nvim_set_hl(0, "DapUIStepOver", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIStepInto", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIStepBack", { fg = "#8be9fd" }) -- Dracula cyan
-      vim.api.nvim_set_hl(0, "DapUIStepOut", { fg = "#8be9fd" }) -- Dracula cyan
+      vim.api.nvim_set_hl(0, "DapUIPlayPause", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapUIRestart", { fg = "#50fa7b" })
+      vim.api.nvim_set_hl(0, "DapUIStop", { fg = "#ff5555" })
+      vim.api.nvim_set_hl(0, "DapUIStepOver", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIStepInto", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIStepBack", { fg = "#8be9fd" })
+      vim.api.nvim_set_hl(0, "DapUIStepOut", { fg = "#8be9fd" })
 
       -- ===============================================================
       -- KEYMAPS ADICIONALES EN BUFFERS DE DAP UI

@@ -7,10 +7,6 @@
 -- VARIABLES GLOBALES
 -- ============================================================================
 
--- Leader keys (ya configurados en init.lua pero documentados aquí)
--- vim.g.mapleader = ' '
--- vim.g.maplocalleader = ' '
-
 -- ============================================================================
 -- CONFIGURACIONES DE PLUGINS
 -- ============================================================================

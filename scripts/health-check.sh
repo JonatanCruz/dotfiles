@@ -159,9 +159,8 @@ check_symlinks() {
         fi
     done
 
-    # tmux accepts either the classic ~/.tmux.conf or the XDG ~/.config/tmux/.
-    # This repo uses the classic one; checking only for the XDG path reported a
-    # missing package that was in fact correctly linked.
+    # tmux admite el clásico ~/.tmux.conf o el XDG ~/.config/tmux/. Hay que
+    # aceptar ambos: comprobar solo uno da un falso "no instalado".
     local tmux_path=""
     if [ -L "$HOME/.tmux.conf" ]; then
         tmux_path="$HOME/.tmux.conf"

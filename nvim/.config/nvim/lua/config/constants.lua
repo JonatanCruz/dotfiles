@@ -1,8 +1,11 @@
 -- ============================================================================
 -- Constantes compartidas
 -- ============================================================================
--- Valores constantes usados en múltiples partes de la configuración.
--- Centralizar estos valores facilita su mantenimiento y consistencia.
+-- OJO: de las 14 secciones, solo se consumen `borders`, `formatting` y
+-- `treesitter`. El resto no lo lee nadie, y varias están duplicadas con valores
+-- distintos en los ficheros que sí se ejecutan (disabled_providers en
+-- globals.lua, disabled_builtin_plugins en lazy.lua, lsp en diagnostics.lua).
+-- Editar aquí esas secciones no surte ningún efecto.
 -- ============================================================================
 
 local error_handler = require("utils.error_handler")

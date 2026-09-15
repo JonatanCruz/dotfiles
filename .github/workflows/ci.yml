@@ -24,9 +24,7 @@ jobs:
         with:
           submodules: recursive
 
-      # zsh no viene preinstalado en el runner de Ubuntu. Sin él, el paso de
-      # lint de zsh no comprobaba nada: fallaba con `zsh: command not found`
-      # en cada fichero, enmascarado por `continue-on-error`.
+      # zsh no viene preinstalado en el runner de Ubuntu.
       - name: Install ShellCheck and zsh
         run: |
           sudo apt-get update
@@ -41,11 +39,8 @@ jobs:
       - name: Lint Zsh configs
         run: |
           echo "🔍 Linting Zsh configuration files..."
-          # Basic syntax check for zsh files
-          # El bucle anterior no comprobaba nada: iteraba `zsh/.zshrc` (la ruta
-          # real es zsh/.config/zsh/.zshrc) y trataba `2>/dev/null` y `|| true`
-          # como literales, porque dentro de una lista `for` no son redirección.
-          # Con continue-on-error el job no podía fallar nunca.
+          # zsh no viene en el runner: sin este guard el paso "pasa" sin
+          # comprobar nada.
           command -v zsh >/dev/null || { echo "✗ zsh no está instalado"; exit 1; }
 
           failed=0
@@ -56,8 +51,7 @@ jobs:
             checked=$((checked + 1))
           done < <(find zsh -type f \( -name '*.zsh' -o -name '.zshrc' \))
 
-          # Si el find no encuentra nada, el job pasaría sin comprobar nada:
-          # exactamente el fallo silencioso que este paso venía arrastrando.
+          # Un find sin resultados haría pasar el job sin comprobar nada.
           if [ "$checked" -eq 0 ]; then
             echo "✗ No se encontró ningún fichero de zsh que comprobar"
             exit 1
@@ -347,13 +341,9 @@ jobs:
 
           echo "✓ Bootstrap script executed successfully"
 
-      # El shebang `#!/usr/bin/env bash` resuelve al bash del PATH, que en el
-      # runner de macOS es el de Homebrew (5.x). Un usuario que clona el repo
-      # en un Mac recién instalado corre con /bin/bash, congelado en 3.2.57
-      # desde 2006 (Apple no adopta bash 4+ por su licencia GPLv3).
-      #
-      # `bash -n` NO detecta esto: `declare -A` y `mapfile` parsean sin error y
-      # fallan en ejecución. Solo ejecutar con el bash del sistema los expone.
+      # macOS trae bash 3.2 en /bin/bash; el shebang `env bash` resuelve al de
+      # Homebrew y oculta el problema. No sustituir por `bash -n`: la sintaxis
+      # de bash 4+ parsea sin error y solo falla al ejecutarse.
       - name: Verify entry scripts run under the system bash
         run: |
           echo "🧪 Bash del sistema: $(/bin/bash --version | head -1)"
@@ -374,13 +364,9 @@ jobs:
           fi
           echo "✓ corre con /bin/bash"
 
-          # install.sh es interactivo y no acepta --help. Se sustituye la
-          # llamada final a main por `exit 0`: así se ejecuta todo el cuerpo del
-          # script —donde vivía el `declare -A`— sin lanzar el instalador.
-          #
-          # El probe se deja en la raíz del repo a propósito: install.sh deriva
-          # SCRIPT_DIR de su propia ruta para cargar scripts/lib.sh, y desde
-          # /tmp fallaría por un motivo ajeno a la portabilidad.
+          # install.sh es interactivo y no acepta --help: se neutraliza main
+          # para ejecutar el cuerpo sin lanzar el instalador. El probe va en la
+          # raíz porque install.sh deriva SCRIPT_DIR de su propia ruta.
           echo "→ install.sh"
           sed 's/^main "\$@"/exit 0/' install.sh > .ci-probe.sh
           if ! out=$(/bin/bash .ci-probe.sh 2>&1); then

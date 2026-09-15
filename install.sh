@@ -64,12 +64,8 @@ check_dependencies() {
 # LISTADO DE PAQUETES
 # ==============================================================================
 
-# Descripción de cada paquete.
-#
-# Se usa un `case` y no un array asociativo (`declare -A`) porque éste requiere
-# bash 4+. macOS trae /bin/bash 3.2.57 y no lo actualiza (bash 4 es GPLv3), así
-# que en un Mac sin Homebrew `declare -A` aborta el script en la primera línea
-# con un error que no dice nada útil.
+# `case` en vez de `declare -A`: los arrays asociativos son de bash 4+ y macOS
+# trae bash 3.2.
 package_description() {
     case "$1" in
         nvim)        echo "Neovim - Editor de texto modular con LSP" ;;
@@ -108,7 +104,6 @@ show_package_menu() {
     echo ""
 
     local packages
-    # `mapfile` es de bash 4+; se lee con un bucle para no excluir a macOS.
     packages=()
     while IFS= read -r pkg; do
         [ -n "$pkg" ] && packages+=("$pkg")
@@ -160,9 +155,7 @@ show_package_menu() {
                 done
 
                 if [ "$valid" = true ] && [ ${#SELECTED_PACKAGES[@]} -gt 0 ]; then
-                    # Eliminar duplicados (sin `mapfile`, que es de bash 4+).
-                    # Se acumula en un array aparte porque el bucle lee de la
-                    # misma variable que se está reescribiendo.
+                    # Array aparte: el bucle lee de la variable que reescribe.
                     local _deduped=()
                     while IFS= read -r _pkg; do
                         [ -n "$_pkg" ] && _deduped+=("$_pkg")

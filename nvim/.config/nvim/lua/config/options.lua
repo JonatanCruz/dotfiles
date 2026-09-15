@@ -63,7 +63,7 @@ opt.incsearch = true             -- Búsqueda incremental
 -- RENDIMIENTO
 -- ============================================================================
 
-opt.lazyredraw = false           -- No redesibuja durante macros (puede causar problemas)
+opt.lazyredraw = false           -- Redibuja durante macros: lazyredraw rompe plugins con UI async
 opt.synmaxcol = 240              -- Límite de columnas para resaltado de sintaxis
 
 -- ============================================================================

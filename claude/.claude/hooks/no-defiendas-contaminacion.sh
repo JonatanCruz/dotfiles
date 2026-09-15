@@ -7,15 +7,10 @@
 # lo cazó y lo nombró: *"ahí está el error, no defiendas, primero rompe y luego
 # repara"*.
 #
-# No es la primera vez. El mismo patrón está corregido en memoria al menos tres
-# veces (2026-08-06, 2026-08-10, 2026-08-13) y siguió ocurriendo — porque una
-# nota en memoria depende de que yo la lea en el momento exacto en que estoy
-# por escribir la cláusula, y ese es justo el momento en que no la leo.
-#
-# El dueño lo nombró textual: *"se te está olvidando a cada rato y ya ni sé
-# cuántas memorias has guardado con esto"*. Escribir la regla otra vez sería
-# repetir el error. Este hook la pone en la ESTRUCTURA (Meadows), en el único
-# instante donde se rompe: el encargo, ANTES de que el agente lo ejecute.
+# Corregido en memoria al menos tres veces sin efecto: una nota depende de que
+# la lea justo cuando escribo la cláusula, que es cuando no la leo. Por eso la
+# regla va en la ESTRUCTURA (Meadows), en el instante donde se rompe: el
+# encargo, ANTES de que el agente lo ejecute.
 #
 # NO bloquea — señala el texto exacto que hay que reescribir y sale 0.
 

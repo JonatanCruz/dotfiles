@@ -49,8 +49,7 @@ if command -v gh &> /dev/null; then
     unset -f gh
     eval "$(command gh completion -s zsh)"
   }
-  # Unalias gh if it exists, then create function
-  # Use 'function' keyword to prevent alias expansion during parsing
+  # `function` evita la expansión del alias en tiempo de parseo
   unalias gh 2>/dev/null || true
   function gh() { _lazy_gh; command gh "$@"; }
 fi

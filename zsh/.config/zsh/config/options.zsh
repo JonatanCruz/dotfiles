@@ -6,7 +6,7 @@ setopt autocd              # Cambia de directorio sin escribir 'cd'
 setopt extendedglob        # Permite patrones avanzados de glob
 setopt nomatch             # Error si glob no coincide
 setopt notify              # Notifica inmediatamente sobre cambios en jobs
-unsetopt beep              # Deshabilita beep
+unsetopt beep
 
 # Navegación de directorios
 setopt AUTO_PUSHD          # Añade directorio actual a stack automáticamente
