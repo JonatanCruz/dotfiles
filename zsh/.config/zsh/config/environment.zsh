@@ -64,8 +64,17 @@ export FUNCNEST=1000
 # Claude Code - Límite de tokens de salida
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=100000
 
-# .NET SDK - system install (/usr/bin/dotnet → /usr/lib/dotnet)
-export DOTNET_ROOT="/usr/lib/dotnet"
+# .NET SDK - detecta la ubicación según el sistema
+if [ -d "/usr/lib/dotnet" ]; then
+  # Linux - instalación del sistema (/usr/bin/dotnet → /usr/lib/dotnet)
+  export DOTNET_ROOT="/usr/lib/dotnet"
+elif [ -d "/usr/local/share/dotnet" ]; then
+  # macOS - instalador oficial
+  export DOTNET_ROOT="/usr/local/share/dotnet"
+elif [ -n "$HOMEBREW_PREFIX" ] && [ -d "$HOMEBREW_PREFIX/opt/dotnet/libexec" ]; then
+  # macOS - vía Homebrew
+  export DOTNET_ROOT="$HOMEBREW_PREFIX/opt/dotnet/libexec"
+fi
 export PATH="$PATH:$HOME/.dotnet/tools"
 
 # opencode

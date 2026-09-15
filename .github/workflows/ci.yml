@@ -24,10 +24,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install ShellCheck
+      # zsh no viene preinstalado en el runner de Ubuntu. Sin él, el paso de
+      # lint de zsh no comprobaba nada: fallaba con `zsh: command not found`
+      # en cada fichero, enmascarado por `continue-on-error`.
+      - name: Install ShellCheck and zsh
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck
+          sudo apt-get install -y shellcheck zsh
 
       - name: Lint shell scripts
         run: |
@@ -39,13 +42,33 @@ jobs:
         run: |
           echo "🔍 Linting Zsh configuration files..."
           # Basic syntax check for zsh files
-          for file in zsh/.config/zsh/**/*.zsh zsh/.zshrc 2>/dev/null || true; do
-            if [ -f "$file" ]; then
-              echo "Checking $file"
-              zsh -n "$file" || exit 1
-            fi
-          done
-        continue-on-error: true
+          # El bucle anterior no comprobaba nada: iteraba `zsh/.zshrc` (la ruta
+          # real es zsh/.config/zsh/.zshrc) y trataba `2>/dev/null` y `|| true`
+          # como literales, porque dentro de una lista `for` no son redirección.
+          # Con continue-on-error el job no podía fallar nunca.
+          command -v zsh >/dev/null || { echo "✗ zsh no está instalado"; exit 1; }
+
+          failed=0
+          checked=0
+          while IFS= read -r file; do
+            echo "Checking $file"
+            zsh -n "$file" || failed=1
+            checked=$((checked + 1))
+          done < <(find zsh -type f \( -name '*.zsh' -o -name '.zshrc' \))
+
+          # Si el find no encuentra nada, el job pasaría sin comprobar nada:
+          # exactamente el fallo silencioso que este paso venía arrastrando.
+          if [ "$checked" -eq 0 ]; then
+            echo "✗ No se encontró ningún fichero de zsh que comprobar"
+            exit 1
+          fi
+          echo "Ficheros comprobados: $checked"
+
+          if [ "$failed" -ne 0 ]; then
+            echo "✗ Errores de sintaxis en la configuración de zsh"
+            exit 1
+          fi
+          echo "✓ Sintaxis de zsh correcta"
 
   # ==============================================================================
   # LINT LUA CONFIGS
@@ -77,10 +100,14 @@ jobs:
   # TEST STOW DRY RUN
   # ==============================================================================
   stow-test:
-    name: Stow Dry Run
-    runs-on: ubuntu-latest
+    name: Stow Dry Run (${{ matrix.package }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        # Todos los paquetes en Linux; `include` añade combinaciones sueltas en
+        # vez de multiplicar la matriz (un eje `os` daría 10 × 2 = 20 jobs).
+        os: [ubuntu-latest]
         package:
           - nvim
           - zsh
@@ -94,6 +121,12 @@ jobs:
           - git
           - opencode
           - mise
+        include:
+          # En macOS solo los paquetes cuyo destino depende del SO: zsh resuelve
+          # el prefijo de Homebrew, nvim y tmux enlazan bajo ~/.config.
+          - { os: macos-latest, package: zsh }
+          - { os: macos-latest, package: nvim }
+          - { os: macos-latest, package: tmux }
 
     steps:
       - name: Checkout repository
@@ -101,10 +134,15 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install GNU Stow
+      - name: Install GNU Stow (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y stow
+
+      - name: Install GNU Stow (macOS)
+        if: runner.os == 'macOS'
+        run: brew install stow
 
       - name: Test stow dry-run for ${{ matrix.package }}
         run: |
@@ -248,9 +286,13 @@ jobs:
   # HEALTH CHECK SCRIPT TEST
   # ==============================================================================
   health-check-test:
-    name: Health Check Script
-    runs-on: ubuntu-latest
+    name: Health Check Script (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: [shellcheck, stow-test]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - name: Checkout repository
@@ -258,10 +300,17 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y git stow neovim tmux zsh
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # git y zsh ya vienen en el runner; el resto via brew.
+          brew install stow neovim tmux
 
       - name: Run health check script
         run: |
@@ -274,9 +323,13 @@ jobs:
   # BOOTSTRAP SCRIPT TEST
   # ==============================================================================
   bootstrap-test:
-    name: Bootstrap Script Test
-    runs-on: ubuntu-latest
+    name: Bootstrap Script Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: [shellcheck]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - name: Checkout repository
@@ -293,6 +346,49 @@ jobs:
           ./scripts/bootstrap.sh --help
 
           echo "✓ Bootstrap script executed successfully"
+
+      # El shebang `#!/usr/bin/env bash` resuelve al bash del PATH, que en el
+      # runner de macOS es el de Homebrew (5.x). Un usuario que clona el repo
+      # en un Mac recién instalado corre con /bin/bash, congelado en 3.2.57
+      # desde 2006 (Apple no adopta bash 4+ por su licencia GPLv3).
+      #
+      # `bash -n` NO detecta esto: `declare -A` y `mapfile` parsean sin error y
+      # fallan en ejecución. Solo ejecutar con el bash del sistema los expone.
+      - name: Verify entry scripts run under the system bash
+        run: |
+          echo "🧪 Bash del sistema: $(/bin/bash --version | head -1)"
+
+          fail() {
+            echo "✗ $1 falla con /bin/bash"
+            echo "  Causa probable: sintaxis de bash 4+ (declare -A, mapfile,"
+            echo "  globstar, \${var,,}) en un script que debe correr en un"
+            echo "  macOS sin Homebrew, donde /bin/bash es 3.2."
+            echo "$2" | head -5 | sed 's/^/  | /'
+            exit 1
+          }
+
+          # bootstrap.sh acepta --help, así que se ejecuta entero.
+          echo "→ scripts/bootstrap.sh"
+          if ! out=$(/bin/bash scripts/bootstrap.sh --help 2>&1); then
+            fail "scripts/bootstrap.sh" "$out"
+          fi
+          echo "✓ corre con /bin/bash"
+
+          # install.sh es interactivo y no acepta --help. Se sustituye la
+          # llamada final a main por `exit 0`: así se ejecuta todo el cuerpo del
+          # script —donde vivía el `declare -A`— sin lanzar el instalador.
+          #
+          # El probe se deja en la raíz del repo a propósito: install.sh deriva
+          # SCRIPT_DIR de su propia ruta para cargar scripts/lib.sh, y desde
+          # /tmp fallaría por un motivo ajeno a la portabilidad.
+          echo "→ install.sh"
+          sed 's/^main "\$@"/exit 0/' install.sh > .ci-probe.sh
+          if ! out=$(/bin/bash .ci-probe.sh 2>&1); then
+            rm -f .ci-probe.sh
+            fail "install.sh" "$out"
+          fi
+          rm -f .ci-probe.sh
+          echo "✓ corre con /bin/bash"
 
   # ==============================================================================
   # INTEGRATION TEST

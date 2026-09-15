@@ -425,10 +425,20 @@ Los colores del terminal (distintos a los colores de Delta) aplican cuando Delta
 
 ## Configuracion de usuario y repositorio
 
+La identidad no vive en el `.gitconfig` versionado, sino en
+`~/.gitconfig-local`, que no se sube al repositorio. Créalo con tus datos:
+
 ```toml
 [user]
-    name  = Jonatan Tlilayatzi Cruz
-    email = tlilayatzi.jonatan@outlook.com
+    name  = Tu Nombre
+    email = tu@email.com
+```
+
+El `.gitconfig` del repositorio lo incluye y define el resto:
+
+```toml
+[include]
+    path = ~/.gitconfig-local
 
 [init]
     defaultBranch = main
