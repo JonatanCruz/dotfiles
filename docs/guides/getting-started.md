@@ -135,7 +135,7 @@ tmux attach -t desarrollo
 ```
 
 **Gestión de Sesiones con SessionX:**
-- `Ctrl+s + o` - Abrir SessionX (fuzzy finder de sesiones)
+- `Ctrl+s + s` - Abrir SessionX (fuzzy finder de sesiones)
 - `Ctrl+s + Ctrl+x` - Matar sesión actual
 
 ### 4. Neovim - Editor Modal

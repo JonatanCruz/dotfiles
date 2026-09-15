@@ -3,9 +3,31 @@
 # ============================================================================
 # Configuración optimizada para desarrollo con git-delta integrado
 
-[user]
-	name = Jonatan Tlilayatzi Cruz
-	email = tlilayatzi.jonatan@outlook.com
+# ----------------------------------------------------------------------------
+# IDENTIDAD
+# ----------------------------------------------------------------------------
+# El bloque [user] NO se versiona: este repositorio es público y, si llevara
+# una identidad, cualquiera que hiciera `stow git` firmaría sus commits con
+# ella sin darse cuenta.
+#
+# Crea ~/.gitconfig-local (no versionado) con tus datos:
+#
+#     [user]
+#         name  = Tu Nombre
+#         email = tu@email.com
+#
+# Git ignora en silencio un `include` cuyo fichero no existe, así que hasta
+# que lo crees pedirá la identidad en el primer commit, que es lo correcto.
+#
+# Para separar identidades por proyecto (trabajo vs personal), usa includeIf:
+#
+#     [includeIf "gitdir:~/trabajo/"]
+#         path = ~/.gitconfig-trabajo
+#
+# La barra final importa: `~/trabajo/` cubre el subárbol, `~/trabajo` no.
+
+[include]
+	path = ~/.gitconfig-local
 
 [init]
 	defaultBranch = main

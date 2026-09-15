@@ -25,7 +25,7 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `tmux ls` | Listar sesiones |
 | `tmux attach -t nombre` | Adjuntar a sesión |
 | `Prefix + d` | Detach de sesión actual |
-| `Prefix + o` | SessionX: fuzzy finder de sesiones |
+| `Prefix + s` | SessionX: fuzzy finder de sesiones |
 | `Prefix + Ctrl+x` | Matar sesión actual |
 | `Prefix + Ctrl+s` | Guardar sesión (Resurrect) |
 | `Prefix + Ctrl+r` | Restaurar sesión (Resurrect) |
@@ -533,7 +533,7 @@ Ctrl+r         Buscar en historial (fzf)
 ### Tmux + Neovim Integration
 - Usa `Ctrl+h/j/k/l` para navegar sin pensar entre Neovim splits y Tmux panes
 - `Prefix + z` para zoom temporal de un panel
-- `Prefix + o` (SessionX) para gestión rápida de sesiones
+- `Prefix + s` (SessionX) para gestión rápida de sesiones
 
 ### Neovim Power User
 - `.` (punto) repite el último comando → extremadamente poderoso
