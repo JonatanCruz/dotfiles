@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
-# Corre los casos versionados de los hooks globales.
-#
-# Existe porque la batería se venía reconstruyendo A MANO en cada ronda de
-# auditoría — y una batería que se reescribe de memoria no detecta regresiones:
-# detecta lo que el autor recordó ese día. El 2026-09-19 eso permitió que un
-# arreglo introdujera un falso positivo (`cp` desde memory) que sólo apareció
-# porque el caso estaba escrito.
+# Corre los casos versionados de los hooks.
 #
 #   uso:  bash ~/.claude/hooks/tests/correr.sh [nombre-del-hook]
 #
-# Cada archivo `casos-<hook>.txt` se aparea con `../<hook>.sh`.
+# Cada `casos-<hook>.txt` se aparea con `../<hook>.sh`.
 # Formato de línea:  <exit esperado> <TAB> <descripción> <TAB> <comando>
 # `@MEM@` se sustituye por el directorio de memoria del proyecto actual.
+#
+# Los casos se versionan porque una batería reescrita de memoria detecta lo que
+# el autor recordó, no regresiones.
 
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
@@ -27,8 +24,7 @@ for casos in casos-*.txt; do
 
   # Un archivo con runner PROPIO no lo corre éste. Los hooks de Write/Edit
   # reciben `{tool_input:{file_path,content}}`, no `{command}`: pasarles el
-  # payload de Bash daría exit 0 en todo y reportaría verde sobre nada medido
-  # — el fallo por el que se borró `run-suite.sh` hoy mismo.
+  # payload de Bash daría exit 0 en todo y reportaría verde sobre nada medido.
   # ...pero tampoco se SALTA en silencio: se delega y su resultado cuenta en el
   # total. Saltarlo sería la otra cara del mismo defecto — un archivo de casos
   # que nadie ejecuta mientras el total dice "0 fallan".
@@ -51,12 +47,8 @@ for casos in casos-*.txt; do
   p=0; f=0; saltadas=0
   while IFS=$'\t' read -r esperado desc cmd; do
     case "$esperado" in ''|'#'*) continue ;; esac
-    # ⚠️ Una línea que NO parsea se CUENTA, no se ignora. Medido el 2026-09-19:
-    # `casos-block-silent-grep-glob-failure.txt` usa el formato viejo
-    # `OK|desc|cmd` y este runner lo leía como cero casos, imprimiendo
-    # "0 pasan, 0 fallan" y sumando 0 al total —o sea, VERDE sobre nada
-    # ejecutado—. Es el mismo defecto por el que se borró `run-suite.sh`
-    # ("→ 0/0, sin desvíos"), repetido en su reemplazo.
+    # Una línea que NO parsea se CUENTA como falla, no se ignora: un archivo en
+    # otro formato daría "0 pasan, 0 fallan" —verde sobre nada ejecutado—.
     case "$esperado" in
       0|2) ;;
       *) saltadas=$((saltadas+1)); continue ;;
@@ -86,4 +78,22 @@ for casos in casos-*.txt; do
 done
 
 printf '\n──────────────\nTOTAL: %s pasan, %s fallan\n' "$total_p" "$total_f"
+
+# ── PARIDAD zsh/bash ───────────────────────────────────────────────────────
+# El shebang de los hooks es `bash`, así que el harness los corre con bash sin
+# importar el shell del usuario. Pero `${v//x/}`, `[[ ]]` y `<<<` son sintaxis
+# de bash, y un hook que zsh no parsea moriría antes de decidir — un control
+# que no puede arrancar deja pasar todo.
+if command -v zsh >/dev/null 2>&1; then
+  rotos=""
+  for h in ../*.sh; do
+    [ -f "$h" ] || continue
+    zsh -n "$h" 2>/dev/null || rotos="${rotos}   · $(basename "$h")\n"
+  done
+  if [ -n "$rotos" ]; then
+    printf '\n⚠️  zsh NO parsea estos hooks:\n'; printf "$rotos"
+    total_f=$((total_f+1))
+  fi
+fi
+
 [ "$total_f" -eq 0 ]
