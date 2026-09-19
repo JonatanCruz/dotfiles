@@ -1,47 +1,74 @@
-EVA|python3 pathlib write_text|python3 -c "import pathlib; pathlib.Path('@M@').write_text('x')"
-EVA|cd dir && echo > MEMORY.md|cd @D@ && echo x > MEMORY.md
-EVA|variable de directorio|D=@D@; echo x > $D/MEMORY.md
-EVA|variable con llaves|D=@D@; echo x > ${D}/MEMORY.md
-EVA|volcado por bloques|dd if=/tmp/a.md of=@M@
-EVA|truncar a cero|truncate -s0 @M@
-EVA|install|install /tmp/a.md @M@
-EVA|rsync|rsync /tmp/a.md @M@
-EVA|enlace simbolico|ln -sf /tmp/a.md @M@
-EVA|touch|touch @M@
-EVA|editor no interactivo|vim -c wq @M@
-EVA|editor ex|ex -sc wq @M@
-EVA|node writeFileSync|node -e "require('fs').writeFileSync('@M@','x')"
-EVA|perl open modo escritura|perl -e 'open(F,">","@M@"); print F "x"'
-EVA|edicion in-place perl|perl -i -pe 's/a/b/' @M@
-EVA|edicion in-place sed|sed -i 's/a/b/' @M@
-EVA|git checkout|git checkout HEAD~1 -- @M@
-EVA|python open con modo w|python3 -c "open('@M@','w').write('x')"
-EVA|interprete bash -c|bash -c 'echo x > @M@'
-EVA|comillas vacias en el verbo|to''uch @M@
-EVA|continuacion de linea|touch \\\n  @M@
-EVA|tee|echo x | tee @M@
-EVA|cp|cp /tmp/a.md @M@
-OK|lectura con cat|cat @M@
-OK|lectura con grep|grep -n foo @M@
-OK|lectura con less|less @M@
-OK|historial git|git log --oneline -- @M@
-OK|conteo de lineas|wc -l @M@
-OK|lectura con head|head -20 @M@
-OK|listar el directorio|ls -la @D@
-OK|buscar la ruta en docs|grep -rn "projects/x/memory" /home/jonatan/docs
-OK|mencionar la ruta en un echo|echo "no escribas en @M@"
-OK|mensaje de commit que la nombra|git commit -m "fix: dejar de escribir en @M@"
-OK|heredoc que la documenta|cat > /tmp/nota.txt <<EOF\nno escribas en @M@\nEOF
-OK|escribir en otro lado|echo x > /tmp/otro.md
-OK|escribir un md del proyecto|echo x > /home/jonatan/proj/claudedocs/nota.md
-OK|diff entre dos|diff @M@ /tmp/a.md
-OK|lectura por pipe|cat @M@ | grep foo
-# Consecuencia DELIBERADA de la pregunta invertida: sobre la ruta protegida se
-# bloquea por defecto y sólo pasa la lista CERRADA de lecturas (cat/grep/head/…).
-# Una lectura por INTÉRPRETE no está en esa lista, así que bloquea aunque sea
-# lectura. Se fija como caso para que el día que alguien lo "arregle" tenga que
-# decidirlo a propósito: aflojarlo reabre `open(...,'w')` por la misma puerta.
-BLK|lectura por interprete, que igual bloquea|python3 -c "open('@M@').read()"
-BLK|redireccion simple|echo x > @M@
-BLK|append|echo x >> @M@
-BLK|lectura con redireccion a la ruta|cat /tmp/a.md > @M@
+# Casos de block-harness-memory.sh
+#
+# ── POR QUÉ EXISTE ESTE ARCHIVO ────────────────────────────────────────────
+#
+# El hook llevaba TRES rondas de auditoría, y cada una parcheó el lugar
+# equivocado. El 2026-09-19 se trazó con `bash -x` y apareció la causa que
+# ninguna ronda había visto: la pasada que borra strings se llevaba la RUTA
+# —que viaja dentro de comillas— y el chequeo "¿está la ruta?" salía con
+# exit 0 **antes** de cualquier análisis del verbo. Los parches anteriores
+# vivían en código que nunca se alcanzaba.
+#
+# La lección, y la razón de versionar los casos: probar caso-por-caso dice
+# QUÉ falla; trazar dice DÓNDE. Sin lo segundo se parchea a ciegas.
+#
+# Formato:  <exit esperado> <TAB> <descripción> <TAB> <comando>
+# La ruta protegida se escribe como @MEM@ y el runner la sustituye.
+
+# ── DEBE BLOQUEAR (exit 2): escritura sobre la ruta protegida ─────────────
+
+# Las tres evasiones que sobrevivieron a tres auditorías. Las dos primeras
+# porque awk/sed escriben con una primitiva que no es `-i` y la redirección
+# va DENTRO de la cadena; la tercera porque el destino es el DIRECTORIO y
+# `MEM_RE` exige un `.md` nombrado.
+2	awk escribe con > dentro de la cadena	awk 'BEGIN{print "x" > "@MEM@/f.md"}'
+2	sed escribe con el comando w	sed -n 'w @MEM@/f.md' /etc/hostname
+2	tar extrae sobre el directorio	tar -xf /tmp/t.tar -C @MEM@
+
+# Misma clase que tar: destino = directorio, ningún .md nombrado.
+2	tar --extract forma larga	tar --extract -f /tmp/t.tar -C @MEM@
+2	rsync hacia el directorio	rsync /tmp/a.md @MEM@/
+2	cp hacia el directorio	cp /tmp/a.md @MEM@/
+2	mv hacia el directorio	mv /tmp/a.md @MEM@/
+2	unzip -d hacia el directorio	unzip /tmp/z.zip -d @MEM@
+
+# `mv` SACANDO de memory borra el origen: destino afuera NO lo vuelve lectura.
+# Se coló como exit 0 al escribir la rama que rescata el respaldo con `cp`.
+2	mv desde memory destruye el origen	mv @MEM@/MEMORY.md /tmp/x.md
+
+# Intérpretes: el string ES el comando.
+2	python -c	python3 -c "open('@MEM@/f.md','w').write('x')"
+2	node -e	node -e "require('fs').writeFileSync('@MEM@/f.md','x')"
+
+# Escrituras directas.
+2	redirección	echo x > @MEM@/f.md
+2	append	cat /tmp/a >> @MEM@/MEMORY.md
+2	touch	touch @MEM@/f.md
+2	rm	rm -f @MEM@/MEMORY.md
+2	sed -i	sed -i 's/a/b/' @MEM@/MEMORY.md
+2	ln -sf	ln -sf /etc/hostname @MEM@/f.md
+2	install	install /tmp/a.md @MEM@/f.md
+
+# ── DEBE PASAR (exit 0): lecturas y usos legítimos ────────────────────────
+#
+# Un gate que bloquea lecturas se termina desactivando. `cp DESDE memory` es
+# el caso testigo: se rompió al cerrar tar/rsync y hubo que medirlo aparte.
+
+0	cp desde memory es un respaldo	cp @MEM@/MEMORY.md /tmp/backup.md
+0	rsync desde memory	rsync @MEM@/ /tmp/bak/
+0	awk leyendo (sin >)	awk '{print $1}' @MEM@/MEMORY.md
+0	sed -n p (leer)	sed -n '1,5p' @MEM@/MEMORY.md
+0	cat	cat @MEM@/MEMORY.md
+0	grep	grep -n foo @MEM@/MEMORY.md
+0	ls	ls -la @MEM@/
+0	wc	wc -l @MEM@/MEMORY.md
+0	diff	diff @MEM@/a.md @MEM@/b.md
+0	head	head -20 @MEM@/MEMORY.md
+0	tar -t sólo lista	tar -tf /tmp/t.tar
+
+# ── DEBE PASAR: fuera de la ruta protegida ────────────────────────────────
+
+0	tar a /tmp	tar -xf /tmp/t.tar -C /tmp/out
+0	cp a /tmp	cp /etc/hostname /tmp/f.md
+0	redirección a /tmp	echo x > /tmp/f.md
+0	rsync en /tmp	rsync /tmp/a /tmp/b

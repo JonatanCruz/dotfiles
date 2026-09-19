@@ -130,6 +130,48 @@ if printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*(echo|printf)\b' 
   cmd="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
 fi
 
+# 4b) EL CUERPO DE UN HEREDOC ES TEXTO QUE SE ESCRIBE, NO COMANDOS.
+#
+#     Faltaba por completo — los otros dos hooks del sistema (guard-sensitive-exec,
+#     block-harness-memory) ya descartan cuerpos de heredoc y éste no. Medido el
+#     2026-09-19, bloqueando un `git commit` real:
+#
+#       cat > /tmp/msg.txt <<EOF
+#         grep -oE "…" infra/terraform/envs/prod/main.tf   → exit 2
+#       EOF
+#       git commit -F /tmp/msg.txt
+#
+#     El comando NO busca nada: escribe un mensaje de commit que DESCRIBE una
+#     búsqueda. Es el mismo defecto que el paso (4) ya corrigió para `echo` y
+#     `git commit -m` —"un gate que muerde el trabajo de documentarlo es el que se
+#     termina desactivando"— pero por la vía del heredoc, que es justamente cómo
+#     se escriben los mensajes largos en este repo.
+#
+#     ⚠️ EXCEPCIÓN: un heredoc dirigido a un INTÉRPRETE (`bash <<EOF … EOF`) SÍ
+#     es ejecución, y hay que saltear esta pasada ahí. El paso (2) NO lo cubre:
+#     sólo reconoce `bash -c`, no `bash <<`. Al escribir este bloque se afirmó en
+#     un comentario que (2) "ya lo desenvolvió antes" — era FALSO, y descartar el
+#     cuerpo abrió un agujero real (medido: `bash <<EOF / grep -rn services/ /
+#     EOF` → exit 0). El comentario equivocado duró lo que tardó la prueba en
+#     correr, que es la razón por la que estos casos están versionados.
+if ! printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*((ba|z|k|da)?sh|python[0-9.]*|node|perl|ruby)\b[^|;&]*<<'; then
+cmd="$(printf '%s' "$cmd" | awk '
+  BEGIN { inhd = 0 }
+  {
+    line = $0
+    if (inhd) { if (line ~ ("^[[:space:]]*" hd "[[:space:]]*$")) inhd = 0; next }
+    if (match(line, /<<-?[[:space:]]*[\047"]?[A-Za-z_][A-Za-z0-9_]*[\047"]?/)) {
+      hd = substr(line, RSTART, RLENGTH)
+      gsub(/^<<-?[[:space:]]*|[\047"]/, "", hd)
+      inhd = 1
+      line = substr(line, 1, RSTART - 1)
+    }
+    print line
+  }
+')"
+[ -z "${cmd//[[:space:]]/}" ] && exit 0
+fi
+
 # ── NO HAY OVERRIDE. Se retiró el 2026-09-19 por orden del dueño. ───────────
 #
 # Existía `CBM_CHECKED=1`: una palabra que el AGENTE escribía por su cuenta para
@@ -235,10 +277,26 @@ printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]
 # de este monorepo y faltaban, así que `grep -rn handler services/` —la búsqueda
 # más habitual acá— salía exit 0. La lista describía un layout genérico, no el
 # del repo donde el gate corre. Se suman también `apps` y `infra`.
-printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|$)' || exit 0
+# ⚠️ UNA SOLA LISTA DE EXTENSIONES, usada por los DOS chequeos de abajo.
+# Antes eran dos listas escritas a mano y HABÍAN DIVERGIDO. Medido el
+# 2026-09-19, en uso real:
+#
+#   grep -n handler services/svc-orders/src/index.ts   → exit 0  (bien)
+#   grep -oE "[0-9.]+" infra/terraform/envs/prod/main.tf → exit 2  (MAL)
+#
+# Un `.ts` concreto pasaba y un `.tf` concreto no, porque `.tf` estaba en la
+# lista que DECIDE QUÉ ES CÓDIGO pero no en la que reconoce "un archivo ya
+# identificado". El propio mensaje de bloqueo promete esa salida —"un archivo
+# concreto, sin recursión ni comodines"— así que el gate contradecía su texto
+# y el falso positivo costaba dos intentos antes de entender por qué.
+#
+# Unificadas acá: no pueden volver a divergir sin que alguien edite una línea.
+EXT_CODIGO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma)\b'
+
+printf '%s' "$cmd" | grep -qE "$EXT_CODIGO|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|\$)" || exit 0
 
 # Un solo path concreto sin recursión ni comodines: el archivo ya está identificado.
-if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b' \
+if printf '%s' "$cmd" | grep -qE "$EXT_CODIGO" \
    && ! printf '%s' "$cmd" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
   exit 0
 fi

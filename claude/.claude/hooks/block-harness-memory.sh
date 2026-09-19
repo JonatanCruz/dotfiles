@@ -197,9 +197,25 @@ if [[ -z "$target" ]]; then
   # Es la misma trampa que este archivo documenta arriba, un nivel más adentro:
   # `sh` no es la clase, "programa que ejecuta el string que le pasás" sí lo es.
   # Por eso van también python/node/perl/ruby/php y sus banderas -c/-e.
+  # ⚠️ Y LA LISTA SEGUÍA CORTA: faltaban los que reciben su programa como
+  # argumento POSICIONAL, sin bandera. Medido el 2026-09-19, ambos con exit 0 y
+  # el archivo realmente creado:
+  #
+  #   awk 'BEGIN{print "x" > "RUTA"}'      → el borrado de strings dejaba `awk `
+  #   sed -n 'w RUTA' /etc/hostname        → dejaba `sed -n  /etc/hostname`
+  #
+  # La traza lo muestra sin ambigüedad: la ruta viaja DENTRO de las comillas, la
+  # pasada la borra, y el chequeo "(1) ¿está la ruta?" sale por exit 0 **antes**
+  # de cualquier análisis del verbo. Corregirlo en la lista de LECTORES no sirve:
+  # ese código nunca se alcanza.
+  #
+  # `awk`/`sed` son la misma CLASE que `python -c` —programa que ejecuta el
+  # string que le pasás— sólo que sin bandera que lo anuncie. Y `tar` entra por
+  # otra puerta: extrae sobre un directorio (`-C`) sin nombrar archivo alguno.
   if printf '%s' "$cmd" | grep -qE '(^|[|;&`]|&&|\|\||\$\()[[:space:]]*(eval|(env[[:space:]]+)?(ba|z|k|da)?sh([[:space:]]+-[^[:space:]]+)*[[:space:]]+-[a-zA-Z]*c)\b' \
      || printf '%s' "$cmd" | grep -qE '(^|[|;&`]|&&|\|\||\$\()[[:space:]]*(python[0-9.]*|node|perl|ruby|php|deno|bun)\b([[:space:]]+-[^[:space:]]+)*[[:space:]]+-[a-zA-Z]*[ce]\b' \
-     || printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*((ba|z|k|da)?sh|python[0-9.]*|node|perl|ruby)\b[^|;&]*<<'; then
+     || printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*((ba|z|k|da)?sh|python[0-9.]*|node|perl|ruby)\b[^|;&]*<<' \
+     || printf '%s' "$cmd" | grep -qE '(^|[|;&`]|&&|\|\||\$\()[[:space:]]*(awk|gawk|mawk|nawk|sed|perl|tar|rsync|install|ln)\b'; then
     : # intérprete: el string ES el comando, se evalúa crudo
   else
     cmd="$(printf '%s' "$cmd" | sed -E "s/''//g; s/\"\"//g" | awk '
@@ -248,7 +264,25 @@ if [[ -z "$target" ]]; then
   fi
 
   # (1) ¿Está involucrada la ruta protegida? Si no, no es nuestra incumbencia.
-  printf '%s' "$probe" | grep -qE "$MEM_RE" || exit 0
+  #
+  # ⚠️ DOS FORMAS DE APUNTAR AL MISMO LUGAR. `MEM_RE` exige un `.md` NOMBRADO, y
+  # hay comandos que escriben dentro del directorio sin nombrar archivo alguno.
+  # Medido el 2026-09-19, ambos con exit 0 saliendo por acá mismo:
+  #
+  #   tar -xf /tmp/t.tar -C …/memory      ← el destino es el DIRECTORIO
+  #   rsync /tmp/a.md …/memory/           ← idem, con barra final
+  #
+  # Los dos caían antes de cualquier análisis de verbo: el `|| exit 0` de esta
+  # línea los soltaba porque en el comando no aparece ningún `*.md`. Por eso
+  # `ln`/`install` sí se bloqueaban (terminan en un `.md`) y estos dos no — la
+  # misma escritura, distinta forma de escribir el destino.
+  #
+  # Para los que escriben en un directorio, la pregunta correcta es MEM_DIR_RE.
+  if printf '%s' "$probe" | grep -qE "^[[:space:]]*(tar|rsync|cp|mv|install|unzip|gunzip|bsdtar)\b"; then
+    printf '%s' "$probe" | grep -qE "$MEM_RE|$MEM_DIR_RE" || exit 0
+  else
+    printf '%s' "$probe" | grep -qE "$MEM_RE" || exit 0
+  fi
 
   # (2) ¿Es INEQUÍVOCAMENTE una lectura? Lista cerrada, y la única salida.
   #
@@ -269,22 +303,86 @@ if [[ -z "$target" ]]; then
      || printf '%s' "$probe" | grep -qE "^[[:space:]]*awk[[:space:]]+[^|;&]*-i[[:space:]]*inplace"; then
     es_lectura=0
   fi
+  # ⚠️ `-i` NO es la única forma en que un "lector" escribe. Medido el
+  # 2026-09-19, las dos con exit 0 y el archivo realmente creado:
+  #
+  #   awk 'BEGIN{print "x" > "…/memory/f.md"}'   ← la redirección va DENTRO de
+  #                                                la cadena: el chequeo del
+  #                                                `>` externo no la ve.
+  #   sed -n 'w …/memory/f.md' /etc/hostname     ← el comando `w` escribe, y
+  #                                                no es `-i`.
+  #
+  # El defecto es el de siempre: `awk` y `sed` entraron a LECTORES por su uso
+  # habitual, y ambos tienen una primitiva de escritura que la excepción no
+  # contemplaba. Se cierra mirando el PROGRAMA que se les pasa, no sus banderas.
+  if printf '%s' "$probe" | grep -qE "^[[:space:]]*(awk|gawk|mawk|nawk|perl)\b" \
+     && printf '%s' "$probe" | grep -qE "(>>?|print[[:space:]]*>|printf[^;]*>)"; then
+    es_lectura=0
+  fi
+  if printf '%s' "$probe" | grep -qE "^[[:space:]]*sed\b" \
+     && printf '%s' "$probe" | grep -qE "['\"][^'\"]*[0-9,~\$]*[[:space:]]*[wW][[:space:]]+[^'\"]+['\"]"; then
+    es_lectura=0
+  fi
   # Cualquier redirección/append hacia la ruta protegida anula la excepción.
   if printf '%s' "$probe" | grep -qE ">>?[[:space:]]*[^[:space:]|&;]*$MEM_RE"; then
     es_lectura=0
+  fi
+
+  # ── ESCRITURA HACIA UN DIRECTORIO: mirar el DESTINO, no sólo el verbo ──
+  #
+  # `tar -C <dir>`, `rsync a <dir>/`, `cp a <dir>/` escriben SIN nombrar ningún
+  # archivo. Medido el 2026-09-19: los tres con exit 0, y por DOS razones
+  # encadenadas que hay que arreglar juntas —parchear una sola no alcanza, y
+  # eso ya costó una ronda entera:
+  #
+  #   (a) el chequeo "(1) ¿está la ruta?" exige `MEM_RE`, que pide un `.md`
+  #       NOMBRADO. Sin él, salían antes de cualquier análisis.
+  #   (b) aun pasando (a), `target` se extrae con `MEM_RE` más abajo: queda
+  #       vacío y el `[[ -z "$target" ]] && exit 0` los soltaba igual.
+  #
+  # Y el verbo SOLO no alcanza para decidir: `cp …/memory/MEMORY.md /tmp/bak.md`
+  # es un RESPALDO legítimo —lee de la ruta protegida y escribe fuera—. Marcar
+  # `cp` como escritura sin mirar a dónde rompió ese caso en la misma ronda.
+  # Lo que decide es el ÚLTIMO argumento: ahí es donde estos comandos escriben.
+  if printf '%s' "$probe" | grep -qE "^[[:space:]]*(tar|rsync|install|ln|cp|mv|unzip|gunzip|bsdtar)\b"; then
+    destino="$(printf '%s' "$probe" | awk '{print $NF}' | tr -d '"'"'"'')"
+    # `tar -C <dir>` / `unzip -d <dir>`: el destino es el argumento de la bandera.
+    flag_dst="$(printf '%s' "$probe" | grep -oE '(-C|-d)[[:space:]]+[^[:space:];|&]+' | sed -E 's/^(-C|-d)[[:space:]]+//' | head -1)"
+    if printf '%s' "$destino" | grep -qE "$MEM_RE|$MEM_DIR_RE" \
+       || printf '%s' "$flag_dst" | grep -qE "$MEM_RE|$MEM_DIR_RE"; then
+      es_lectura=0
+      # El destino puede ser el directorio; se conserva tal cual para el mensaje.
+      dir_target="${flag_dst:-$destino}"
+    elif printf '%s' "$probe" | grep -qE "^[[:space:]]*mv\b"; then
+      # `mv` SACANDO de memory BORRA el origen: destino afuera no lo vuelve
+      # lectura. Es la excepción a la rama de abajo, y se mide aparte porque
+      # al escribirla se coló como "respaldo legítimo" (exit 0) en la ronda
+      # del 2026-09-19 — `cp` copia, `mv` destruye.
+      es_lectura=0
+      dir_target="$(printf '%s' "$probe" | grep -oE "$MEM_RE" | head -1)"
+    else
+      # Destino FUERA de la ruta protegida ⇒ el comando LEE de memory y escribe
+      # afuera: `cp …/memory/MEMORY.md /tmp/bak.md` es un respaldo legítimo.
+      # Estos verbos no están en LECTORES (escriben, en general), así que sin
+      # esta rama quedaban bloqueados. Medido el 2026-09-19: el respaldo daba
+      # exit 2 — un falso positivo introducido al cerrar `tar`/`rsync`.
+      es_lectura=1
+    fi
   fi
 
   if [[ $es_lectura -eq 1 ]]; then
     exit 0
   fi
 
+  # `target` para el mensaje: el `.md` si se nombró, si no el directorio destino.
   target="$(printf '%s' "$probe" | grep -oE "$MEM_RE" | head -1)"
+  [[ -z "$target" ]] && target="${dir_target:-}"
 fi
 
 # Sin nada que inspeccionar → no es nuestra incumbencia.
 [[ -z "$target" ]] && exit 0
 
-if printf '%s' "$target" | grep -qE "$MEM_RE"; then
+if printf '%s' "$target" | grep -qE "$MEM_RE|$MEM_DIR_RE"; then
   cat >&2 <<EOF
 🚫 BLOQUEADO — Engram es el ÚNICO sistema de memoria (regla "Engram ONLY" de ~/.claude/CLAUDE.md).
 

@@ -45,7 +45,7 @@ FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"
 [ -n "$FTS_QUERY" ] || exit 0
 
 RESULTS="$(sqlite3 -separator '|' "$DB" "
-  SELECT o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), substr(o.created_at, 1, 10)
+  SELECT o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 600), substr(o.created_at, 1, 10)
   FROM observations_fts f
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
@@ -57,7 +57,24 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
 
 [ -n "$RESULTS" ] || exit 0
 
-echo "📚 ENGRAM AUTO-RECALL (memorias que matchean este prompt — VERIFICA vigencia antes de usarlas como evidencia; son contexto, no medición):"
+# ⚠️ EL ENCABEZADO IMPORTA, y el anterior causaba el daño que venía a evitar.
+#
+# Decía: "son contexto, NO medición". Medido el 2026-09-19: el agente lo leyó
+# como "esto no es evidencia, seguí de largo" y las ignoró sistemáticamente. El
+# caso testigo: una memoria del 05-sep decía textual *"culpar al SyncInventarioJob
+# fue FALSO"*, llegó con ese encabezado, y el agente armó igual su diagnóstico
+# sobre el SyncInventarioJob — repitiendo el error exacto que la memoria
+# advertía. El dueño lo detectó y ordenó arreglarlo.
+#
+# La distinción correcta NO es "contexto vs medición": es que una memoria es un
+# HECHO DATADO. Lo que dice fue cierto cuando se midió. Puede haber cambiado —
+# por eso se verifica antes de actuar— pero ignorarla es descartar una medición
+# que alguien ya pagó. Sobre todo cuando REFUTA algo: una hipótesis ya
+# descartada es lo más caro de volver a recorrer.
+echo "📚 ENGRAM — MEDICIONES PREVIAS que matchean este prompt. NO son ruido de fondo:"
+echo "   · Cada una fue MEDIDA en su fecha. Si contradice lo que estás por afirmar, MEDÍ ANTES de afirmar."
+echo "   · Si REFUTA una hipótesis, esa hipótesis ya se descartó una vez: no la repitas sin evidencia nueva."
+echo "   · Pueden estar desactualizadas: verificá contra la fuente primaria antes de ACTUAR sobre ellas."
 printf '%s\n' "$RESULTS" | while IFS='|' read -r TYPE TITLE EXCERPT DATE; do
   echo "- [$DATE·$TYPE] $TITLE — $EXCERPT…"
 done
