@@ -60,6 +60,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/block-silent-grep-glob-failure.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-leer-secretos-por-bash.sh"
           }
         ]
       },
