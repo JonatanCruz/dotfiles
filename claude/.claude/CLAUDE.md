@@ -39,15 +39,42 @@ Dos MCP complementarios para código. **Engram sigue siendo el único sistema de
 ### codebase-memory (grafo) → navegar/entender barato
 Grafo de conocimiento pre-indexado. **Solo lectura.** Úsalo primero para preguntas estructurales:
 
-> **Cuánto ahorra, medido** (2026-09-19, un repo de trabajo: 1.393 archivos TS, símbolo `requirePermission`, 40 matches — el conteo reconstruido coincide exacto con el `total_grep_matches` que reporta el índice, o sea que la comparación es like-for-like):
+> **Cuánto ahorra** (2026-09-19, un repo de trabajo: 1.393 archivos TS — ese dato sí
+> verificado con `git ls-files '*.ts' '*.tsx' '*.mts' '*.cts' | wc -l`):
 >
-> | Contra qué | Ratio |
+> | Contra qué | Orden de magnitud |
 > | --- | --- |
-> | **Leer enteros** los archivos que contienen el símbolo | **~150x** (143–156x) |
-> | **grep**, para preguntas estructurales (dónde está / quién llama) | **~3x** (2,8–3,0x) |
-> | **grep**, para búsqueda de TEXTO plano | **0,65x** — el grafo devuelve **MÁS** tokens |
+> | **Leer enteros** los archivos que contienen el símbolo | **decenas de veces** a favor del grafo |
+> | **grep**, para preguntas estructurales (dónde está / quién llama) | **unas pocas veces** a favor del grafo |
+> | **grep**, para búsqueda de TEXTO plano | **a favor de grep** — el grafo devuelve MÁS tokens |
 >
-> Acá decía *"~120x menos tokens que grep/leer el repo"*. El número era defendible sólo contra **leer archivos enteros**; contra **grep** el real es ~3x — **40x de diferencia**. La frase juntaba dos cosas que difieren en 50x bajo un solo número, y la mitad "grep" era la falsa.
+> ⚠️ **Los ratios exactos que acá se afirmaban se retiraron el 2026-09-19 (tarde)
+> porque el dato del que salían era falso.** Decía *"`requirePermission`, 40 matches
+> — el conteo reconstruido **coincide exacto** con el `total_grep_matches` que
+> reporta el índice, o sea que la comparación es like-for-like"*. Se volvió a medir
+> sobre el MISMO commit que el índice tiene cargado (`104b79a7`, status `ready`):
+>
+>   · `search_code(requirePermission)` → `total_grep_matches: 22`, en 6 archivos.
+>   · `grep -n` sobre esos mismos 6 archivos → **22** líneas. También 22.
+>
+> O sea que 40 no sale de ninguna de las dos fuentes, y la frase que garantizaba la
+> coincidencia exacta era justamente la que hacía innecesario revisarla. Con el
+> conteo corregido, la medición rehecha dio **27x** contra leer enteros y **0,32x**
+> contra grep — no 150x y 0,65x. Se dejan órdenes de magnitud y no cifras porque el
+> número depende del modo (`files` vs `compact`) y del conjunto de archivos, y una
+> cifra con dos decimales vuelve a invitar a citarla sin re-medirla.
+>
+> **La conclusión cualitativa no cambia** —y es la que importa para elegir
+> herramienta—: el grafo gana por mucho contra leer archivos enteros, gana poco
+> contra un grep bien usado, y PIERDE en texto plano.
+>
+> Antes de todo esto decía *"~120x menos tokens que grep/leer el repo"*. Ese es el
+> defecto de ORIGEN y sigue valiendo la pena recordarlo: juntaba **dos comparaciones
+> distintas bajo un solo número**. Contra leer archivos enteros era defendible;
+> contra grep no, y la mitad "grep" era la falsa. Lo que la ronda de la tarde agrega
+> es que el reemplazo *también* estaba mal —números más precisos sobre un conteo
+> equivocado—, que es la lección más útil de las dos: **subir la precisión de una
+> cifra no la vuelve verdadera, sólo la vuelve más difícil de dudar.**
 >
 > **Consecuencia práctica**: para TEXTO plano el grafo cuesta más (cada hit carga `qualified_name`, grados y rangos donde grep emite una línea) → ahí grep es la herramienta correcta. La ventaja del grafo es mayor contra la lectura ingenua de archivos enteros que contra un grep bien usado. Lo que **sí** justifica preferirlo no es sólo el token count: ve lo que grep no puede (una dependencia inyectada, el docstring tres líneas arriba del match).
 - `search_code` / `search_graph` → buscar símbolos y patrones

@@ -32,9 +32,18 @@
 # bloque "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo.
 #
 # ESTADO MEDIDO (no "imposible": medido, con fecha y suite reproducible):
-#   23 vías de escritura → exit 2   ·   15 usos legítimos → exit 0
+#   26 vías de escritura → exit 2   ·   15 usos legítimos → exit 0   (41 casos)
 #   incluidas las 13 que pasaban, más intérpretes (python/node/perl), comillas
 #   vacías (`to''uch`), continuación de línea, `bash -c`, y el modo sin jq.
+#
+# El número sale de CONTAR el archivo de casos, no de recordarlo: son las clases
+# EVA (23, vías que se midieron pasando) + BLK (3, las que ya bloqueaban y deben
+# seguir igual) de tests/casos-block-harness-memory.txt. La primera versión de
+# esta línea decía "23" porque contó sólo EVA y olvidó BLK — las tres son
+# escrituras (`echo x > MEMORY.md`, su append, y `cat otro > MEMORY.md`), así que
+# pertenecen al total. Se corrige el 2026-09-19 corriendo la suite:
+#   ./tests/run-suite.sh ./block-harness-memory.sh tests/casos-block-harness-memory.txt
+#   → 41/41, sin desvíos.
 # Si mañana aparece una vía nueva, se agrega a la suite y se cierra. Lo que no
 # se hace es volver a escribir que es imposible.
 #
