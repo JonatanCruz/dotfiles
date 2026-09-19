@@ -1,0 +1,63 @@
+# Casos de no-afirmar-sin-medir.sh
+#
+# ── QUÉ VIGILA ─────────────────────────────────────────────────────────────
+#
+# Comentarios que CITAN EVIDENCIA verificable: una cifra de casos, un comando
+# de prueba, una medición con exit code, o una garantía absoluta sobre el
+# propio código. No vigila el tono — vigila lo que se puede ejecutar.
+#
+# ── LA CALIBRACIÓN ES EL PUNTO ────────────────────────────────────────────
+#
+# Lo primero que se probó fue bloquear "nunca/siempre/imposible". Medido el
+# 2026-09-19: 45 ocurrencias LEGÍTIMAS ya existían en los hooks ("un agente
+# NUNCA se auto-autoriza"). Ese gate habría dado 45 falsos positivos el primer
+# día. Por eso la mitad de estos casos son de "calla": si el gate muerde
+# comentarios correctos, se desactiva en una hora y no sirve de nada.
+#
+# NOTA DE FORMATO: este hook es de Write/Edit, no de Bash. El runner genérico
+# (`correr.sh`) manda `{tool_input:{command}}`, que este hook ignora → saldría
+# 0 siempre y el archivo mediría nada. Se corre con su propio verificador:
+#
+#   bash ~/.claude/hooks/tests/correr-no-afirmar-sin-medir.sh
+#
+# Formato:  <AVISA|calla> <TAB> <ruta> <TAB> <comentario>
+
+# ── DEBE AVISAR: los seis comentarios falsos reales del 2026-09-19 ────────
+
+AVISA	/x/.claude/hooks/a.sh	#   42 casos en exit 2 · 15 usos legítimos (42 casos en total)
+AVISA	/x/.claude/hooks/a.sh	#   ./tests/run-suite.sh ./hook.sh casos.txt → 42/42, sin desvíos
+AVISA	/x/.claude/hooks/a.sh	# Medido: PATH vacío → exit 0, queda ciego
+AVISA	/x/.claude/hooks/a.sh	# La mezcla es estructuralmente imposible por construcción.
+AVISA	/x/a.ts	// 33 casos, 0 fallan
+AVISA	/x/.claude/hooks/a.sh	# Verificado el 2026-09-19: tofu apply → exit 2
+
+# ── DEBE CALLAR: comentarios legítimos que YA existen en estos hooks ──────
+#
+# Estos son textuales del sistema. Si alguno empieza a avisar, el gate se
+# volvió ruido y hay que acotarlo.
+
+calla	/x/.claude/hooks/a.sh	# NO hay override: un agente NUNCA se auto-autoriza.
+calla	/x/.claude/hooks/a.sh	# El trabajo sensible SIEMPRE se delega a un agente especializado.
+calla	/x/.claude/hooks/a.sh	# Falla CERRADO donde no puede decidir.
+calla	/x/.claude/hooks/a.sh	# Lista CERRADA de lecturas. Todo lo demás bloquea.
+calla	/x/.claude/hooks/a.sh	# Por qué avisa y no bloquea: la señal es ambigua.
+
+# ── DEBE CALLAR: cifras que no son afirmaciones sobre pruebas ─────────────
+
+calla	/x/a.ts	const MAX_RETRIES = 3; // reintentos
+calla	/x/a.ts	const casos = 42;
+calla	/x/README.md	# Instalación con 3 pasos
+calla	/x/a.ts	// TODO: revisar el timeout de 30s
+
+# ── HOOK NUEVO: el checklist de ataque ───────────────────────────────────
+#
+# El autor no es buen auditor de su propio diseño: prueba lo que imaginó, y
+# las evasiones viven en lo que no imaginó. Por eso el aviso llega al CREAR el
+# archivo, no después de que un tercero encuentre los agujeros.
+#
+# Se exige archivo COMPLETO (shebang + >15 líneas): un fragmento sobre una ruta
+# inexistente es un retoque o una prueba, no un gate que auditar.
+# El caso del hook COMPLETO no entra acá: este formato es de UNA línea y la
+# condición exige >15. Lo cubre el runner (`correr-no-afirmar-sin-medir.sh`),
+# que arma el archivo entero.
+calla	/x/.claude/hooks/a.sh	# Por qué avisa y no bloquea: la señal es ambigua.

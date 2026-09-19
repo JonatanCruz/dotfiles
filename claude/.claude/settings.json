@@ -84,6 +84,15 @@
             "command": "~/.claude/hooks/no-defiendas-contaminacion.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-afirmar-sin-medir.sh"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [

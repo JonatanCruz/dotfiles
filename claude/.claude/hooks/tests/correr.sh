@@ -25,6 +25,22 @@ for casos in casos-*.txt; do
   hook_name="${casos#casos-}"; hook_name="${hook_name%.txt}"
   [ -n "$filtro" ] && [ "$hook_name" != "$filtro" ] && continue
 
+  # Un archivo con runner PROPIO no lo corre éste. Los hooks de Write/Edit
+  # reciben `{tool_input:{file_path,content}}`, no `{command}`: pasarles el
+  # payload de Bash daría exit 0 en todo y reportaría verde sobre nada medido
+  # — el fallo por el que se borró `run-suite.sh` hoy mismo.
+  # ...pero tampoco se SALTA en silencio: se delega y su resultado cuenta en el
+  # total. Saltarlo sería la otra cara del mismo defecto — un archivo de casos
+  # que nadie ejecuta mientras el total dice "0 fallan".
+  if [ -f "correr-${hook_name}.sh" ]; then
+    if bash "correr-${hook_name}.sh"; then
+      total_p=$((total_p+1))
+    else
+      total_f=$((total_f+1))
+    fi
+    continue
+  fi
+
   hook="../${hook_name}.sh"
   if [ ! -f "$hook" ]; then
     printf '⚠️  %s: no existe %s — ¿se renombró o se retiró el hook?\n' "$casos" "$hook"
