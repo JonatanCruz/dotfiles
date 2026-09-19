@@ -32,7 +32,7 @@
 # bloque "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo.
 #
 # ESTADO MEDIDO (no "imposible": medido, con fecha y suite reproducible):
-#   18 casos en exit 2   ·   15 usos legítimos → exit 0   (33 casos en total)
+#   23 casos en exit 2   ·   20 usos legítimos → exit 0   (43 casos en total)
 #   incluidas las evasiones por intérprete (python/node), awk/sed con sus
 #   primitivas de escritura, tar/rsync/unzip hacia el DIRECTORIO, el pipe a un
 #   escritor (`| tee`, `| dd of=`), comillas vacías y el modo sin jq.

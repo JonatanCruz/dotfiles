@@ -1,72 +1,39 @@
 #!/usr/bin/env bash
 # PreToolUse (matcher: Bash). BLOQUEA (exit 2) leer por Bash un archivo que las
-# reglas `deny` del usuario protegen de la herramienta `Read`.
+# reglas `deny` de ~/.claude/settings.json protegen de la herramienta `Read`.
 #
-# ── LA DEUDA QUE CIERRA ─────────────────────────────────────────────────────
+# Las reglas `deny` gobiernan `Read`. Bash es otra puerta y no las respeta:
+# sin este hook, `cat secrets/x.key` pasa mientras `Read` lo bloquea. Siete de
+# las ocho reglas son de LECTURA, y los demás gates del sistema están hechos de
+# verbos de ESCRITURA — ninguno las cubría.
 #
-# `~/.claude/settings.json` declara 8 reglas `deny`. SIETE son de LECTURA:
+# ── EL INVARIANTE: SE DECIDE POR TOKEN, NO POR COMANDO ─────────────────────
 #
-#   Read(./secrets/**)   Read(./**/*.key)         Read(./**/*.pem)
-#   Read(./**/*credentials*)   Read(./**/*password*)
-#   Read(./.aws/**)      Read(./.ssh/**)          Edit(./secrets/**)
+# Cada argumento del comando se evalúa por separado. Un token es "protegido" o
+# no según SU PROPIA extensión y nombre; la presencia de otro token inocente no
+# lo absuelve. Sin esto, agregar cualquier archivo `.md` al comando desarma el
+# gate (`cat .env README.md`), y basta un comentario al final para lograrlo.
 #
-# Esas reglas gobiernan la herramienta `Read`. **Bash es otra puerta y no las
-# respeta.** Medido el 2026-09-19, los cinco con exit 0 y sin que ningún hook
-# del sistema (guard-sensitive-exec, block-harness-memory,
-# redirect-code-search-to-mcp, block-silent-grep-glob-failure) los tocara:
+# ── LA PREGUNTA ESTÁ INVERTIDA ─────────────────────────────────────────────
 #
-#   cat secrets/prod.key        cat .ssh/id_rsa       cat .aws/credentials
-#   cat config/db-password.txt  head -5 certs/server.pem
+# No se enumera "qué comandos leen" —lista ABIERTA, siempre falta uno—. Se
+# pregunta si algún token nombra una ruta protegida, y sólo se exime cuando el
+# comando es inequívocamente una operación que NO expone contenido (lista
+# CERRADA: ls, stat, rm, test…). Lo que falte de esa lista queda BLOQUEADO,
+# que es el lado seguro del error.
 #
-# Los gates existentes están hechos de VERBOS DE ESCRITURA; las siete reglas de
-# lectura nunca estuvieron cubiertas por ninguno. Se nombró como deuda conocida
-# al retirar el guard de destino y se cierra acá, explícitamente, no de
-# contrabando.
+# ── LÍMITE CONOCIDO: la regla `*secret*` toca código legítimo ──────────────
 #
-# ── QUÉ SE AGREGA A LA LISTA DEL USUARIO, Y POR QUÉ ────────────────────────
+# 25 archivos trackeados de este repo matchean (17 `.ts`, 4 `.tf`, 3 `.md`,
+# 1 `.sh`): runbooks de rotación, módulos de Terraform, un `secret-loader`.
+# Leerlos es trabajo normal. Por eso la extensión del TOKEN decide: un `.ts`
+# llamado `reset-user-password.usecase.ts` no es un secreto. `.json` NO se
+# exime: es el formato de las llaves de GCP.
 #
-# `.env`. Medido el mismo día: de todas las rutas que las reglas nombran, en
-# este repo **sólo existe `.env`** — no hay `secrets/`, ni `.ssh/`, ni `.aws/`.
-# O sea que las siete reglas protegían rutas ausentes mientras el único archivo
-# de secretos real quedaba fuera de todas, legible por `Read` Y por Bash.
-# `.gitignore:22` ya lo declara secreto ("Env (secrets locales)"); la regla
-# faltaba. `.env.example` y `.env.dev` se excluyen: el propio `.gitignore` los
-# desmarca (`!.env.example`) porque son plantillas sin valores.
-#
-# ── LA PREGUNTA ESTÁ INVERTIDA (lección medida tres veces hoy) ─────────────
-#
-# NO se enumera "qué comandos leen" — esa lista es ABIERTA y hoy se cayó tres
-# veces en este mismo sistema: faltaba `add` en los verbos de gcloud, faltaba
-# un host sin punto en los destinos SQL, faltaban `ugrep`/`xargs -0` en los
-# buscadores. Cualquier lista de lectores se queda corta: `cat`, `less`, `xxd`,
-# `od`, `base64`, `openssl`, `python -c`, un editor, un `while read`.
-#
-# Se pregunta al revés: **¿el comando NOMBRA una ruta protegida?** Si la nombra
-# y NO es una de las pocas operaciones que no exponen contenido (lista cerrada:
-# `ls`, `stat`, `rm`, `test`…), se bloquea. Un binario que nadie previó no pasa:
-# no puede, porque no hace falta reconocerlo.
-#
-# ── FALSOS POSITIVOS: EL RIESGO REAL, MEDIDO ───────────────────────────────
-#
-# Las reglas `*credentials*` y `*password*` matchean CÓDIGO FUENTE legítimo. En
-# este repo, los únicos archivos trackeados que matchean son exactamente eso:
-#
-#   services/svc-auth/src/application/admin/reset-user-password.usecase.ts
-#   services/svc-chat/src/infrastructure/secrets/secret-loader.service.ts
-#
-# Bloquear su lectura rompería el trabajo normal, y un gate que muerde trabajo
-# legítimo se termina rodeando (el footgun que este repo ya documenta dos
-# veces). Por eso **las extensiones de código quedan exentas**: un `.ts` no es
-# un secreto aunque se llame `password`. El secreto vive en `.env`, `.key`,
-# `.pem`, o bajo `secrets/`.
-#
-# ── NO HAY OVERRIDE ────────────────────────────────────────────────────────
-#
-# Las reglas son del dueño y un agente no se auto-autoriza. Si hace falta leer
-# un secreto, lo lee el dueño. `CBM_CHECKED=1` se retiró hoy de otro hook por
-# usarse como atajo sistemático; no se reintroduce acá.
+# NO HAY OVERRIDE. Las reglas son del dueño; un agente no se auto-autoriza.
 #
 #   stdin: JSON { tool_input: { command } }   ·   exit 0 = permitir · 2 = bloquear
+#   tests: bash ~/.claude/hooks/tests/correr.sh no-leer-secretos-por-bash
 
 set -uo pipefail
 
@@ -76,84 +43,88 @@ if command -v jq >/dev/null 2>&1; then
   cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
 fi
 if [ -z "$cmd" ]; then
-  # Fallback sin jq. Falla CERRADO más abajo: si no se puede leer el comando
-  # pero el payload nombra una ruta protegida, se bloquea igual.
   cmd="$(printf '%s' "$payload" \
     | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(\([^"\\]\|\\.\)*\)".*/\1/p' | head -1)"
   [ -z "$cmd" ] && cmd="$payload"
 fi
 [ -z "$cmd" ] && exit 0
 
-# Comillas fuera: `cat "secrets/x.key"` es la misma lectura. Es la lección de
-# E4 de hoy — entrecomillar una ruta la escondía de un patrón sin frontera.
+# Comillas fuera: `cat "secrets/x.key"` es la misma lectura.
 probe="$(printf '%s' "$cmd" | tr -d "\"'")"
 
-# ── ¿Nombra una ruta protegida? Las 7 reglas del usuario, más `.env`. ──────
-# ⚠️ LA FRONTERA NO ES SÓLO EL ESPACIO. Medido al escribir este hook:
-#   python3 -c "print(open('.env').read())"  → exit 0
-# porque `.env` venía seguido de `)` y el patrón exigía espacio o fin de línea.
-# Una ruta termina en cualquier carácter que no forme parte de un nombre de
-# archivo: paréntesis, coma, punto y coma, pipe, `>`. Es la misma clase de
-# defecto que E4 (entrecomillar escondía el directorio): una frontera
-# demasiado estrecha deja pasar la forma que nadie escribió en la prueba.
+# Un comodín no se resuelve sin tocar disco (`.e*` ES `.env` para el shell), así
+# que se normaliza al nombre protegido: el lado seguro.
+probe="$(printf '%s' "$probe" | sed -E \
+  's#(^|[^[:alnum:]_.-])\.e[a-z]*[*?][^[:space:]]*#\1.env#g;
+    s#([^[:space:]]*)[*?]+([^[:space:]]*)\.(key|pem|p12|pfx|jks)#\1\2.\3#g;
+    s#(^|[^[:alnum:]_.-])(secrets|\.ssh|\.aws)[*?]+#\1\2/#g')"
+
+# Una ruta termina en cualquier carácter que no sea de nombre de archivo, no
+# sólo en espacio: `open('.env')` la cierra con `)`.
 FIN='([^[:alnum:]_.-]|$)'
 PROTEGIDO="(^|[^[:alnum:]_.-])(secrets/|\.ssh/|\.aws/)|[^[:space:]]*\.(key|pem|p12|pfx|jks)${FIN}|[^[:space:]]*(credentials|password|passwd|secret)[^[:space:]/]*${FIN}|(^|[^[:alnum:]_.-])\.env${FIN}"
-printf '%s' "$probe" | grep -qE "$PROTEGIDO" || exit 0
 
-# ── Exenciones, en orden de especificidad ──────────────────────────────────
+# Extensiones cuyo contenido es CÓDIGO o DOCUMENTACIÓN, no un secreto.
+# `.json` queda afuera a propósito: es el formato de las llaves de GCP.
+# Sin `.txt` ni `.json`: un `db-password.txt` y un `credentials.json` SON el
+# secreto, no código que lo menciona.
+EXT_TEXTO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma|md|ya?ml|toml|lock|snap|sh|bash|zsh|fish|Dockerfile|gitignore)$'
 
-# 1. CÓDIGO FUENTE. Un `.ts` llamado `reset-user-password.usecase.ts` no es un
-#    secreto. Medido: son los únicos archivos trackeados del repo que matchean.
-# ⚠️ `.json` NO está en esta lista, a diferencia de las demás extensiones de
-# texto. Medido: `cat certs/api-credentials.json` pasaba, y un
-# `credentials.json` ES el secreto —`.gitignore:67` ya declara
-# `.gcp-credentials.json`—. El riesgo inverso se midió y es CERO: ningún `.json`
-# trackeado del repo nombra credenciales/password/secret, así que exentarlo no
-# compraba nada y abría la puerta al formato en que vienen las llaves de GCP.
-if printf '%s' "$probe" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma|md|ya?ml|toml|lock|snap)([[:space:]]|$)'; then
-  exit 0
-fi
+# Un patrón de BÚSQUEDA no es una ruta: `logs | grep password` busca la palabra
+# en una salida, no abre un archivo. Si el token protegido es el argumento de
+# un buscador y no existe como ruta plausible, no hay archivo que proteger.
+es_patron_de_busqueda() {
+  printf '%s' "$probe" | grep -qE "(grep|egrep|fgrep|rg|ag|awk|sed)([[:space:]]+-[^[:space:]]+)*[[:space:]]+$1([[:space:]]|$)" \
+    && ! printf '%s' "$1" | grep -qE '/|\.'
+}
 
-# 2. PLANTILLAS sin valores: el propio `.gitignore` las desmarca (`!.env.example`).
-if printf '%s' "$probe" | grep -qE '\.env\.(example|sample|template|dev)([[:space:]]|$)'; then
-  exit 0
-fi
+# ── Se evalúa TOKEN POR TOKEN ──────────────────────────────────────────────
+# Se descartan banderas y el texto tras `#` (un comentario no es un argumento).
+protegido=""
+for tok in $(printf '%s' "$probe" | sed -E 's/#.*$//' | tr '|;&()`' '\n' | tr ' \t' '\n\n'); do
+  [ -n "$tok" ] || continue
+  case "$tok" in -*) continue ;; esac
+  printf '%s' "$tok" | grep -qE "$PROTEGIDO" || continue
+  # La extensión del TOKEN decide: un .ts que se llama password no es secreto.
+  printf '%s' "$tok" | grep -qE "$EXT_TEXTO" && continue
+  # Plantillas sin valores: el .gitignore las desmarca (`!.env.example`).
+  printf '%s' "$tok" | grep -qE '\.env\.(example|sample|template|dev)$' && continue
+  # `grep password <salida>` busca la palabra, no abre un archivo.
+  es_patron_de_busqueda "$tok" && continue
+  protegido="$tok"
+  break
+done
+[ -z "$protegido" ] && exit 0
 
-# 3. OPERACIONES QUE NO EXPONEN CONTENIDO. Lista CERRADA —éste es el único
-#    lugar donde se enumera, y se puede porque lo enumerado es lo permitido:
-#    lo que falte queda BLOQUEADO, que es el lado seguro del error.
-#    Se exige que el verbo ARRANQUE el comando o venga tras un separador.
-# ⚠️ NINGÚN INTÉRPRETE va acá. Medido al escribir este hook:
-#   python3 -c "print(open('.env').read())"  → exit 0
-# porque `node`/`python` estaban en la lista. Un intérprete ejecuta código
-# arbitrario: es la forma MÁS directa de leer el archivo, no una operación
-# inocua. Mismo criterio para `sh -c`, `perl`, `ruby`.
-INOCUOS='ls|ll|stat|file|test|\[|rm|mv|touch|mkdir|chmod|chown|ln|find|basename|dirname|realpath|readlink|wc|du|df|git|docker|pnpm|npm|tofu|terraform|gcloud|echo|printf|export'
+# ── ¿El comando sólo NOMBRA el archivo sin exponerlo? ──────────────────────
+# Lista CERRADA. `cp`, `diff`, `git`, `docker` NO están: copian o muestran el
+# contenido. Un verbo que falte queda bloqueado, que es el lado seguro.
+# `find` y `wc` sólo nombran o cuentan; `find -exec`/`-delete` y un `wc` tras
+# un pipe de lectura salen por la comprobación de LECTORES, que gana.
+INOCUOS='ls|ll|stat|file|test|\[|rm|unlink|mv|touch|mkdir|chmod|chown|ln|basename|dirname|realpath|readlink|du|df|wc|find|pnpm|npm|tofu|terraform|echo|printf|export'
+LECTORES='cat|head|tail|less|more|bat|nl|od|xxd|hexdump|strings|base64|openssl|grep|egrep|fgrep|rg|awk|sed|cut|sort|uniq|tr|tee|dd|cp|scp|rsync|curl|wget|diff|cmp|python[0-9.]*|perl|ruby|php|node|jq|xargs|vim|nano|emacs|git|docker|kubectl|zip|tar'
 if printf '%s' "$probe" | grep -qE "(^|[|;&]|&&|\|\|)[[:space:]]*($INOCUOS)([[:space:]]|$)" \
-   && ! printf '%s' "$probe" | grep -qE "(^|[|;&]|&&|\|\|)[[:space:]]*(cat|head|tail|less|more|bat|nl|od|xxd|hexdump|strings|base64|openssl|grep|egrep|fgrep|rg|awk|sed|cut|sort|uniq|tr|tee|dd|cp|scp|rsync|curl|wget|python[0-9.]*|perl|ruby|php)\b"; then
+   && ! printf '%s' "$probe" | grep -qE "(^|[|;&\`(]|&&|\|\||\\\$\()[[:space:]]*($LECTORES)\b" \
+   && ! printf '%s' "$probe" | grep -qE '\-(exec|execdir|ok)\b'; then
   exit 0
 fi
-
-# ── Bloquea ────────────────────────────────────────────────────────────────
-ruta="$(printf '%s' "$probe" | grep -oE "$PROTEGIDO" | head -1 | sed -E 's/^[[:space:]=]+//')"
 
 cat >&2 <<EOF
 🛑 BLOQUEADO: leer por Bash un archivo que las reglas \`deny\` protegen.
 
-   coincide con: ${ruta:-<ruta protegida>}
+   token: $protegido
 
-Las reglas \`deny\` de ~/.claude/settings.json gobiernan la herramienta \`Read\`.
-Bash es otra puerta, y hasta ahora no las respetaba: \`cat secrets/x.key\` pasaba
-mientras \`Read\` lo bloqueaba. Este hook cierra esa asimetría.
+Las reglas \`deny\` de ~/.claude/settings.json gobiernan \`Read\`. Bash es otra
+puerta, y este hook cierra esa asimetría.
 
 NO hay override: las reglas son del dueño y un agente no se auto-autoriza. Si
-de verdad hace falta el contenido de un secreto, lo abre él.
+hace falta el contenido de un secreto, lo abre él.
 
-QUÉ SÍ podés hacer sin el contenido:
-  • ver si existe / su tamaño / permisos  → ls -la, stat
-  • operar sin leer                       → rm, mv, chmod
-  • las plantillas SIN valores            → .env.example, .env.dev
-  • el CÓDIGO que menciona secretos       → no se bloquea (un .ts no es un
-    secreto aunque se llame reset-user-password.usecase.ts)
+QUÉ SÍ podés hacer:
+  • existencia / tamaño / permisos  → ls -la, stat
+  • operar sin leer                 → rm, mv, chmod
+  • plantillas SIN valores          → .env.example, .env.dev
+  • el CÓDIGO que menciona secretos → no se bloquea (un .ts/.tf/.sh/.md que se
+    llame password o viva en secrets/ es código, no un secreto)
 EOF
 exit 2
