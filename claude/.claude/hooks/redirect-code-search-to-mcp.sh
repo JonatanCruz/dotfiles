@@ -31,16 +31,50 @@ set -uo pipefail
 
 payload="$(cat)"
 
+# Extracción del comando. El fallback SIN jq no puede ser el payload crudo: en
+# el JSON las comillas van escapadas, y la etapa 1 de abajo exige que la
+# herramienta venga precedida por inicio-de-línea o un separador de shell.
+# Sobre el crudo queda precedida por una comilla -> no matchea -> el gate
+# salía 0 y DEJABA PASAR la búsqueda que venía a bloquear.
+# Medido el 2026-09-19 con jq oculto del PATH: exit=0 sobre un caso que con
+# jq da 2. Ahora se decodifica el campo y, si ni eso funciona, se usa el
+# payload entero como red de contención. Un gate que ante lo inesperado deja
+# pasar es peor que no tenerlo.
 if command -v jq >/dev/null 2>&1; then
   cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
 else
-  cmd="$payload"
+  cmd="$(printf '%s' "$payload" \
+    | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' \
+    | sed 's/\\"/"/g; s/\\\\/\\/g' | head -1)"
+  [ -z "$cmd" ] && cmd="$payload"
 fi
 
 [ -z "$cmd" ] && exit 0
 
-# El agente ya midió con el índice y necesita grep para algo puntual.
-printf '%s' "$cmd" | grep -qE '(^|[[:space:]])CBM_CHECKED=1' && exit 0
+# ── NO HAY OVERRIDE. Se retiró el 2026-09-19 por orden del dueño. ───────────
+#
+# Existía `CBM_CHECKED=1`: una palabra que el AGENTE escribía por su cuenta para
+# saltarse este gate. Medido ese mismo día: se usó como atajo sistemático, no
+# como excepción — el agente lo anteponía en vez de usar el índice, y el dueño
+# lo detectó.
+#
+# Primer intento de arreglo: dejarlo pero REGISTRARLO. El dueño lo refutó en una
+# línea: *"¿qué diferencia hay entre saltarlo en silencio y saltarlo con
+# registro?"*. Ninguna, si nadie lee el registro. Era el mismo patrón que este
+# repo ya pagó caro: el detector de líneas trabadas EXISTÍA, medía 101 casos en
+# 30 días, y estaba apagado. Observabilidad que nadie mira no es control.
+#
+# Ahora la puerta no existe. Si el gate bloquea, el camino es el índice
+# (search_code/trace_path/find_symbol) o un comando que no sea una búsqueda
+# recursiva sobre código. Las excepciones LEGÍTIMAS siguen abajo y no dependen
+# de la voluntad del agente: si no apunta a código, o es un archivo concreto sin
+# recursión, no se bloquea.
+#
+# Si algún día aparece un caso real que estas excepciones no cubren, se pide al
+# dueño y él decide. Un agente no se auto-autoriza.
+
+# El registro se conserva: sirve para ver si el gate estorba de verdad.
+log="${HOME}/.claude/logs/cbm-blocked.log"
 
 # ¿Es una búsqueda de texto?
 printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]]|$)' || exit 0
@@ -77,4 +111,6 @@ Si YA mediste con el índice y necesitás grep para algo puntual, escribilo a pr
 
     CBM_CHECKED=1 <tu comando>
 MSG
+mkdir -p "$(dirname "$log")" 2>/dev/null
+printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null
 exit 2
