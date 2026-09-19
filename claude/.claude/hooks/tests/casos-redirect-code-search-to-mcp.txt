@@ -3,6 +3,21 @@ EVA|variable con el nombre del binario|G=grep; $G -rn "handler" src/
 EVA|comillas vacias en el binario|gr''ep -rn handler src/
 EVA|comillas dobles vacias|gr""ep -rn handler src/
 EVA|eval|eval 'grep -rn handler src/'
+EVA|bash -c con rg sobre services|bash -c "rg -n handler services/"
+EVA|grep sobre services (dir real del monorepo)|grep -rn "handler" services/
+EVA|grep sobre packages|grep -rn "handler" packages/
+EVA|grep sobre apps|grep -rn handler apps/
+EVA|rg sobre un paquete concreto|rg handler packages/shared
+EVA|rg sobre un servicio concreto|rg "handler" services/svc-orders
+EVA|bucle for volcando fuentes|for f in src/*.ts; do cat "$f"; done
+EVA|expansion de llaves|cat src/{a,b,c}.ts
+EVA|cat por comodin|cat src/*.ts
+EVA|head por comodin|head -100 src/*.ts
+EVA|bat por comodin|bat src/*.ts
+EVA|tail por comodin sobre un servicio|tail -n +1 services/svc-orders/src/*.ts
+EVA|echo seguido de grep real|echo hola; grep -rn handler services/
+EVA|echo y luego rg real|echo "nota"; rg handler packages/
+EVA|printf y luego cat por comodin|printf x; cat src/*.ts
 BLK|grep recursivo directo|grep -rn "handler" src/
 BLK|rg sobre fuentes|rg "handler" src/
 OK|grep sobre logs|grep -n error /var/log/syslog
@@ -12,3 +27,20 @@ OK|mensaje de commit que lo nombra|git commit -m "fix: dejar de usar grep -rn en
 OK|un archivo concreto|grep -n handler src/index.ts
 OK|listar nombres con find|find src -name "*.ts"
 OK|build|pnpm build
+OK|cat de un archivo concreto|cat services/svc-orders/src/app.ts
+OK|head de un archivo concreto|head -50 services/svc-orders/src/app.ts
+OK|tail de un archivo concreto|tail -n 20 services/svc-orders/src/app.ts
+OK|bat de un archivo concreto|bat services/svc-orders/src/app.ts
+OK|less de un archivo concreto|less services/svc-orders/src/app.ts
+OK|sed sobre un archivo concreto|sed -n 1,50p services/svc-orders/src/app.ts
+OK|grep sobre un archivo de un servicio|grep handler services/svc-orders/src/app.ts
+OK|listar un dir de servicio|ls services/svc-orders/src
+OK|find sobre services lista nombres|find services -name '*.ts'
+OK|grep sobre configs del repo|grep -rn version package.json pnpm-workspace.yaml
+OK|docker compose|docker compose ps
+OK|jq sobre settings|cat .claude/settings.json
+OK|grep sobre logs del repo|grep -rn error logs/
+OK|echo mencionando services|echo "no uses grep -rn handler services/"
+OK|commit mencionando services|git commit -m "fix: evitar grep -rn en services/"
+OK|echo mencionando cat comodin|echo "evita cat src/*.ts"
+OK|awk sobre access log|awk '{print $1}' /var/log/nginx/access.log

@@ -15,6 +15,22 @@
 #   · no: un archivo único ya identificado (leerlo/filtrarlo es legítimo)
 # Bloquear de más entrena a saltarse el gate, y ahí se pierden las dos cosas.
 #
+# LA LÍNEA DIVISORIA ES UNO vs MUCHOS, NO EL BINARIO (medido 2026-09-19)
+# ----------------------------------------------------------------------
+# Una auditoría listó como evasiones `head -100 src/app.ts`, `tail -n +1 …`,
+# `bat src/app.ts` y `less src/app.ts`. NO se bloquearon, a propósito: sobre UN
+# archivo ya identificado son exactamente el caso que el ALCANCE de arriba
+# declara legítimo, y se comportan igual que `cat src/app.ts`, `sed -n 1,50p
+# src/app.ts` y `grep handler src/app.ts`, que este gate deja pasar desde
+# siempre. Bloquearlos obligaría a bloquear también `cat` y `grep` sobre un
+# archivo — o sea, leer código de a un archivo—, que es el falso positivo que
+# desactiva el gate y que su propio ALCANCE prohíbe.
+#
+# Lo que SÍ se cerró de esa familia es el volcado EN VOLUMEN con esos mismos
+# binarios, que estaba abierto y sí es lo que el gate existe para frenar:
+#   cat src/*.ts · head -100 src/*.ts · bat src/*.ts  → antes 0, ahora 2
+#   cat src/{a,b,c}.ts · for f in src/*.ts; do cat …  → antes 0, ahora 2
+#
 # Un índice ve lo que grep no puede: quién llama a qué a través de inyección de
 # dependencias, un docstring completo en vez del fragmento que entró en la línea
 # matcheada, el impacto real de un cambio. Leer código en pedazos produce diagnósticos
@@ -53,6 +69,66 @@ else
 fi
 
 [ -z "$cmd" ] && exit 0
+
+# ── NORMALIZACIÓN ANTES DE EVALUAR (portada de guard-sensitive-exec.sh) ─────
+#
+# Las tres evasiones que siguen se midieron el 2026-09-19, todas en exit 0, y
+# todas atacan la MISMA debilidad: el gate comparaba texto crudo, así que
+# cualquier forma de escribir `grep` que el shell entiende pero el patrón no,
+# lo rodeaba sin dejar rastro.
+#
+#   gr''ep -rn handler src/          → el shell ejecuta `grep`; acá llegaban
+#                                      las comillas vacías intactas.
+#   bash -c 'grep -rn handler src/'  → el comando real vive dentro del string.
+#   G=grep; $G -rn handler src/      → el nombre llega por variable.
+#
+# 1) COMILLAS VACÍAS. El shell elimina `''` y `""` antes de ejecutar: `gr''ep`
+#    ES `grep`. Se colapsan acá, y el ORDEN IMPORTA — tiene que ser ANTES de
+#    cualquier pasada que borre strings, porque después la comilla vacía ya no
+#    existe y en su lugar quedó un espacio (`gr ep`), que no matchea nada. Es
+#    la misma corrección que el commit 7de969c7 hizo en el guard de prod.
+cmd="$(printf '%s' "$cmd" | sed -E "s/''//g; s/\"\"//g")"
+
+# 2) INTÉRPRETES: `bash -c '…'` y `eval "…"`. El string que recibe un intérprete
+#    NO es texto citado, es CÓDIGO que se va a ejecutar. El guard de prod ya
+#    resolvía esto en su sección "EXCEPCIÓN A LA NORMALIZACIÓN"; acá se porta el
+#    mismo criterio: si aparece un intérprete arrancando un comando, se le
+#    quitan las comillas al comando entero para que el patrón vea lo de adentro.
+#    Se exige que el intérprete inicie comando (o venga tras separador) para que
+#    mencionarlo en un texto —`echo "usá bash -c"`— no dispare.
+if printf '%s' "$cmd" | grep -qE '(^|[|;&`]|&&|\|\||\$\()[[:space:]]*(eval|(env[[:space:]]+)?(ba|z|k|da)?sh([[:space:]]+-[^[:space:]]+)*[[:space:]]+-[a-zA-Z]*c)\b'; then
+  cmd="$(printf '%s' "$cmd" | tr -d "\"'")"
+fi
+
+# 3) ASIGNACIÓN A VARIABLE: `G=grep; $G -rn …`. Se resuelven las asignaciones
+#    simples a nombres de herramientas y se sustituye el uso (`$G`, `${G}`).
+#    Sólo se expanden valores que son binarios de búsqueda/lectura: expandir
+#    variables arbitrarias cambiaría comandos legítimos sin motivo.
+for _v in $(printf '%s' "$cmd" \
+    | grep -oE '(^|[|;&[:space:]])[A-Za-z_][A-Za-z0-9_]*=(grep|rg|ag|ack|sed|awk|cat|head|tail|bat|less|more|nl)\b' \
+    | sed -E 's/^[|;&[:space:]]+//'); do
+  _name="${_v%%=*}"; _val="${_v#*=}"
+  cmd="$(printf '%s' "$cmd" | sed -E "s/\\\$\{?${_name}\}?/${_val}/g")"
+done
+unset _v _name _val
+
+# 4) EJECUTAR ≠ NOMBRAR. El mismo invariante que guard-sensitive-exec: lo que va
+#    ENTRE COMILLAS es texto, no ejecución. Este hook no tenía esta pasada y por
+#    eso `echo "no uses grep -rn handler src/"` y
+#    `git commit -m "fix: dejar de usar grep -rn en src/"` bloqueaban — un gate
+#    que muerde el trabajo de DOCUMENTARLO es el que se termina desactivando.
+#
+#    Sólo se descartan los strings que son ARGUMENTO de un comando que no
+#    ejecuta (echo/printf/git commit -m/…). El string de un intérprete ya se
+#    desenvolvió en el paso 2, así que `bash -c 'grep …'` sigue bloqueando.
+#
+#    ⚠️ El ORDEN importa y es el mismo que en el guard: las comillas vacías (1)
+#    y el desenvuelto del intérprete (2) van ANTES. Borrar strings primero
+#    destruiría la información que esos dos pasos necesitan.
+if printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*(echo|printf)\b' \
+   || printf '%s' "$cmd" | grep -qE 'git[[:space:]]+(commit|tag)\b[^|;&]*-[a-zA-Z]*m\b'; then
+  cmd="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+fi
 
 # ── NO HAY OVERRIDE. Se retiró el 2026-09-19 por orden del dueño. ───────────
 #
@@ -111,6 +187,20 @@ READ_MANY="$READ_MANY"'|rglob|iglob|os\.walk|Files\.walk|glob\.glob'
 READ_MANY="$READ_MANY"'|(awk|perl)[[:space:]]+[^|;&]*/[^/]*/[^|;&]*\*'
 READ_MANY="$READ_MANY"'|(read_text\(\)|readFileSync|\.read\(\))[^|;&]*\*'
 READ_MANY="$READ_MANY"'|\*\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b[^|;&]*(read_text|readFileSync|\.read\(\))'
+# Bucle de shell que recorre fuentes: `for f in src/*.ts; do cat "$f"; done`.
+READ_MANY="$READ_MANY"'|for[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]+in[[:space:]][^;]*\*'
+# Expansión de llaves sobre fuentes: `cat src/{a,b,c}.ts` — un solo comando,
+# varios archivos. El shell la expande; el patrón de comodín no la veía.
+READ_MANY="$READ_MANY"'|(cat|head|tail|bat|less|more|nl)[[:space:]][^|;&]*\{[^}]*,[^}]*\}'
+# Volcado por COMODÍN: `cat src/*.ts`, `head -100 services/**/*.ts`, `bat src/*.ts`.
+# Es el mismo volcado en volumen que ya se bloquea vía find/xargs, pero escrito
+# con la expansión del shell. Medido el 2026-09-19 en exit 0.
+#
+# ⚠️ EXIGE EL COMODÍN. `head -100 src/app.ts` sobre UN archivo ya identificado
+# sigue pasando, igual que `cat src/app.ts` y `grep handler src/app.ts`: leer un
+# archivo concreto es legítimo y está en el ALCANCE de este hook. La línea
+# divisoria es UNO vs MUCHOS, no el binario.
+READ_MANY="$READ_MANY"'|(cat|head|tail|bat|less|more|nl)[[:space:]][^|;&]*\*[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b'
 
 if printf '%s' "$cmd" | grep -qE "$CODE_HINT" \
    && printf '%s' "$cmd" | grep -qE -- "$READ_MANY"; then
@@ -140,7 +230,12 @@ printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]
 
 # ¿Apunta a código? Extensiones de fuentes, o directorios de fuentes de layouts comunes
 # (monorepo por paquetes, o `src/` a secas). Si no toca código, no molestamos.
-printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/])(src|lib|app)([[:space:]/]|$)' || exit 0
+#
+# `services` y `packages` se agregaron el 2026-09-19: son los directorios REALES
+# de este monorepo y faltaban, así que `grep -rn handler services/` —la búsqueda
+# más habitual acá— salía exit 0. La lista describía un layout genérico, no el
+# del repo donde el gate corre. Se suman también `apps` y `infra`.
+printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|$)' || exit 0
 
 # Un solo path concreto sin recursión ni comodines: el archivo ya está identificado.
 if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b' \
