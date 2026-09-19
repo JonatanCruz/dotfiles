@@ -9,8 +9,37 @@
 # Motivación: el system prompt del harness inyecta una instrucción "# Memory" que
 # ordena escribir esos archivos. Eso ENTRA EN CONFLICTO con la regla "Engram ONLY"
 # de ~/.claude/CLAUDE.md. Una regla de prosa no previene el "error competente"
-# (el agente que cree que cumple). Este hook hace el conflicto estructuralmente
-# imposible — patrón Meadows ya usado en guard-sensitive-exec.sh / Reglas #13/#14.
+# (el agente que cree que cumple). Este hook SUBE MUCHO EL COSTO de ese conflicto
+# — patrón Meadows ya usado en guard-sensitive-exec.sh / Reglas #13/#14.
+#
+# ⚠️ NO dice "estructuralmente imposible", y la palabra se retiró a propósito.
+#
+# Acá decía exactamente eso. Fue falso dos veces, y la segunda es la que importa:
+#   · por la mañana del 2026-09-19 se rodeaba escribiendo por Bash (lo cerró el
+#     bloque "EL HUECO QUE ESTO CIERRA", más abajo);
+#   · esa misma tarde, auditando los comentarios, la afirmación SEGUÍA escrita
+#     acá y seguía siendo falsa. Medido ejecutando el hook, 9 vías que PASAN:
+#
+#       python3 …Path(RUTA).write_text('x')        → exit 0  ← el regex de abajo
+#                                                     apunta a write_text pero
+#                                                     exige un modo 'w'/'a' que
+#                                                     write_text NO lleva
+#       cd …/memory && echo x > MEMORY.md          → exit 0  (ruta relativa)
+#       D=…/memory; echo x > $D/MEMORY.md          → exit 0  (variable)
+#       dd of=RUTA · truncate · install · rsync    → exit 0
+#       ln -sf · touch · vim -c wq · git checkout  → exit 0
+#
+# POR QUÉ SE DOCUMENTA EN VEZ DE PERSEGUIR CADA BINARIO: la lista no tiene fin
+# (cualquier intérprete escribe un archivo), y un regex que intente cubrirla
+# empieza a morder lecturas legítimas — que NUNCA estuvieron bloqueadas y son el
+# uso frecuente. El gate cubre las vías COMUNES y accidentales, que es su trabajo
+# real: frenar al agente que obedece la instrucción "# Memory" del harness sin
+# pensarlo. NO frena a quien quiera evadirlo a propósito.
+#
+# La palabra "imposible" es el defecto, no el hueco: una garantía absoluta
+# justifica no verificar, y por eso la afirmación sobrevivió intacta a la
+# corrección de la mañana — nadie vuelve a probar lo que el comentario declara
+# imposible.
 #
 # Read NO se bloquea (el usuario puede pedir leer un archivo viejo sin migrar aún).
 # Override consciente y auditable: export ENGRAM_MIGRATION=1 (para migrar/limpiar
