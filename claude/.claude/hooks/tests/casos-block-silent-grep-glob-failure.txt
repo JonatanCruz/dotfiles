@@ -2,18 +2,18 @@
 # afirmaba que "el falso positivo es imposible por construcción" y lo refutaba un
 # caso trivial — no se podía escribir el mensaje de commit que documenta el
 # arreglo. Por eso la mayoría de los casos son OK (deben pasar) y no EVA.
-OK|mensaje de commit que nombra la sintaxis|git commit -m "fix: usar --include=*.ts entrecomillado"
-OK|echo que la explica|echo "usa --include=*.ts con comillas"
-OK|heredoc que la documenta|cat > /tmp/nota.md <<EOF\n--include=*.ts falla en zsh\nEOF
-OK|comentario al final del comando|ls src/  # ojo con --include=*.ts
-OK|buscar la sintaxis en los docs|grep -rn "include=" /home/jonatan/docs
-OK|entrecomillado con dobles|grep -rn "foo" . --include="*.ts"
-OK|entrecomillado con simples|grep -rn "foo" . --include='*.ts'
-OK|sin glob|grep -rn "foo" . --include=Makefile
-OK|ripgrep con tipo|rg -t ts "foo"
-OK|nada que ver|pnpm build
-BLK|el glob sin comillas, ejecutado|grep -rn "foo" . --include=*.ts
-BLK|exclude sin comillas|grep -rn "foo" . --exclude=*.js
-BLK|include-dir sin comillas|grep -rn "foo" . --include-dir=*build*
-BLK|dentro de bash -c, que SI ejecuta|bash -c 'grep -rn foo . --include=*.ts'
-BLK|tras un separador|cd /tmp && grep -rn foo . --include=*.ts
+0	mensaje de commit que nombra la sintaxis	git commit -m "fix: usar --include=*.ts entrecomillado"
+0	echo que la explica	echo "usa --include=*.ts con comillas"
+0	heredoc que la documenta	cat > /tmp/nota.md <<EOF\n--include=*.ts falla en zsh\nEOF
+0	comentario al final del comando	ls src/  # ojo con --include=*.ts
+0	buscar la sintaxis en los docs	grep -rn "include=" /home/jonatan/docs
+0	entrecomillado con dobles	grep -rn "foo" . --include="*.ts"
+0	entrecomillado con simples	grep -rn "foo" . --include='*.ts'
+0	sin glob	grep -rn "foo" . --include=Makefile
+0	ripgrep con tipo	rg -t ts "foo"
+0	nada que ver	pnpm build
+2	el glob sin comillas, ejecutado	grep -rn "foo" . --include=*.ts
+2	exclude sin comillas	grep -rn "foo" . --exclude=*.js
+2	include-dir sin comillas	grep -rn "foo" . --include-dir=*build*
+2	dentro de bash -c, que SI ejecuta	bash -c 'grep -rn foo . --include=*.ts'
+2	tras un separador	cd /tmp && grep -rn foo . --include=*.ts

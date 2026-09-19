@@ -32,17 +32,32 @@
 # bloque "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo.
 #
 # ESTADO MEDIDO (no "imposible": medido, con fecha y suite reproducible):
-#   27 casos en exit 2   ·   15 usos legítimos → exit 0   (42 casos en total)
-#   incluidas las 13 que pasaban, más intérpretes (python/node/perl), comillas
-#   vacías (`to''uch`), continuación de línea, `bash -c`, y el modo sin jq.
+#   18 casos en exit 2   ·   15 usos legítimos → exit 0   (33 casos en total)
+#   incluidas las evasiones por intérprete (python/node), awk/sed con sus
+#   primitivas de escritura, tar/rsync/unzip hacia el DIRECTORIO, el pipe a un
+#   escritor (`| tee`, `| dd of=`), comillas vacías y el modo sin jq.
 #
-# El número sale de CONTAR el archivo de casos, no de recordarlo: son las clases
-# EVA (23, vías que se midieron pasando) + BLK (4) de
-# tests/casos-block-harness-memory.txt. La primera versión de esta línea decía
-# "23 vías de escritura" porque contó sólo EVA y olvidó BLK. Se corrige el
-# 2026-09-19 (tarde) corriendo la suite:
-#   ./tests/run-suite.sh ./block-harness-memory.sh tests/casos-block-harness-memory.txt
-#   → 42/42, sin desvíos.
+#   bash ~/.claude/hooks/tests/correr.sh block-harness-memory
+#
+# ⚠️ ESTE BLOQUE DECÍA "42 casos (27 en exit 2)" Y ERA FALSO — las tres veces.
+#
+# Una auditoría independiente lo midió el 2026-09-19: el archivo tenía 33 casos
+# (18/15), y las clases `EVA`/`BLK` que el texto decía haber CONTADO aparecen
+# CERO veces en él. Peor, citaba como prueba reproducible:
+#
+#   ./tests/run-suite.sh … → 42/42, sin desvíos
+#
+# Correr ese comando exacto daba **"→ 0/0, sin desvíos"**: `run-suite.sh`
+# parseaba `CLASE|desc|cmd` y el archivo de casos usa `<exit><TAB>desc<TAB>cmd`.
+# Era herramienta muerta que reportaba ÉXITO sobre cero casos ejecutados — el
+# mismo "control presente y apagado" que este hook existe para cazar. Se borró.
+#
+# La lección, que vale más que el número corregido: el comentario se hizo MÁS
+# creíble con cada ronda —primero "23", después "42 contados por clase", después
+# una suite citada por nombre— mientras se alejaba de la verdad. **Subir la
+# precisión de una cifra no la vuelve verdadera, sólo la vuelve más difícil de
+# dudar.** Por eso el número ahora se acompaña del comando que lo reproduce, y
+# ese comando se verificó que ejecuta algo: el runner falla si cuenta cero.
 #
 # Y ya no dice "vías de ESCRITURA": de los 4 BLK, tres lo son (`echo x >`, su
 # append, `cat otro >`) pero el cuarto es una LECTURA por intérprete
@@ -293,11 +308,36 @@ if [[ -z "$target" ]]; then
   # `grep` entra por el uso real —buscar dentro del archivo viejo— y no abre un
   # hueco: grep no escribe el archivo que lee.
   LECTORES='cat|head|tail|less|more|wc|grep|egrep|fgrep|rg|nl|file|stat|md5sum|sha256sum|sha1sum|ls|diff|cmp|realpath|dirname|basename|jq|awk|sed'
-  es_lectura=0
-  if printf '%s' "$probe" | grep -qE "^[[:space:]]*($LECTORES)([[:space:]]|$)" \
-     || printf '%s' "$probe" | grep -qE "^[[:space:]]*git[[:space:]]+(log|show|diff|blame|status|cat-file|ls-files)\b"; then
-    es_lectura=1
-  fi
+  # ⚠️ SE EVALÚA CADA SEGMENTO, NO EL COMANDO ENTERO.
+  #
+  # El test anclaba en la PRIMERA palabra del comando completo, así que bastaba
+  # arrancar con un lector y encadenar. Medido el 2026-09-19 por una auditoría
+  # independiente, verificado EN DISCO (el archivo protegido cambió de contenido):
+  #
+  #   cat /tmp/a.md | tee   …/memory/f.md    → exit 0, archivo sobrescrito
+  #   cat /tmp/a.md | dd of=…/memory/f.md    → exit 0, archivo sobrescrito
+  #   wc -l /tmp/a.md; cp /tmp/a.md …/memory/f.md → exit 0, sobrescrito
+  #   (tee …/memory/f.md < /tmp/a.md         → exit 2, el control)
+  #
+  # `>` ya se chequeaba aparte, pero un PIPE no: `| tee` y `| dd of=` escriben
+  # sin ninguna redirección. Y el `;` es aún más barato — dos comandos
+  # independientes donde sólo se miraba el primero.
+  #
+  # Ahora el comando se parte por `|`, `;`, `&&`, `||` y CADA segmento que toque
+  # la ruta protegida tiene que ser una lectura por sí mismo. Un solo segmento
+  # que escriba basta para bloquear, sin importar con qué empiece la línea.
+  es_lectura=1
+  segmentos="$(printf '%s' "$probe" | sed -E 's/(\|\||&&|[|;&])/\n/g')"
+  while IFS= read -r seg; do
+    [ -n "${seg//[[:space:]]/}" ] || continue
+    # Un segmento que no toca la ruta protegida no decide nada.
+    printf '%s' "$seg" | grep -qE "$MEM_RE|$MEM_DIR_RE" || continue
+    printf '%s' "$seg" | grep -qE "^[[:space:]]*($LECTORES)([[:space:]]|$)" \
+      || printf '%s' "$seg" | grep -qE "^[[:space:]]*git[[:space:]]+(log|show|diff|blame|status|cat-file|ls-files)\b" \
+      || es_lectura=0
+  done <<SEGEOF
+$segmentos
+SEGEOF
   # `sed -i` / `awk -i inplace` ESCRIBEN: entran por la lista de lectores y salen acá.
   if printf '%s' "$probe" | grep -qE "^[[:space:]]*(sed|perl)[[:space:]]+[^|;&]*(-i|--in-place)" \
      || printf '%s' "$probe" | grep -qE "^[[:space:]]*awk[[:space:]]+[^|;&]*-i[[:space:]]*inplace"; then

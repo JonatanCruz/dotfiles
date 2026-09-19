@@ -32,10 +32,20 @@ for casos in casos-*.txt; do
   fi
 
   printf '\n══ %s ══\n' "$hook_name"
-  p=0; f=0
+  p=0; f=0; saltadas=0
   while IFS=$'\t' read -r esperado desc cmd; do
     case "$esperado" in ''|'#'*) continue ;; esac
-    [ -z "${cmd:-}" ] && continue
+    # ⚠️ Una línea que NO parsea se CUENTA, no se ignora. Medido el 2026-09-19:
+    # `casos-block-silent-grep-glob-failure.txt` usa el formato viejo
+    # `OK|desc|cmd` y este runner lo leía como cero casos, imprimiendo
+    # "0 pasan, 0 fallan" y sumando 0 al total —o sea, VERDE sobre nada
+    # ejecutado—. Es el mismo defecto por el que se borró `run-suite.sh`
+    # ("→ 0/0, sin desvíos"), repetido en su reemplazo.
+    case "$esperado" in
+      0|2) ;;
+      *) saltadas=$((saltadas+1)); continue ;;
+    esac
+    [ -z "${cmd:-}" ] && { saltadas=$((saltadas+1)); continue; }
     cmd="${cmd//@MEM@/$MEM}"
     real=$(jq -nc --arg c "$cmd" '{tool_input:{command:$c}}' \
       | CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}" bash "$hook" >/dev/null 2>&1; echo $?)
@@ -47,6 +57,15 @@ for casos in casos-*.txt; do
     fi
   done < "$casos"
   printf '  %s pasan, %s fallan\n' "$p" "$f"
+  if [ "$saltadas" -gt 0 ]; then
+    printf '  ⚠️  %s línea(s) NO PARSEAN (formato esperado: <0|2><TAB>desc<TAB>cmd)\n' "$saltadas"
+    total_f=$((total_f+saltadas))
+  fi
+  # Un archivo de casos que no ejecuta NADA es un control apagado, no un éxito.
+  if [ $((p+f)) -eq 0 ]; then
+    printf '  ❌ CERO casos ejecutados — este archivo no está probando nada.\n'
+    total_f=$((total_f+1))
+  fi
   total_p=$((total_p+p)); total_f=$((total_f+f))
 done
 

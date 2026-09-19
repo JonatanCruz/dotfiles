@@ -59,3 +59,18 @@
 # en la misma línea: el hook ve exactamente el mismo texto que en varias.
 0	heredoc de texto que describe búsquedas	cat > /tmp/m.txt <<EOF ; grep -rn x services/ ; EOF
 2	heredoc a bash ES ejecución	bash <<EOF ; grep -rn x services/ ; EOF
+
+# ── E4 y falsos positivos (auditoría independiente 2026-09-19) ────────────
+#
+# Entrecomillar el directorio lo escondía del patrón (misma clase de defecto
+# que E1/E2 del guard de prod: substring sin frontera). Y decidir por
+# DIRECTORIO PADRE bloqueaba logs/YAML/markdown que el ALCANCE promete.
+2	directorio entrecomillado	grep -rn handler "services"
+2	find con xargs -0	find services -name "*.ts" -print0 | xargs -0 cat
+2	find con -exec	find services -name "*.ts" -exec cat {} +
+2	ugrep no estaba en la lista	ugrep -rn handler services/
+0	log bajo services/	grep -rn ERROR services/logs/app.log
+0	YAML bajo infra/	grep -n port infra/dev/docker-compose.yml
+0	markdown bajo src/	grep -rn foo src/README.md
+0	awk sobre salida de CLI	docker compose ps | awk "{print $1}"
+0	find que sólo lista	find services -name "*.ts"

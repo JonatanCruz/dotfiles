@@ -15,6 +15,20 @@
 #   · no: un archivo único ya identificado (leerlo/filtrarlo es legítimo)
 # Bloquear de más entrena a saltarse el gate, y ahí se pierden las dos cosas.
 #
+# ⚠️ ESTE ALCANCE FUE FALSO HASTA EL 2026-09-19. Una auditoría independiente
+# midió que las dos últimas líneas no se cumplían, porque la decisión se tomaba
+# por DIRECTORIO PADRE y no por tipo de archivo:
+#
+#   grep -rn ERROR services/logs/app.log       → exit 2  (un LOG)
+#   grep -n port infra/dev/docker-compose.yml  → exit 2  (un YAML)
+#   grep -rn foo src/README.md                 → exit 2  (un MARKDOWN)
+#
+# Y como este gate NO tiene override, era trabajo imposible de hacer por
+# ninguna vía — el escenario exacto contra el que advierte la línea de arriba.
+# El texto no mentía sobre la intención: describía un comportamiento que el
+# código no tenía. Ahora una extensión inequívocamente no-código gana sobre el
+# directorio, y los tres casos están en la suite para que no vuelva a divergir.
+#
 # LA LÍNEA DIVISORIA ES UNO vs MUCHOS, NO EL BINARIO (medido 2026-09-19)
 # ----------------------------------------------------------------------
 # Una auditoría listó como evasiones `head -100 src/app.ts`, `tail -n +1 …`,
@@ -268,7 +282,19 @@ MSG
 fi
 
 # ¿Es una búsqueda de texto?
-printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]]|$)' || exit 0
+# ⚠️ Faltaban buscadores y las formas indirectas. Medido el 2026-09-19 por una
+# auditoría independiente: `ugrep`/`pt` no estaban en la lista, y
+# `find … -print0 | xargs -0 cat` recorría el código entero sin tocar el gate
+# (sólo se reconocía el `xargs` sin `-0`).
+#
+# Es la misma lista abierta de siempre. Acá no se puede invertir la pregunta
+# —"¿qué binario NO busca?" es infinito— así que se asume el costo: la lista
+# se amplía con lo medido, y `find` con acción de lectura entra por su propia
+# vía, que es estructural (recorrer un árbol + leer cada archivo) y no depende
+# de qué binario haga la lectura.
+printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|egrep|fgrep|rg|ripgrep|ag|ack|ugrep|pt|sift|sed|awk)([[:space:]]|$)' \
+  || printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])find\b[^|;&]*(-exec|-print0?|\|)' \
+  || exit 0
 
 # ¿Apunta a código? Extensiones de fuentes, o directorios de fuentes de layouts comunes
 # (monorepo por paquetes, o `src/` a secas). Si no toca código, no molestamos.
@@ -293,11 +319,48 @@ printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]
 # Unificadas acá: no pueden volver a divergir sin que alguien edite una línea.
 EXT_CODIGO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma)\b'
 
-printf '%s' "$cmd" | grep -qE "$EXT_CODIGO|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|\$)" || exit 0
+# ── UN ARCHIVO QUE NO ES CÓDIGO NO ES CÓDIGO, ESTÉ DONDE ESTÉ ──────────────
+#
+# El chequeo de abajo decide por el DIRECTORIO PADRE además de la extensión, y
+# eso bloqueaba archivos que el ALCANCE de este hook promete explícitamente
+# permitir ("logs, JSON, YAML, configs"). Medido el 2026-09-19 por una
+# auditoría independiente:
+#
+#   grep -rn ERROR services/logs/app.log          → exit 2
+#   grep -n port infra/dev/docker-compose.yml     → exit 2
+#   grep -rn foo src/README.md                    → exit 2
+#   (los mismos fuera de esos directorios         → exit 0)
+#
+# El gate contradecía su propio mensaje de bloqueo, y NO tiene override: era
+# trabajo imposible de hacer por ninguna vía. Exactamente el "bloquear de más
+# entrena a saltarse el gate" contra el que este archivo advierte.
+#
+# Una extensión inequívocamente NO-código gana sobre el directorio.
+EXT_NO_CODIGO='\.(log|md|json|ya?ml|toml|ini|conf|cfg|env|txt|csv|lock|html|css|svg)\b'
+if printf '%s' "$cmd" | grep -qE "$EXT_NO_CODIGO" \
+   && ! printf '%s' "$cmd" | grep -qE "$EXT_CODIGO"; then
+  exit 0
+fi
+
+# ── LAS COMILLAS OCULTABAN EL DIRECTORIO ───────────────────────────────────
+#
+# El patrón de directorios exige una frontera de espacio o barra, así que
+# entrecomillar lo escondía. Medido el 2026-09-19:
+#
+#   grep -rn handler "services"   → exit 0
+#   grep -rn handler services     → exit 2
+#
+# Es el mismo defecto que E1/E2 del guard de prod: una prueba de substring sin
+# frontera haciendo de prueba estructural. Se normalizan las comillas para el
+# chequeo de ruta — acá no hay riesgo de perder información porque los strings
+# de intérpretes y de `echo` ya se resolvieron en los pasos anteriores.
+ruta_probe="$(printf '%s' "$cmd" | tr -d "\"'")"
+
+printf '%s' "$ruta_probe" | grep -qE "$EXT_CODIGO|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|\$)" || exit 0
 
 # Un solo path concreto sin recursión ni comodines: el archivo ya está identificado.
-if printf '%s' "$cmd" | grep -qE "$EXT_CODIGO" \
-   && ! printf '%s' "$cmd" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
+if printf '%s' "$ruta_probe" | grep -qE "$EXT_CODIGO" \
+   && ! printf '%s' "$ruta_probe" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
   exit 0
 fi
 
