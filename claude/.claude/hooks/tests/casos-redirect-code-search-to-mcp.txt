@@ -1,0 +1,14 @@
+EVA|bash -c envolviendo grep|bash -c 'grep -rn "handler" src/'
+EVA|variable con el nombre del binario|G=grep; $G -rn "handler" src/
+EVA|comillas vacias en el binario|gr''ep -rn handler src/
+EVA|comillas dobles vacias|gr""ep -rn handler src/
+EVA|eval|eval 'grep -rn handler src/'
+BLK|grep recursivo directo|grep -rn "handler" src/
+BLK|rg sobre fuentes|rg "handler" src/
+OK|grep sobre logs|grep -n error /var/log/syslog
+OK|grep sobre json|grep -n name package.json
+OK|mencionar grep en un echo|echo "no uses grep -rn handler src/"
+OK|mensaje de commit que lo nombra|git commit -m "fix: dejar de usar grep -rn en src/"
+OK|un archivo concreto|grep -n handler src/index.ts
+OK|listar nombres con find|find src -name "*.ts"
+OK|build|pnpm build
