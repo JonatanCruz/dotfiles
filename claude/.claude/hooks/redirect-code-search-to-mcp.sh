@@ -107,9 +107,14 @@ Por qué bloquea en vez de avisar: avisando se ignora. Y grep sobre código mien
 construcción — no ve una env leída por indirección, ni una dependencia inyectada, ni
 el docstring que estaba tres líneas más arriba del match.
 
-Si YA mediste con el índice y necesitás grep para algo puntual, escribilo a propósito:
+NO hay variable de override: CBM_CHECKED=1 se retiró el 2026-09-19 porque se usaba
+como atajo sistemático. Anteponerla no cambia nada — el comando vuelve a fallar.
 
-    CBM_CHECKED=1 <tu comando>
+Las salidas legítimas, que no dependen de tu voluntad:
+  · el índice (arriba), que es el camino esperado;
+  · un archivo concreto ya identificado, sin recursión ni comodines;
+  · texto que no sea código: logs, JSON, YAML, configs, salida de CLIs.
+Si ninguna cubre tu caso, pedíselo al dueño: un agente no se auto-autoriza.
 MSG
 mkdir -p "$(dirname "$log")" 2>/dev/null
 printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null

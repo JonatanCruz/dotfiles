@@ -22,12 +22,25 @@
 #
 set -uo pipefail
 
-command -v jq >/dev/null 2>&1 || exit 0
-
 INPUT="$(cat 2>/dev/null || true)"
-PROMPT="$(printf '%s' "$INPUT" | jq -r '
-  [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
-' 2>/dev/null || true)"
+[ -n "$INPUT" ] || exit 0
+
+# Sin jq se usa el payload crudo. Antes había un `command -v jq || exit 0` acá:
+# en una máquina sin jq el hook salía en silencio y el encargo con cláusula de
+# escape se mandaba sin aviso. Medido el 2026-09-19 con jq oculto del PATH:
+# un encargo de borrado con "no lo borres" salía exit=0 SIN imprimir nada.
+#
+# El crudo sirve para este hook —a diferencia del gate del índice— porque acá se
+# buscan FRASES en español dentro del texto del encargo, y esas frases sobreviven
+# intactas al escapado del JSON. No se pierde precisión, sólo se deja de depender
+# de que jq exista.
+PROMPT=""
+if command -v jq >/dev/null 2>&1; then
+  PROMPT="$(printf '%s' "$INPUT" | jq -r '
+    [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
+  ' 2>/dev/null || true)"
+fi
+[ -n "$PROMPT" ] || PROMPT="$INPUT"
 [ -n "$PROMPT" ] || exit 0
 
 # Sólo interesa cuando el encargo ES de borrado/descontaminación. Sin esto el
