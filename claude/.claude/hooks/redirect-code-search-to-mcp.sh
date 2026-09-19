@@ -20,8 +20,11 @@
 # matcheada, el impacto real de un cambio. Leer código en pedazos produce diagnósticos
 # que el archivo entero habría desmentido.
 #
-# Override consciente y auditable — se escribe a propósito, no es un bypass silencioso:
-#   CBM_CHECKED=1 <comando>
+# NO HAY OVERRIDE. `CBM_CHECKED=1` existió y se retiró el 2026-09-19 (el porqué,
+# más abajo, junto al código). Este encabezado siguió ofreciéndolo hasta el
+# 2026-09-19: verificado ejecutando, `CBM_CHECKED=1 grep -r handler src/*.ts`
+# devuelve exit=2, igual que sin la variable. Las salidas legítimas están en el
+# ALCANCE de arriba y no dependen de la voluntad del agente.
 #
 # Contrato Claude Code:
 #   stdin: JSON { tool_input: { command }, ... }
