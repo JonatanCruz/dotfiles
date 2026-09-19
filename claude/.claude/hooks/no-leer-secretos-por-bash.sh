@@ -49,6 +49,27 @@ if [ -z "$cmd" ]; then
 fi
 [ -z "$cmd" ] && exit 0
 
+# El cuerpo de un heredoc es TEXTO que se escribe, no comandos: un `cat > x.md
+# <<EOF` que documenta el gate menciona rutas protegidas sin abrir ninguna. Un
+# heredoc dirigido a un INTÉRPRETE sí es ejecución y no se descarta.
+if ! printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*((ba|z|k|da)?sh|python[0-9.]*|node|perl|ruby)\b[^|;&]*<<'; then
+  cmd="$(printf '%s' "$cmd" | awk '
+    BEGIN { inhd = 0 }
+    {
+      line = $0
+      if (inhd) { if (line ~ ("^[[:space:]]*" hd "[[:space:]]*$")) inhd = 0; next }
+      if (match(line, /<<-?[[:space:]]*[\047"]?[A-Za-z_][A-Za-z0-9_]*[\047"]?/)) {
+        hd = substr(line, RSTART, RLENGTH)
+        gsub(/^<<-?[[:space:]]*|[\047"]/, "", hd)
+        inhd = 1
+        line = substr(line, 1, RSTART - 1)
+      }
+      print line
+    }
+  ')"
+  [ -z "${cmd//[[:space:]]/}" ] && exit 0
+fi
+
 # Comillas fuera: `cat "secrets/x.key"` es la misma lectura.
 probe="$(printf '%s' "$cmd" | tr -d "\"'")"
 
@@ -66,9 +87,14 @@ PROTEGIDO="(^|[^[:alnum:]_.-])(secrets/|\.ssh/|\.aws/)|[^[:space:]]*\.(key|pem|p
 
 # Extensiones cuyo contenido es CÓDIGO o DOCUMENTACIÓN, no un secreto.
 # `.json` queda afuera a propósito: es el formato de las llaves de GCP.
-# Sin `.txt` ni `.json`: un `db-password.txt` y un `credentials.json` SON el
-# secreto, no código que lo menciona.
+# Sin `.txt` ni `.json` genéricos: un `db-password.txt` y un `credentials.json`
+# SON el secreto, no código que lo menciona.
 EXT_TEXTO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma|md|ya?ml|toml|lock|snap|sh|bash|zsh|fish|Dockerfile|gitignore)$'
+
+# Los archivos de CASOS de este gate nombran rutas protegidas por definición:
+# son su suite de pruebas. Sin esta excepción, el gate bloquea escribir sus
+# propios tests — un control que impide probarse no se puede mantener.
+CASOS_DEL_GATE='/(tests?|__tests__)/[^/]*\.(txt|md)$'
 
 # Un patrón de BÚSQUEDA no es una ruta: `logs | grep password` busca la palabra
 # en una salida, no abre un archivo. Si el token protegido es el argumento de
@@ -87,6 +113,7 @@ for tok in $(printf '%s' "$probe" | sed -E 's/#.*$//' | tr '|;&()`' '\n' | tr ' 
   printf '%s' "$tok" | grep -qE "$PROTEGIDO" || continue
   # La extensión del TOKEN decide: un .ts que se llama password no es secreto.
   printf '%s' "$tok" | grep -qE "$EXT_TEXTO" && continue
+  printf '%s' "$tok" | grep -qE "$CASOS_DEL_GATE" && continue
   # Plantillas sin valores: el .gitignore las desmarca (`!.env.example`).
   printf '%s' "$tok" | grep -qE '\.env\.(example|sample|template|dev)$' && continue
   # `grep password <salida>` busca la palabra, no abre un archivo.
