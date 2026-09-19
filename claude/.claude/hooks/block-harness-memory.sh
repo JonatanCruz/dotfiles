@@ -32,18 +32,25 @@
 # bloque "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo.
 #
 # ESTADO MEDIDO (no "imposible": medido, con fecha y suite reproducible):
-#   26 vías de escritura → exit 2   ·   15 usos legítimos → exit 0   (41 casos)
+#   27 casos en exit 2   ·   15 usos legítimos → exit 0   (42 casos en total)
 #   incluidas las 13 que pasaban, más intérpretes (python/node/perl), comillas
 #   vacías (`to''uch`), continuación de línea, `bash -c`, y el modo sin jq.
 #
 # El número sale de CONTAR el archivo de casos, no de recordarlo: son las clases
-# EVA (23, vías que se midieron pasando) + BLK (3, las que ya bloqueaban y deben
-# seguir igual) de tests/casos-block-harness-memory.txt. La primera versión de
-# esta línea decía "23" porque contó sólo EVA y olvidó BLK — las tres son
-# escrituras (`echo x > MEMORY.md`, su append, y `cat otro > MEMORY.md`), así que
-# pertenecen al total. Se corrige el 2026-09-19 corriendo la suite:
+# EVA (23, vías que se midieron pasando) + BLK (4) de
+# tests/casos-block-harness-memory.txt. La primera versión de esta línea decía
+# "23 vías de escritura" porque contó sólo EVA y olvidó BLK. Se corrige el
+# 2026-09-19 (tarde) corriendo la suite:
 #   ./tests/run-suite.sh ./block-harness-memory.sh tests/casos-block-harness-memory.txt
-#   → 41/41, sin desvíos.
+#   → 42/42, sin desvíos.
+#
+# Y ya no dice "vías de ESCRITURA": de los 4 BLK, tres lo son (`echo x >`, su
+# append, `cat otro >`) pero el cuarto es una LECTURA por intérprete
+# (`python3 -c "open(RUTA).read()"`) que bloquea igual. No es un defecto: es la
+# consecuencia deliberada de la pregunta invertida —sobre la ruta protegida sólo
+# pasa la lista CERRADA de lecturas, y un intérprete no está en ella—. Se dice
+# acá porque "27 vías de escritura" habría vuelto a ser una etiqueta que no
+# describe lo que el archivo contiene.
 # Si mañana aparece una vía nueva, se agrega a la suite y se cierra. Lo que no
 # se hace es volver a escribir que es imposible.
 #

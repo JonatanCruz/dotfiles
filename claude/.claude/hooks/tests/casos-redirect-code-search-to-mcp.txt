@@ -38,7 +38,8 @@ OK|listar un dir de servicio|ls services/svc-orders/src
 OK|find sobre services lista nombres|find services -name '*.ts'
 OK|grep sobre configs del repo|grep -rn version package.json pnpm-workspace.yaml
 OK|docker compose|docker compose ps
-OK|jq sobre settings|cat .claude/settings.json
+OK|cat de settings.json|cat .claude/settings.json
+OK|jq sobre settings|jq -r '.hooks' .claude/settings.json
 OK|grep sobre logs del repo|grep -rn error logs/
 OK|echo mencionando services|echo "no uses grep -rn handler services/"
 OK|commit mencionando services|git commit -m "fix: evitar grep -rn en services/"

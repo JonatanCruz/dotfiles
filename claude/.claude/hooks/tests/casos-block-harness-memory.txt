@@ -15,7 +15,7 @@ EVA|perl open modo escritura|perl -e 'open(F,">","@M@"); print F "x"'
 EVA|edicion in-place perl|perl -i -pe 's/a/b/' @M@
 EVA|edicion in-place sed|sed -i 's/a/b/' @M@
 EVA|git checkout|git checkout HEAD~1 -- @M@
-EVA|python open sin modo explicito|python3 -c "open('@M@','w').write('x')"
+EVA|python open con modo w|python3 -c "open('@M@','w').write('x')"
 EVA|interprete bash -c|bash -c 'echo x > @M@'
 EVA|comillas vacias en el verbo|to''uch @M@
 EVA|continuacion de linea|touch \\\n  @M@
@@ -31,11 +31,17 @@ OK|listar el directorio|ls -la @D@
 OK|buscar la ruta en docs|grep -rn "projects/x/memory" /home/jonatan/docs
 OK|mencionar la ruta en un echo|echo "no escribas en @M@"
 OK|mensaje de commit que la nombra|git commit -m "fix: dejar de escribir en @M@"
-OK|heredoc que la documenta|cat > /tmp/nota.txt <<EOF
+OK|heredoc que la documenta|cat > /tmp/nota.txt <<EOF\nno escribas en @M@\nEOF
 OK|escribir en otro lado|echo x > /tmp/otro.md
 OK|escribir un md del proyecto|echo x > /home/jonatan/proj/claudedocs/nota.md
 OK|diff entre dos|diff @M@ /tmp/a.md
 OK|lectura por pipe|cat @M@ | grep foo
+# Consecuencia DELIBERADA de la pregunta invertida: sobre la ruta protegida se
+# bloquea por defecto y sólo pasa la lista CERRADA de lecturas (cat/grep/head/…).
+# Una lectura por INTÉRPRETE no está en esa lista, así que bloquea aunque sea
+# lectura. Se fija como caso para que el día que alguien lo "arregle" tenga que
+# decidirlo a propósito: aflojarlo reabre `open(...,'w')` por la misma puerta.
+BLK|lectura por interprete, que igual bloquea|python3 -c "open('@M@').read()"
 BLK|redireccion simple|echo x > @M@
 BLK|append|echo x >> @M@
 BLK|lectura con redireccion a la ruta|cat /tmp/a.md > @M@
