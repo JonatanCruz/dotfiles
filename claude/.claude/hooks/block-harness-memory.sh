@@ -37,12 +37,51 @@ if [[ -z "$target" ]]; then
   target="$(printf '%s' "$input" | grep -oE '"(file_path|path)"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1 | sed -E 's/.*:[[:space:]]*"([^"]+)"/\1/' || true)"
 fi
 
-# Sin path → no es nuestra incumbencia.
+# La ruta protegida vive en UNA variable: es LA POLÍTICA, y no cambia acá.
+#   .../.claude/projects/<algo>/memory/...  con archivo .md  (incluye MEMORY.md)
+MEM_RE='\.claude/projects/[^/]+/memory/[^[:space:]"'"'"'<>|;&]*\.md'
+
+# ── EL HUECO QUE ESTO CIERRA (medido el 2026-09-19) ─────────────────────────
+# Este hook estaba registrado sólo en `Write|Edit|MultiEdit`. Una escritura hecha
+# desde Bash no pasaba por acá. Probado contra un mock en /tmp con la MISMA
+# estructura de ruta:
+#
+#   python3 - <<PY  →  open(".../memory/MEMORY.md","w")   → hook exit=0, archivo escrito
+#   cat > .../memory/MEMORY.md <<EOF                      → hook exit=0, archivo escrito
+#
+# El encabezado de este archivo decía que la regla era "estructuralmente
+# imposible" de violar. No lo era: se rodeaba cambiando de herramienta.
+#
+# POR QUÉ NO ALCANZA con tratar el comando como si fuera un file_path: un path
+# suelto en medio de un comando no dice si se LEE o se ESCRIBE, y leer NUNCA
+# estuvo bloqueado (`cat`, `git log`, `less` sobre esos archivos son legítimos).
+# Bloquear por mencionar la ruta daría falsos positivos y entrenaría a esquivar
+# el gate. Por eso el caso Bash exige DOS condiciones simultáneas:
+#   (1) la ruta protegida, y (2) un operador de ESCRITURA sobre ella.
+if [[ -z "$target" ]]; then
+  cmd=""
+  if command -v jq >/dev/null 2>&1; then
+    cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+  fi
+  [[ -z "$cmd" ]] && cmd="$input"
+  [[ -z "$cmd" ]] && exit 0
+
+  # (1) ¿Menciona siquiera la ruta protegida? Si no, no es nuestra incumbencia.
+  printf '%s' "$cmd" | grep -qE "$MEM_RE" || exit 0
+
+  # (2) ¿Y es una ESCRITURA? Redirección, edición in-place, tee, copia/mueve, o
+  # una apertura en modo escritura desde un intérprete.
+  if printf '%s' "$cmd" | grep -qE ">>?[[:space:]]*[^[:space:]|&;]*$MEM_RE|sed[[:space:]]+[^|;&]*-i[^|;&]*$MEM_RE|tee[[:space:]]+[^|;&]*$MEM_RE|(open|write_text|writeFileSync|File\.open)[^)]*$MEM_RE[^)]*[\"'][wa]|[\"'][wa][b+]*[\"'][^)]*$MEM_RE|(cp|mv)[[:space:]]+[^|;&]*$MEM_RE"; then
+    target="$(printf '%s' "$cmd" | grep -oE "$MEM_RE" | head -1)"
+  else
+    exit 0
+  fi
+fi
+
+# Sin nada que inspeccionar → no es nuestra incumbencia.
 [[ -z "$target" ]] && exit 0
 
-# ¿El path cae bajo el directorio de memoria del harness?
-#   .../.claude/projects/<algo>/memory/...  con archivo .md  (incluye MEMORY.md)
-if printf '%s' "$target" | grep -qE '\.claude/projects/[^/]+/memory/.*\.md$'; then
+if printf '%s' "$target" | grep -qE "$MEM_RE"; then
   cat >&2 <<EOF
 🚫 BLOQUEADO — Engram es el ÚNICO sistema de memoria (regla "Engram ONLY" de ~/.claude/CLAUDE.md).
 
