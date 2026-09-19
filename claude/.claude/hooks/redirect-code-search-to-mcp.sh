@@ -76,6 +76,62 @@ fi
 # El registro se conserva: sirve para ver si el gate estorba de verdad.
 log="${HOME}/.claude/logs/cbm-blocked.log"
 
+# ── SUSTITUCIÓN DE HERRAMIENTA (medido el 2026-09-19) ──────────────────────
+# El gate miraba sólo grep/rg/ag/sed/ack. Cambiando de binario se lo rodeaba sin
+# dejar rastro, con el MISMO objetivo (leer código en volumen):
+#
+#   python3 -c "...rglob('*.ts')...p.read_text()..."   → exit=0
+#   awk '/handler/{print FILENAME}' src/*.ts           → exit=0
+#   find src -name '*.ts' -exec cat {} +               → exit=0
+#
+# LA LÍNEA DIVISORIA NO ES LA HERRAMIENTA. python, awk, find y node son legítimos
+# a diario; bloquearlos por nombre rompería el trabajo normal y entrenaría a
+# esquivar el gate (el footgun que este repo ya documenta). Lo que separa el
+# rodeo del uso legítimo es LEER EL CONTENIDO de muchos archivos de código:
+#
+#   find src -name '*.ts'                 → lista NOMBRES   → pasa
+#   find src -name '*.ts' -exec cat {} +  → lee CONTENIDOS  → bloquea
+#
+# Verificado contra 7 usos legítimos (awk sobre /var/log, find -delete, python
+# que lee package.json, node -e, pnpm build, find|wc): ninguno bloquea.
+CODE_HINT='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/'"'"'"])(src|lib|app|services|packages|apps)([[:space:]/'"'"'"]|$)'
+
+# Lectura de contenido EN VOLUMEN. Cada alternativa implica varios archivos:
+# un recorrido de directorio (rglob/os.walk/find -exec/xargs) o un comodín que
+# expande a muchos (awk '/patrón/' src/*.ts). `readFileSync`/`read_text` sobre UN
+# archivo ya identificado NO entra: leer un archivo concreto siempre fue legítimo
+# acá, y bloquearlo sería el falso positivo que mata al gate.
+READ_MANY='-exec[[:space:]]+(cat|head|tail|grep)\b'
+READ_MANY="$READ_MANY"'|\|[[:space:]]*xargs[[:space:]]+(cat|head|grep)\b'
+READ_MANY="$READ_MANY"'|rglob|iglob|os\.walk|Files\.walk|glob\.glob'
+# awk/perl con un patrón //, o cualquier lectura, sobre un comodín de fuentes.
+READ_MANY="$READ_MANY"'|(awk|perl)[[:space:]]+[^|;&]*/[^/]*/[^|;&]*\*'
+READ_MANY="$READ_MANY"'|(read_text\(\)|readFileSync|\.read\(\))[^|;&]*\*'
+READ_MANY="$READ_MANY"'|\*\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b[^|;&]*(read_text|readFileSync|\.read\(\))'
+
+if printf '%s' "$cmd" | grep -qE "$CODE_HINT" \
+   && printf '%s' "$cmd" | grep -qE -- "$READ_MANY"; then
+  cat >&2 <<'MSG'
+🛑 BLOQUEADO (redirect-code-search-to-mcp): leer CÓDIGO en volumen por fuera del índice.
+
+Cambiar de herramienta (python/awk/find/node) no cambia el problema: leer muchos
+archivos de código en crudo produce los mismos diagnósticos incompletos que grep
+—no ve una dependencia inyectada, ni el docstring tres líneas más arriba—, y
+además gasta contexto en texto que el índice ya tiene resuelto.
+
+  ¿quién llama a X? ¿qué rompe si lo cambio?  → trace_path
+  ¿dónde está definido X?                     → search_graph / find_symbol
+  texto, pero enriquecido con el grafo        → search_code
+
+Esto NO bloquea a python/awk/find en general: sólo cuando LEEN EL CONTENIDO de
+archivos de código. Listar nombres (`find src -name "*.ts"`), procesar logs o
+JSON, o leer UN archivo ya identificado siguen pasando.
+MSG
+  mkdir -p "$(dirname "$log")" 2>/dev/null
+  printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null
+  exit 2
+fi
+
 # ¿Es una búsqueda de texto?
 printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]]|$)' || exit 0
 
