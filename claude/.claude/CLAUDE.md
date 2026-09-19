@@ -37,7 +37,19 @@ silent bypass). `Read` is not blocked (you may read an un-migrated old file).
 Dos MCP complementarios para código. **Engram sigue siendo el único sistema de memoria** — ninguno de estos dos guarda memoria entre sesiones.
 
 ### codebase-memory (grafo) → navegar/entender barato
-Grafo de conocimiento pre-indexado. **Solo lectura**, ~120x menos tokens que grep/leer el repo. Úsalo primero para preguntas estructurales:
+Grafo de conocimiento pre-indexado. **Solo lectura.** Úsalo primero para preguntas estructurales:
+
+> **Cuánto ahorra, medido** (2026-09-19, un repo de trabajo: 1.393 archivos TS, símbolo `requirePermission`, 40 matches — el conteo reconstruido coincide exacto con el `total_grep_matches` que reporta el índice, o sea que la comparación es like-for-like):
+>
+> | Contra qué | Ratio |
+> | --- | --- |
+> | **Leer enteros** los archivos que contienen el símbolo | **~150x** (143–156x) |
+> | **grep**, para preguntas estructurales (dónde está / quién llama) | **~3x** (2,8–3,0x) |
+> | **grep**, para búsqueda de TEXTO plano | **0,65x** — el grafo devuelve **MÁS** tokens |
+>
+> Acá decía *"~120x menos tokens que grep/leer el repo"*. El número era defendible sólo contra **leer archivos enteros**; contra **grep** el real es ~3x — **40x de diferencia**. La frase juntaba dos cosas que difieren en 50x bajo un solo número, y la mitad "grep" era la falsa.
+>
+> **Consecuencia práctica**: para TEXTO plano el grafo cuesta más (cada hit carga `qualified_name`, grados y rangos donde grep emite una línea) → ahí grep es la herramienta correcta. La ventaja del grafo es mayor contra la lectura ingenua de archivos enteros que contra un grep bien usado. Lo que **sí** justifica preferirlo no es sólo el token count: ve lo que grep no puede (una dependencia inyectada, el docstring tres líneas arriba del match).
 - `search_code` / `search_graph` → buscar símbolos y patrones
 - `query_graph` (Cypher) → quién llama a qué, dependencias
 - `trace_path` → trazar cadenas de llamadas
