@@ -25,7 +25,6 @@ CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)"
 [ -n "$PROMPT" ] || exit 0
 
 # Proyecto = basename del cwd (convención de mem_session_start)
-PROJECT="$(basename "${CWD:-$PWD}" 2>/dev/null || echo "")"
 
 # Prompts muy cortos (acks tipo "ok", "sí") no ameritan recall
 [ "${#PROMPT}" -ge 15 ] || exit 0
@@ -37,7 +36,9 @@ KEYWORDS="$(printf '%s' "$PROMPT" \
   | tr -cs '[:alnum:]áéíóúñü' '\n' \
   | awk 'length($0) >= 5' \
   | grep -vxE 'para|pero|como|cuando|donde|entonces|porque|hacer|hacemos|puede|puedes|podemos|tiene|tienen|estamos|ahora|siempre|mientras|sigue|siguen|trabajando|quiero|necesito' \
-  | sort -u | head -8 | tr '\n' ' ' | sed 's/ $//')"
+  | sort -u \
+  | awk '{ print length($0), $0 }' | sort -rn | head -8 | cut -d' ' -f2- \
+  | tr '\n' ' ' | sed 's/ $//')"
 [ -n "$KEYWORDS" ] || exit 0
 
 # Query FTS5: OR de keywords, escapadas como frases entre comillas dobles
@@ -50,7 +51,6 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
-    $( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(printf '%s' "$PROJECT" | sed "s/'/''/g")" )
   ORDER BY rank
   LIMIT 4;
 " 2>/dev/null || true)"

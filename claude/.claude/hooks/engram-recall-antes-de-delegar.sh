@@ -34,7 +34,6 @@ PROMPT="$(printf '%s' "$INPUT" | jq -r '
 CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)"
 [ -n "$PROMPT" ] || exit 0
 
-PROJECT="$(basename "${CWD:-$PWD}" 2>/dev/null || echo "")"
 
 [ "${#PROMPT}" -ge 40 ] || exit 0
 
@@ -46,7 +45,9 @@ KEYWORDS="$(printf '%s' "$PROMPT" \
   | tr -cs '[:alnum:]áéíóúñü' '\n' \
   | awk 'length($0) >= 5' \
   | grep -vxE 'para|pero|como|cuando|donde|entonces|porque|hacer|hacemos|puede|puedes|podemos|tiene|tienen|estamos|ahora|siempre|mientras|sigue|siguen|trabajando|quiero|necesito|verifica|verificá|verificar|tarea|encargo|archivo|archivos|codigo|código|tests|test|commit|commits|rama|branch|worktree|reporta|reportá|reportar|entregable|deberia|debería|antes|despues|después' \
-  | sort -u | head -8 | tr '\n' ' ' | sed 's/ $//')"
+  | sort -u \
+  | awk '{ print length($0), $0 }' | sort -rn | head -8 | cut -d' ' -f2- \
+  | tr '\n' ' ' | sed 's/ $//')"
 [ -n "$KEYWORDS" ] || exit 0
 
 FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"", (i>1?" OR ":""), $i}}')"
@@ -60,7 +61,6 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
     AND o.type IN ('decision','architecture','preference','feedback')
-    $( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(printf '%s' "$PROJECT" | sed "s/'/''/g")" )
   ORDER BY rank
   LIMIT 4;
 " 2>/dev/null || true)"
