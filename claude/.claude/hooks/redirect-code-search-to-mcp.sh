@@ -62,6 +62,21 @@
 
 set -uo pipefail
 
+# CARGA DE LA BIBLIOTECA - FALLA CERRADO (Regla #14)
+# Si no se puede cargar, se BLOQUEA: un gate sin su normalizador no puede
+# decidir, y un control que no resuelve su contexto no debe rendirse en
+# silencio.
+#
+# El hook y su libreria son UN SOLO CAMBIO: este hook corre en PreToolUse sobre
+# Bash, asi que un `source` a un archivo inexistente se lleva puesta la
+# herramienta con la que se arreglaria.
+_lib="$(dirname "${BASH_SOURCE[0]}")/lib/normalizar-comando.sh"
+if ! . "$_lib" 2>/dev/null || ! command -v normalizar_ejecutable >/dev/null 2>&1; then
+  printf '\xf0\x9f\x9b\x91 BLOQUEADO (redirect-code-search-to-mcp): no se pudo cargar %s.\n' "$_lib" >&2
+  printf '   Un gate sin su normalizador no puede decidir, y ante la duda no se abre.\n' >&2
+  exit 2
+fi
+
 payload="$(cat)"
 
 # Extracción del comando. El fallback SIN jq no puede ser el payload crudo: en
@@ -280,6 +295,78 @@ MSG
   printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null
   exit 2
 fi
+
+# ── LO QUE NO ES BUSCAR EN CÓDIGO (exenciones estructurales) ───────────────
+#
+# El ALCANCE de la cabecera declara legítimos los casos de abajo. Sin estas
+# exenciones el gate contradice su propio texto, y como NO tiene override, eso
+# vuelve el trabajo imposible por cualquier vía.
+#
+# ⚠️ SE EVALÚAN SOBRE EL COMANDO NORMALIZADO (`norm`), no sobre el crudo: los
+# strings ya son un marcador inerte, así que un patrón de búsqueda
+# (`grep -E "Tests |FAIL"`) no puede hacerse pasar por una ruta.
+norm="$(colapsar_lineas "$(normalizar_ejecutable "$cmd")")"
+
+# ── (A) grep sobre la SALIDA DE UN COMANDO, no sobre archivos ──────────────
+#
+#   pnpm test 2>&1 | grep -E "Tests |Test Files |FAIL"
+#   git ls-files | grep -i businesssubject
+#   docker compose ps | grep healthy
+#
+# Lo que llega por un pipe es texto que ya produjo otro proceso: el índice no
+# puede responder "¿cuántos tests fallaron?" ni "¿qué contenedor está healthy?".
+#
+# LA PRUEBA ES ESTRUCTURAL, no una lista de binarios: se pregunta si el buscador
+# del último segmento tiene ARGUMENTO DE ARCHIVO propio. Un `grep patrón` sin
+# ruta lee de stdin — no puede abrir código aunque quiera.
+#
+# ⚠️ Sólo exime el segmento que lee de stdin. `grep -rn x src/ | head` NO se
+# exime: ahí el grep sí tiene ruta y sí recorre el árbol.
+lee_solo_de_stdin() {
+  local seg
+  seg="${1##*|}"
+  printf '%s' "$seg" | grep -qE '(^|[[:space:]])(grep|egrep|fgrep|rg|ag|ack|ugrep|sed|awk)([[:space:]]|$)' || return 1
+  # Recursión explícita sobre stdin no existe: si pide -r, quiere un árbol.
+  printf '%s' "$seg" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]([[:space:]]|$)|--include' && return 1
+  # Se quitan binario, banderas y los marcadores de string (los patrones). Si
+  # queda algún token con pinta de RUTA, el buscador abre archivos.
+  printf '%s' "$seg" \
+    | sed -E 's/(^|[[:space:]])(grep|egrep|fgrep|rg|ag|ack|ugrep|sed|awk)([[:space:]]|$)/ /g' \
+    | sed -E 's/(^|[[:space:]])-[^[:space:]]*//g' \
+    | tr ' \t' '\n\n' \
+    | grep -vx 'XSTRX' \
+    | grep -qE '[/.]' && return 1
+  return 0
+}
+
+case "$norm" in
+  *\|*) lee_solo_de_stdin "$norm" && exit 0 ;;
+esac
+
+# ── (B) BUSCAR POR NOMBRE DE ARCHIVO no es buscar EN el archivo ────────────
+#
+#   find services -name "*business-subject*"
+#   git ls-files
+#   ls DLL/*.sql
+#
+# Devuelven NOMBRES, nunca contenido. Es la misma distinción que el gate ya hace
+# para find: listar nombres pasa, `-exec cat` bloquea.
+#
+# ⚠️ CUALQUIER acción que LEA descarta la exención: `-exec`, `-delete`, o un
+# pipe hacia un lector — con ruta o sin ella. `find … -print0 | xargs -0 cat`
+# es un volcado en volumen y debe seguir bloqueando.
+solo_lista_nombres() {
+  local c="$1"
+  printf '%s' "$c" | grep -qE '(^|[|;&]|&&)[[:space:]]*(find|git[[:space:]]+ls-files|ls)([[:space:]]|$)' || return 1
+  printf '%s' "$c" | grep -qE -- '-(exec|execdir|ok|delete)([[:space:]]|$)' && return 1
+  # Un pipe a cualquier LECTOR de contenido descarta la exención.
+  printf '%s' "$c" | grep -qE '\|[[:space:]]*(xargs|cat|head|tail|bat|less|more|nl|od|xxd|strings)([[:space:]]|$)' && return 1
+  # Un buscador con ruta propia en el comando tampoco se exime.
+  printf '%s' "$c" | grep -qE '(^|[|;&]|&&)[[:space:]]*(grep|egrep|fgrep|rg|ag|ack|ugrep|sed)([[:space:]]|$)' && return 1
+  return 0
+}
+
+solo_lista_nombres "$norm" && exit 0
 
 # ¿Es una búsqueda de texto?
 # ⚠️ Faltaban buscadores y las formas indirectas. Medido el 2026-09-19 por una

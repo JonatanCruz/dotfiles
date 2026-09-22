@@ -74,3 +74,36 @@
 0	markdown bajo src/	grep -rn foo src/README.md
 0	awk sobre salida de CLI	docker compose ps | awk "{print $1}"
 0	find que sólo lista	find services -name "*.ts"
+
+# ── LO QUE NO ES BUSCAR EN CODIGO ────────────────────────────────────────
+#
+# El ALCANCE de la cabecera ya declaraba legitimos estos casos; el codigo no
+# los cumplia. Como el gate NO tiene override, cada uno era trabajo imposible
+# de hacer por cualquier via.
+
+# (A) grep sobre la SALIDA DE UN COMANDO. El indice no puede responder
+# "cuantos tests fallaron" ni "que contenedor esta healthy".
+0	grep sobre la salida de los tests	pnpm test 2>&1 | grep -E "Tests |Test Files |FAIL"
+0	grep sobre vitest	npx vitest run 2>&1 | grep -E "^ *Tests |FAIL"
+0	git ls-files a grep	git ls-files | grep -i "businesssubject"
+0	ls a grep	ls DLL/*.sql | grep -iE "inventario"
+
+# (B) Buscar por NOMBRE DE ARCHIVO no es buscar EN el archivo.
+0	find -name solo lista nombres	find services -name "*business-subject*"
+0	find con varias extensiones	find infra/terraform -name "*.tf" -o -name "*.tfvars"
+0	git ls-files a secas	git ls-files
+
+# (C) Un bucle sobre archivos CONCRETOS no es un recorrido de arbol.
+0	for sobre archivos nombrados uno a uno	for f in a.tf b.tf; do grep -c X "$f"; done
+
+# ── Y LO QUE ESAS EXENCIONES NO PUEDEN ABRIR ─────────────────────────────
+#
+# Cada exencion es una puerta. Estos son los intentos de entrar por ella:
+# el pipe no absuelve a un grep que SI tiene ruta propia, y listar nombres no
+# absuelve a un volcado de contenido.
+2	pipe pero el grep recurre un arbol	echo x | grep -rn handler services/
+2	pipe pero el grep trae --include	echo x | grep -n --include=*.ts x .
+2	find que lista y LUEGO vuelca	find services -name "*.ts" -print0 | xargs -0 cat
+2	find con -exec cat	find services -name "*.ts" -exec cat {} +
+2	ls que lista y LUEGO vuelca	ls services/*.ts | xargs cat
+2	ls seguido de un grep recursivo	ls && grep -rn handler services/
