@@ -19,6 +19,40 @@
 #
 set -uo pipefail
 
+# ── LA LISTA BLANCA YA EXCLUYE; ESTO LA HACE AJUSTABLE ──────────────────────
+#
+# Este hook ya filtraba por una lista BLANCA (`type IN (...)`), así que un
+# `session_summary` nunca entró acá — a diferencia del autorecall, que no
+# filtraba nada. Lo que cambia es que la lista deja de estar cableada.
+#
+# Importa por el mismo motivo medido en el hook hermano: el ranking de Engram es
+# `ORDER BY fts.rank` a secas (bm25 sobre title+content), sin boost por tipo. El
+# tipo NO reordena nada; sólo saca filas de la competencia con un WHERE. Una
+# lista blanca es la forma más fuerte de ese WHERE.
+#
+# DESACOPLADO: son tipos del esquema de Engram, no de un proyecto. Ajustable sin
+# tocar la lógica, p. ej. si tu base usa otro vocabulario de tipos:
+#
+#   export ENGRAM_DELEGATE_INCLUDE_TYPES="decision,architecture,preference,feedback,pattern"
+#
+# Vaciarla (="") desactiva el filtro y trae cualquier tipo. Con una base de otro
+# proyecto o vacía no hay nada que configurar: si ningún tipo coincide, el hook
+# no imprime nada y sale 0, que es su comportamiento normal en la mayoría de los
+# turnos.
+ENGRAM_DELEGATE_INCLUDE_TYPES="${ENGRAM_DELEGATE_INCLUDE_TYPES-decision,architecture,preference,feedback}"
+
+_engram_include_sql() {
+  printf '%s' "${1-}" | tr ',' '\n' | sed "s/^[[:space:]]*//; s/[[:space:]]*$//" \
+    | grep -v '^$' | sed "s/'/''/g; s/^/'/; s/$/'/" | paste -sd, - 2>/dev/null || true
+}
+INCLUDE_LIST="$(_engram_include_sql "$ENGRAM_DELEGATE_INCLUDE_TYPES")"
+# Lista vacía ⇒ sin predicado (nunca `IN ()`, que sería un error de sintaxis).
+if [ -n "$INCLUDE_LIST" ]; then
+  TYPE_FILTER="AND o.type IN ($INCLUDE_LIST)"
+else
+  TYPE_FILTER=""
+fi
+
 DB="$HOME/.engram/engram.db"
 [ -f "$DB" ] || exit 0
 command -v sqlite3 >/dev/null 2>&1 || exit 0
@@ -60,7 +94,7 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
-    AND o.type IN ('decision','architecture','preference','feedback')
+    $TYPE_FILTER
   ORDER BY rank
   LIMIT 4;
 " 2>/dev/null || true)"

@@ -14,6 +14,47 @@
 
 set -uo pipefail
 
+# ── QUÉ TIPOS NO SE RECUERDAN (y por qué la lista es CONFIGURABLE) ──────────
+#
+# El ranking de Engram es `ORDER BY fts.rank` a secas: bm25 sobre title+content,
+# sin pesos por columna, sin boost por tipo y sin decaimiento por fecha. MEDIDO
+# leyendo el código (internal/store/store.go), y comprobado: retipar una fila y
+# repetir la misma consulta devuelve EXACTAMENTE las mismas posiciones.
+#
+# Consecuencia práctica, que es lo único que importa acá: **el tipo NO puede
+# subir ni bajar nada en el ranking. Sólo sirve para SACAR filas de la
+# competencia con un WHERE.** Por eso esto es una exclusión y no un peso.
+#
+# Qué se excluye por defecto: los tipos del esquema de Engram que registran un
+# INSTANTE (el resumen de una sesión que ya terminó) en vez de algo que siga
+# siendo cierto mañana. Un resumen de sesión compite por las mismas palabras
+# que una regla vigente y ocupa su lugar en una lista capada a 10-20.
+#
+# DESACOPLADO A PROPÓSITO: la lista son tipos del esquema de Engram, NO de un
+# proyecto. Nada de nombres de servicios, rutas ni vocabulario de un repo: estos
+# dotfiles se usan con cualquiera. Para ajustarla sin tocar la lógica:
+#
+#   export ENGRAM_RECALL_EXCLUDE_TYPES="session_summary,checkpoint"
+#   export ENGRAM_RECALL_EXCLUDE_TYPES=""   # no excluir nada
+#
+# Con una base vacía, de otro proyecto, o sin ninguna fila de estos tipos, el
+# efecto es NULO — el WHERE simplemente no saca nada. No hay nada que instalar.
+ENGRAM_RECALL_EXCLUDE_TYPES="${ENGRAM_RECALL_EXCLUDE_TYPES-session_summary}"
+
+# Convierte "a,b" en "'a','b'" para un IN (). Vacío ⇒ cadena vacía ⇒ sin filtro.
+# Comillas simples duplicadas por si alguien pone un apóstrofo en la env var.
+_engram_exclude_sql() {
+  printf '%s' "${1-}" | tr ',' '\n' | sed "s/^[[:space:]]*//; s/[[:space:]]*$//" \
+    | grep -v '^$' | sed "s/'/''/g; s/^/'/; s/$/'/" | paste -sd, - 2>/dev/null || true
+}
+EXCLUDE_LIST="$(_engram_exclude_sql "$ENGRAM_RECALL_EXCLUDE_TYPES")"
+# Sin lista ⇒ predicado vacío (no `AND type NOT IN ()`, que es un error de SQL).
+if [ -n "$EXCLUDE_LIST" ]; then
+  TYPE_FILTER="AND o.type NOT IN ($EXCLUDE_LIST)"
+else
+  TYPE_FILTER=""
+fi
+
 DB="$HOME/.engram/engram.db"
 [ -f "$DB" ] || exit 0
 command -v sqlite3 >/dev/null 2>&1 || exit 0
@@ -51,6 +92,7 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
+    $TYPE_FILTER
   ORDER BY rank
   LIMIT 4;
 " 2>/dev/null || true)"
