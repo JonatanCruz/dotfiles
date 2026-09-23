@@ -26,9 +26,15 @@ while IFS=$'\t' read -r esperado ruta comentario; do
   esac
   [ -z "${comentario:-}" ] && { saltadas=$((saltadas+1)); continue; }
 
+  # El veredicto es el EXIT CODE, no stdout: este hook BLOQUEA (exit 2) y escribe
+  # el motivo en stderr. Medir stdout daría "calla" en todo caso bloqueado y la
+  # suite reportaría verde sobre un gate que muerde — el modo de falla que este
+  # runner existe para no repetir.
   salida="$(jq -nc --arg p "$ruta" --arg c "$comentario" \
-    '{tool_input:{file_path:$p,content:$c}}' | bash "$HOOK" 2>/dev/null || true)"
-  real="calla"; [ -n "${salida//[[:space:]]/}" ] && real="AVISA"
+    '{tool_input:{file_path:$p,content:$c}}' | bash "$HOOK" 2>&1)"
+  rc=$?
+  real="calla"
+  { [ "$rc" -eq 2 ] || [ -n "${salida//[[:space:]]/}" ]; } && real="AVISA"
 
   if [ "$real" = "$esperado" ]; then
     p=$((p+1))

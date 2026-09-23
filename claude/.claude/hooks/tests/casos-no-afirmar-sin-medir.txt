@@ -61,3 +61,50 @@ calla	/x/a.ts	// TODO: revisar el timeout de 30s
 # condición exige >15. Lo cubre el runner (`correr-no-afirmar-sin-medir.sh`),
 # que arma el archivo entero.
 calla	/x/.claude/hooks/a.sh	# Por qué avisa y no bloquea: la señal es ambigua.
+
+# ── EXENCIONES: ADRs y TESTS (lo que la cabecera del hook promete) ───────
+#
+# El criterio del gate ("¿se lo puedo preguntar a git log?") sólo vale donde
+# el archivo COMPITE con git por contar la historia. En un ADR y en un test la
+# historia ES el contenido: un ADR registra por qué se decidió algo y qué se
+# creía antes; un test nombra el defecto que cubre.
+#
+# En Markdown, además, "#" (encabezado), "*" (viñeta) y "<!--" son prefijos de
+# comentario para el detector, así que sin exención la prosa ORDINARIA de un
+# ADR dispara el gate.
+
+calla	/r/docs/adr/ADR-0059-runner.md	* Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/docs/adr/ADR-0059-runner.md	# Decisión: se corrigió el 2026-08-13
+calla	/r/docs/adr/ADR-0059-runner.md	<!-- Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas. -->
+calla	/r/README.md	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/CLAUDE.md	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/src/a.test.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/packages/shared/test/migrate/index.test.ts	// 42 casos, 0 fallan
+calla	/r/app/__tests__/a.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/a.spec.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/tests/test_foo.py	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/pkg/foo_test.go	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/t/foo.bats	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+calla	/r/hooks/tests/casos-otro-gate.txt	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+
+# ── NO sobre-eximir: la exención es por SER un test/ADR, no por parecerlo ─
+
+AVISA	/r/src/testing.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+AVISA	/r/src/latest.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+AVISA	/r/src/protest.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+
+# ── El gate sigue mordiendo en CÓDIGO (la razón de existir del hook) ─────
+
+AVISA	/r/src/foo.ts	// Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+AVISA	/r/scripts/deploy.sh	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+
+# LÍMITE CONOCIDO — el comentario `--` de SQL NO se detecta: el patrón de
+# prefijos reconoce `#`, `//`, `*` y `<!--`, y una migración `.sql` comenta con
+# `--`. Un `.sql` con un `#` o `/* */` SÍ entra por los otros prefijos.
+#
+# Queda documentado como caso y NO se "arregla" acá: agregar `--` AMPLÍA lo que
+# el gate muerde, y eso es una decisión de calibración propia —no la exención
+# que este cambio implementa—. Medirlo antes: las `.sql` de este repo llevan
+# cabeceras largas de prosa, y varias citan fechas. Ver el reporte de la sesión.
+calla	/r/mig/0011_drop.sql	-- Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
+AVISA	/r/mig/0011_drop.sql	# Antes esto se hacía a mano. Se corrigió el 2026-08-13 tras 3 rondas.
