@@ -30,6 +30,39 @@ elif [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
 fi
 
 # ==============================================================================
+# FPATH - Reconstruir el directorio de funciones del zsh EN EJECUCIÓN
+# ==============================================================================
+# El FPATH se hereda EXPORTADO del proceso padre. Tras un `brew upgrade` que
+# mueve zsh (p.ej. 5.9 -> 5.9.2), un shell padre de larga vida sigue exportando
+# el FPATH viejo apuntando a un Cellar que ya no existe. Todo hijo lo hereda y
+# entonces `compinit`, `add-zsh-hook`, `is-at-least` (funciones autoload del
+# propio zsh) "no se encuentran" -> se rompen todos los plugins.
+#
+# La config NO debe confiar en el FPATH heredado. Se deriva el directorio de
+# funciones del binario zsh EN EJECUCIÓN ($commands[zsh]) — no del entorno — y
+# se antepone, purgando de paso cualquier ruta que ya no exista. Inmune a
+# futuros brew upgrades, portable entre macOS/Linux y cualquier versión.
+() {
+  local zsh_bin zsh_prefix d
+  local -a candidates
+  zsh_bin="${commands[zsh]:-$(command -v zsh)}"
+  zsh_prefix="${zsh_bin:h:h}"   # <prefix>/bin/zsh -> <prefix>
+
+  # Dos layouts según empaquetado: Homebrew aplana a share/zsh/functions;
+  # una build estándar lo pone bajo share/zsh/<version>/functions.
+  candidates=(
+    "${zsh_prefix}/share/zsh/functions"
+    "${zsh_prefix}/share/zsh/${ZSH_VERSION}/functions"
+  )
+  for d in $candidates; do
+    [[ -d "$d" ]] && fpath=("$d" $fpath)
+  done
+
+  # Purgar rutas muertas heredadas (el Cellar viejo) y deduplicar.
+  fpath=(${(u)^fpath:A}(N/))
+}
+
+# ==============================================================================
 # MISE - Gestor único de versiones (sustituye nvm + pyenv)
 # ==============================================================================
 # Versiones distintas por proyecto Y por servidor desde una sola herramienta.
