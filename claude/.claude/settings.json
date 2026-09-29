@@ -232,7 +232,7 @@
   "alwaysThinkingEnabled": false,
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "theme": "custom:catppuccin-mocha",
   "teammateMode": "auto",
-  "agentPushNotifEnabled": true,
-  "theme": "custom:catppuccin-mocha"
+  "agentPushNotifEnabled": true
 }
