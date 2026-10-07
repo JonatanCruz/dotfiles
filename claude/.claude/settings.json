@@ -109,6 +109,15 @@
             "command": "~/.claude/hooks/no-defiendas-contaminacion.sh"
           }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-delegar-sobre-supuestos.sh"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
