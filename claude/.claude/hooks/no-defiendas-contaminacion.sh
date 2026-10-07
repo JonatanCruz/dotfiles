@@ -26,7 +26,10 @@ PROMPT="$(printf '%s' "$INPUT" | jq -r '
 
 # Sólo interesa cuando el encargo ES de borrado/descontaminación. Sin esto el
 # hook gritaría en cada delegación y se volvería ruido que se aprende a ignorar.
-printf '%s' "$PROMPT" | grep -qiE 'borra|elimin|descontamin|retira|quitar|legacy|contaminaci' || exit 0
+# `borr`/`retir`/`quit` cortan ANTES de la vocal acentuada: el imperativo con
+# tilde (`Borrá`, `retirá`, `quitá`) es la forma que más se usa al escribir un
+# encargo, y un fragmento que incluya la vocal no lo matchea.
+printf '%s' "$PROMPT" | grep -qiE 'borr|elimin|descontamin|retir|quit|legacy|contaminaci' || exit 0
 
 # Las formas concretas en que escribo el veto. Deliberadamente específicas: una
 # heurística amplia daría falsos positivos y el hook moriría por desconfianza
