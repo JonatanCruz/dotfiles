@@ -283,7 +283,7 @@
   "alwaysThinkingEnabled": false,
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:catppuccin-mocha",
   "teammateMode": "auto",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "theme": "custom:catppuccin-mocha"
 }
