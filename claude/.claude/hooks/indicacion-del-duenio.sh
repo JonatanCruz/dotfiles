@@ -28,6 +28,11 @@ marcador="$dir/indicacion-pendiente-$sesion"
 case "$modo" in
   prompt)
     texto="$(printf '%s' "$payload" | jq -r '.prompt // ""')"
+    # Los avisos del sistema (resultados de agentes en segundo plano) llegan por el
+    # mismo evento que un mensaje del dueño, pero no son indicaciones suyas.
+    case "$texto" in
+      *"<task-notification>"*|*"SYSTEM NOTIFICATION"*) exit 0 ;;
+    esac
     patron='(\bya no\b|\bnunca\b|\bsiempre\b|de ahora en adelante|a partir de ahora|\bno vuelvas\b|\bdeja de\b|\bte dije\b|te di la indicaci|\bla regla es\b|\bque no se\b|\bno quiero que\b|\bprohibido\b|\bno se debe\b|\bno debes\b)'
     if printf '%s' "$texto" | grep -Eiq "$patron"; then
       mkdir -p "$dir"
