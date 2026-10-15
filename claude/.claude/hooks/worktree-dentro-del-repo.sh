@@ -31,24 +31,38 @@ case "$cmd $cwd" in
   *) exit 0 ;;
 esac
 
-# Toma cada token que parezca ruta (absoluta, relativa o con ~) después de add/move
-# y exige que caiga dentro de .claude/worktrees/.
-rutas="$(printf '%s' "$cmd" | grep -Eo 'worktree[[:space:]]+(add|move)[[:space:]].*' |
-  tr ' ' '\n' | grep -E '^(/|\.\.?/|~)' || true)"
+# Sólo cuenta el tramo del `git worktree add|move` hasta el primer separador de
+# comandos: una ruta de un comando encadenado después (`&& git config --file …`) no
+# es el destino del worktree.
+tramo="$(printf '%s' "$cmd" | grep -Eo 'worktree[[:space:]]+(add|move)[[:space:]][^;&|]*' | head -1)"
+subcomando="$(printf '%s' "$tramo" | awk '{print $2}')"
 
-[ -z "$rutas" ] && exit 0
-
-while IFS= read -r ruta; do
-  [ -z "$ruta" ] && continue
-  ruta="${ruta/#\~/$HOME}"
-  case "$ruta" in
-    /*) absoluta="$ruta" ;;
-    *) absoluta="$(cd "${cwd:-$REPO}" 2>/dev/null && realpath -m "$ruta")" ;;
+# Argumentos posicionales, saltando opciones y el valor de las que lo llevan
+# (`-b <rama>`, `-B <rama>`, `--reason <texto>`).
+posicionales=()
+saltar_valor=0
+for token in $(printf '%s' "$tramo" | cut -d' ' -f3-); do
+  if [ "$saltar_valor" -eq 1 ]; then saltar_valor=0; continue; fi
+  case "$token" in
+    -b | -B | --reason) saltar_valor=1 ;;
+    -*) ;;
+    *) posicionales+=("$token") ;;
   esac
-  # El origen de un `move` es un worktree existente: sólo se valida el destino,
-  # que es la última ruta del comando.
-  ultima="$absoluta"
-done <<< "$rutas"
+done
+
+# `add <destino> [ref]` valida el primero; `move <worktree> <destino>`, el segundo.
+case "$subcomando" in
+  add) ruta="${posicionales[0]:-}" ;;
+  move) ruta="${posicionales[1]:-}" ;;
+  *) ruta="" ;;
+esac
+[ -z "$ruta" ] && exit 0
+
+ruta="${ruta/#\~/$HOME}"
+case "$ruta" in
+  /*) ultima="$(realpath -m "$ruta")" ;;
+  *) ultima="$(cd "${cwd:-$REPO}" 2>/dev/null && realpath -m "$ruta")" ;;
+esac
 
 case "$ultima/" in
   "$DESTINO"*) exit 0 ;;
