@@ -57,6 +57,9 @@ case "$modo" in
     activo="$(printf '%s' "$payload" | jq -r '.stop_hook_active // false')"
     if [ -f "$marcador" ] && [ "$activo" != "true" ]; then
       extracto="$(head -c 200 "$marcador")"
+      # Frena una sola vez por indicación: si la respuesta es "no era una regla", el
+      # marcador no puede seguir bloqueando cada turno siguiente.
+      rm -f "$marcador"
       jq -n --arg e "$extracto" '{decision:"block",reason:("El dueño dio una indicación en este turno y no quedó escrita en ningún CLAUDE.md. Si es una regla, escribila ahora (proyecto: rama docs/ + PR; global: ~/.claude/CLAUDE.md) y recién después terminá; si no era una regla, decilo explícitamente. Extracto: " + $e)}'
     fi
     ;;
