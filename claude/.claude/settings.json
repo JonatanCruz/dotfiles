@@ -202,7 +202,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "mcp__plugin_engram_engram__mem_save|mcp__plugin_engram_engram__mem_update",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
