@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) and OpenCode when working with code in this repository.
 
+## 🌐 Repo PÚBLICO y genérico (regla del dueño, invariante)
+
+> El dueño (2026-10-26): _"solo ataca lo que es de este proyecto, ahi esta el problema de
+> contaminar y hacer las reglas especificas y no genericas para todos los proyectos futuros,
+> esta acoplado y no es extensible a lo que venga … no se puede tener este proyecto acoplado
+> aparte porque esta liberado al publico en general"_.
+
+- Este repo es **público** y su configuración aplica a **todos** los proyectos. Nada en él
+  (código, hooks, tests, docs, mensajes de commit, títulos o cuerpos de PR) nombra ni
+  describe un proyecto, cliente, dominio de negocio, infraestructura o stack concreto.
+- Lo específico de un proyecto vive **en ese proyecto**: `<repo>/.claude/hooks.json` (ver
+  la sección de hooks). Aquí sólo hay el mecanismo genérico y valores por defecto neutrales.
+- Los ejemplos y casos de prueba usan un dominio **inventado** y rutas neutras.
+- Las memorias de Engram que se inyectan son sólo las del proyecto actual.
+- `main` sólo cambia por PR con el CI en verde (ruleset); no se fuerza ni se borra.
+
 ## 🤖 Navegación de Código: Serena + codebase-memory (grafo)
 
 Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** — ninguno guarda memoria entre sesiones.
