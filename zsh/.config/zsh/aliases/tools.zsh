@@ -28,4 +28,6 @@ alias ff='fd --hidden'    # Find file con fd
 alias rg='rg -i'          # Ripgrep case-insensitive
 
 # claude code
-alias clauded="set ENABLE_TOOL_SEARCH=true && claude --dangerously-skip-permissions"
+# Prefijo VAR=valor: exporta la variable solo a ese proceso. (`set VAR=...`
+# no exporta nada: en zsh asigna los parámetros posicionales.)
+alias clauded="ENABLE_TOOL_SEARCH=true claude --dangerously-skip-permissions"

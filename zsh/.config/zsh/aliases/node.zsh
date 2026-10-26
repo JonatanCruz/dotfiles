@@ -2,6 +2,8 @@
 # NODE - Aliases para gestores de paquetes JavaScript/TypeScript
 # ==============================================================================
 # Soporte para npm, pnpm, yarn, y bun
+# Las funciones pkg* detectan el gestor por el lockfile (bun.lock es el formato
+# de texto de bun ≥ 1.2; bun.lockb, el binario anterior).
 
 # ==============================================================================
 # NPM
@@ -32,7 +34,8 @@ alias pid='pnpm install -D'
 alias pig='pnpm install -g'
 alias pu='pnpm uninstall'
 alias pup='pnpm update'
-alias pr='pnpm run'
+# pnr y no `pr`: `pr` es un comando de coreutils (/usr/bin/pr)
+alias pnr='pnpm run'
 alias prs='pnpm run start'
 alias prd='pnpm run dev'
 alias prb='pnpm run build'
@@ -48,7 +51,8 @@ alias px='pnpm dlx'  # Ejecutar paquetes sin instalar
 # YARN
 # ==============================================================================
 alias yi='yarn install'
-alias ya='yarn add'
+# yadd y no `ya`: `ya` es el CLI de yazi (paquetes y plugins)
+alias yadd='yarn add'
 alias yad='yarn add -D'
 alias yag='yarn global add'
 alias yu='yarn upgrade'
@@ -78,7 +82,7 @@ alias bx='bunx'  # Ejecutar paquetes sin instalar
 
 # Detectar y usar el gestor de paquetes correcto del proyecto
 pkg() {
-  if [[ -f "bun.lockb" ]]; then
+  if [[ -f "bun.lock" || -f "bun.lockb" ]]; then
     bun "$@"
   elif [[ -f "pnpm-lock.yaml" ]]; then
     pnpm "$@"
@@ -94,7 +98,7 @@ pkg() {
 
 # Instalar dependencias con el gestor correcto
 pkgi() {
-  if [[ -f "bun.lockb" ]]; then
+  if [[ -f "bun.lock" || -f "bun.lockb" ]]; then
     bun install
   elif [[ -f "pnpm-lock.yaml" ]]; then
     pnpm install
@@ -110,7 +114,7 @@ pkgi() {
 
 # Ejecutar scripts con el gestor correcto
 pkgr() {
-  if [[ -f "bun.lockb" ]]; then
+  if [[ -f "bun.lock" || -f "bun.lockb" ]]; then
     bun run "$@"
   elif [[ -f "pnpm-lock.yaml" ]]; then
     pnpm run "$@"
