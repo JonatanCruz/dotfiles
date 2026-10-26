@@ -81,10 +81,6 @@ jobs:
   luacheck:
     name: Luacheck
     runs-on: ubuntu-latest
-    # El resultado real del lint viaja aparte: el paso tiene continue-on-error,
-    # así que needs.luacheck.result diría "success" aunque haya avisos.
-    outputs:
-      lint: ${{ steps.lint.outcome }}
 
     steps:
       - name: Checkout repository
@@ -96,20 +92,11 @@ jobs:
           sudo apt-get install -y lua5.4 luarocks
           sudo luarocks install luacheck
 
-      # Antes acababa en `|| true`: el paso pasaba siempre y nadie veía los
-      # avisos. luacheck sale con 1 ante cualquier aviso, no solo ante errores.
-      # Hoy quedan 6 avisos y 0 errores: la variable `t` sin usar en
-      # lua/snippets/{javascript,lua,typescript,typescriptreact}.lua:3 y dos
-      # líneas de más de 120 columnas en lua/config/options.lua:37-38. Ninguno
-      # es un falso positivo de globals de vim, así que no se silencian en una
-      # config de luacheck: se arreglan en nvim.
-      #
-      # TODO(2026-10-26): quitar continue-on-error cuando nvim quede limpio.
-      # Mientras tanto el paso sale en rojo/naranja en la UI y el job summary
-      # muestra su resultado real (outputs.lint).
+      # Bloquea: luacheck sale con 1 ante cualquier aviso, no solo ante errores,
+      # y nvim está en 0 avisos. Antes acababa en `|| true` y nadie los veía.
+      # Un aviso nuevo se arregla en nvim; sólo un falso positivo de globals de
+      # vim justificaría una config de luacheck.
       - name: Lint Neovim Lua configs
-        id: lint
-        continue-on-error: true
         run: |
           echo "🔍 Linting Neovim Lua configuration..."
           luacheck nvim/.config/nvim --globals vim --max-line-length 120
@@ -574,7 +561,6 @@ jobs:
       - name: Generate summary
         env:
           NEEDS: ${{ toJSON(needs) }}
-          LUACHECK_LINT: ${{ needs.luacheck.outputs.lint }}
         run: |
           {
             echo "## Dotfiles CI/CD Summary"
@@ -582,10 +568,6 @@ jobs:
             echo "| Job | Resultado |"
             echo "|-----|-----------|"
             echo "$NEEDS" | jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"'
-            echo ""
-            # luacheck tiene continue-on-error temporal (ver el job): su
-            # resultado de job es "success" aunque el lint falle.
-            echo "Lint de luacheck: ${LUACHECK_LINT:-sin dato} (no bloquea, ver TODO en ci.yml)"
           } >> "$GITHUB_STEP_SUMMARY"
 
           bad=$(echo "$NEEDS" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key)=\(.value.result)"')
