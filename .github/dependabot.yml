@@ -6,6 +6,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Sólo releases con más de dos semanas: margen para que una release
+    # comprometida se detecte y retire antes de que llegue aquí.
+    cooldown:
+      default-days: 14
     commit-message:
       prefix: ci
     groups:
@@ -17,5 +21,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 14
     commit-message:
       prefix: chore(deps)

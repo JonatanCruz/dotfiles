@@ -319,6 +319,17 @@ jobs:
           chmod +x scripts/check-hooks-versioned.sh
           ./scripts/check-hooks-versioned.sh
 
+      # TruffleHog se fija dos veces: el SHA de la action (con su tag en el
+      # comentario) y `version:`, la imagen de Docker que ejecuta. Dependabot
+      # actualiza sólo la primera; si divergen, la action corre otra imagen.
+      - name: TruffleHog action and image versions match
+        run: |
+          f=.github/workflows/ci.yml
+          tag="$(sed -nE 's/.*trufflesecurity\/trufflehog@[0-9a-f]{40} # v([0-9.]+).*/\1/p' "$f" | head -1)"
+          img="$(sed -nE 's/^[[:space:]]+version: ([0-9.]+)[[:space:]]*$/\1/p' "$f" | head -1)"
+          echo "action v${tag:-?} · imagen ${img:-?}"
+          [ -n "$tag" ] && [ "$tag" = "$img" ] || { echo "✗ Actualiza 'version:' a $tag junto con la action."; exit 1; }
+
       # Cada bypass hallado por una revisión de seguridad es un caso aquí: un
       # cambio del hook que reabra uno falla en CI en vez de pasar inadvertido.
       - name: Regression tests for the secrets hook
