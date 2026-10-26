@@ -47,7 +47,7 @@ done < "$CASOS"
 # El caso del HOOK NUEVO necesita un archivo completo (shebang + >15 líneas),
 # que el formato de una línea del archivo de casos no puede expresar.
 nuevo="$(printf '#!/usr/bin/env bash\nset -uo pipefail\n'; seq 1 20 | sed 's/^/# linea /')"
-r="$(jq -nc --arg p "/home/jonatan/dotfiles/claude/.claude/hooks/zz-inexistente.sh" \
+r="$(jq -nc --arg p "$(cd .. && pwd)/zz-inexistente.sh" \
      --arg c "$nuevo" '{tool_input:{file_path:$p,content:$c}}' | bash "$HOOK" 2>/dev/null || true)"
 if printf '%s' "$r" | grep -q 'HOOK NUEVO'; then
   p=$((p+1))

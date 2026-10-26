@@ -11,9 +11,12 @@
 # el autor recordó, no regresiones.
 
 set -uo pipefail
-cd "$(dirname "$0")" || exit 1
 
-MEM="${CLAUDE_MEMORY_DIR:-/home/jonatan/.claude/projects/-home-usuario-proyecto/memory}"
+# Sin CLAUDE_MEMORY_DIR se deriva como lo arma el harness: el cwd con `/` y `.`
+# convertidos en `-`, bajo ~/.claude/projects. Los casos sólo necesitan la FORMA
+# de la ruta; nada se escribe ahí (el hook recibe el comando como texto).
+MEM="${CLAUDE_MEMORY_DIR:-$HOME/.claude/projects/$(printf '%s' "$PWD" | tr '/.' '--')/memory}"
+cd "$(dirname "$0")" || exit 1
 filtro="${1:-}"
 total_p=0; total_f=0
 
