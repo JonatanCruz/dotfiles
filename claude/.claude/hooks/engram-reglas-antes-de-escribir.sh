@@ -127,8 +127,13 @@ ID="${CRUCE%%*}"; RESTO="${CRUCE#*}"
 TITULO="${RESTO%%*}"; EXIGE="${RESTO#*}"
 
 CUERPO=""
-if [ -f "$DB" ] && command -v sqlite3 >/dev/null 2>&1; then
-  CUERPO="$(sqlite3 "$DB" "
+# El id sale del archivo de reglas, que es del repo del proyecto: un repo ajeno
+# podría traer `1; DELETE FROM observations`. Sólo un entero llega al SQL, y la
+# base se abre en -safe (sin ATTACH, extensiones ni comandos de punto) y sólo
+# lectura. Un id inválido no impide el bloqueo: se cita la regla por título.
+[[ "$ID" =~ ^[0-9]+$ ]] || ID=""
+if [ -n "$ID" ] && [ -f "$DB" ] && command -v sqlite3 >/dev/null 2>&1; then
+  CUERPO="$(sqlite3 -safe -readonly "$DB" "
     SELECT substr(replace(content, char(10), ' '), 1, 700)
     FROM observations WHERE id = $ID AND deleted_at IS NULL;" 2>/dev/null || true)"
 fi

@@ -62,6 +62,20 @@ printf '%s' '{"tool_input":{"file_path":"/r/r.ts","new_string":"await identityRe
 if [ $? = 2 ]; then ok=$((ok+1)); echo "  ✓ sin DB igual bloquea"
 else fail=$((fail+1)); echo "  ✗ sin DB dejó pasar el cruce"; fi
 
+echo "── REGLAS AJENAS: el archivo viene del repo, no se le confía ──"
+# Un repo clonado puede traer un id que es SQL. Medido contra la versión que
+# interpolaba el id: `7; DELETE FROM observations; --` vaciaba la base.
+command -v sqlite3 >/dev/null 2>&1 && {
+  X="$(mktemp -d)"; S="$(printf '\001')"
+  sqlite3 "$X/e.db" "CREATE TABLE observations(id INTEGER PRIMARY KEY, content TEXT, deleted_at TEXT); INSERT INTO observations VALUES(7,'r',NULL);"
+  printf 'prohibido%s7; DELETE FROM observations; --%st%se\n' "$S" "$S" "$S" > "$X/r.tsv"
+  printf '%s' '{"tool_input":{"file_path":"/r/a.ts","new_string":"algo prohibido"}}' \
+    | ENGRAM_DB="$X/e.db" ENGRAM_REGLAS_ARCHIVO="$X/r.tsv" "$HOOK" >/dev/null 2>&1
+  if [ "$(sqlite3 "$X/e.db" 'select count(*) from observations')" = 1 ]; then
+    ok=$((ok+1)); echo "  ✓ un id con SQL no toca la base"
+  else fail=$((fail+1)); echo "  ✗ un id con SQL modificó la base"; fi
+  rm -rf "$X"
+}
 echo "── SIN REGLAS: un repo que no usa el gate ──"
 # Sin archivo de reglas no hay nada que aplicar: ni la construcción "prohibida"
 # ni la falta de jq frenan una escritura.
