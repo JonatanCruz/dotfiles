@@ -2,8 +2,10 @@
 # ENVIRONMENT - Variables de entorno y configuración de paths
 # ==============================================================================
 
-# path/fpath sin duplicados: cada `export PATH="X:$PATH"` de abajo (y los de
-# brew/mise) volvería a añadir entradas al anidar shells (tmux, nvim :terminal).
+# path/fpath sin duplicados al anidar shells (tmux, nvim :terminal). Ojo: -U solo
+# deduplica al asignar el ARRAY; `export PATH="X:$PATH"` asigna el escalar y se
+# lo salta. Por eso abajo se usa `path=(X $path)`, y al final del archivo se
+# reasigna una vez para limpiar lo que brew/mise exportan por eval.
 typeset -U path fpath
 
 # ==============================================================================
@@ -141,14 +143,14 @@ fi
 
 # Bun (JavaScript Runtime & Toolkit)
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+path=("$BUN_INSTALL/bin" $path)
 
 # Paths adicionales
-export PATH="$HOME/.local/bin:$PATH"
+path=("$HOME/.local/bin" $path)
 
 # Python user packages (macOS specific)
 if [ -d "$HOME/Library/Python/3.9/bin" ]; then
-  export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+  path=("$HOME/Library/Python/3.9/bin" $path)
 fi
 
 # Límite de anidamiento de funciones (para Starship/ZLE)
@@ -168,10 +170,10 @@ elif [ -n "$HOMEBREW_PREFIX" ] && [ -d "$HOMEBREW_PREFIX/opt/dotnet/libexec" ]; 
   # macOS - vía Homebrew
   export DOTNET_ROOT="$HOMEBREW_PREFIX/opt/dotnet/libexec"
 fi
-export PATH="$PATH:$HOME/.dotnet/tools"
+path+=("$HOME/.dotnet/tools")
 
 # opencode
-export PATH="$HOME/.opencode/bin:$PATH"
+path=("$HOME/.opencode/bin" $path)
 
 # Android SDK - detecta macOS o Linux automáticamente
 if [[ $OSTYPE == darwin* ]]; then   # $OSTYPE evita el fork de uname
@@ -184,8 +186,11 @@ fi
 
 # Agregar herramientas de Android al PATH si el SDK existe
 if [ -d "$ANDROID_HOME" ]; then
-  export PATH="$ANDROID_HOME/emulator:$PATH"
-  export PATH="$ANDROID_HOME/platform-tools:$PATH"
-  export PATH="$ANDROID_HOME/tools:$PATH"
-  export PATH="$ANDROID_HOME/tools/bin:$PATH"
+  path=("$ANDROID_HOME/emulator" $path)
+  path=("$ANDROID_HOME/platform-tools" $path)
+  path=("$ANDROID_HOME/tools" $path)
+  path=("$ANDROID_HOME/tools/bin" $path)
 fi
+
+# Limpia los duplicados que entraron como escalar (brew shellenv, mise activate).
+path=($path)
