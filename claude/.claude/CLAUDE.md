@@ -69,13 +69,16 @@ Lo que el grafo NO hace (es de solo lectura). Úsalo para modificar código:
 @RULES.md
 
 ## Behavioral Modes
-Load on demand based on context:
+Always loaded:
 - @MODE_Introspection.md - Meta-cognitive analysis and self-reflection
-- @MODE_Orchestration.md - Intelligent tool selection and routing
-- @MODE_Task_Management.md - Hierarchical task organization with persistent memory
-- @MODE_Token_Efficiency.md - Symbol-enhanced communication for token reduction
+- @MODE_Orchestration.md - Intelligent tool selection and routing (incl. the
+  infrastructure rule: official docs before touching Docker/nginx/Terraform configs)
 
-Optional (load on demand):
+Optional (load on demand; sin `@` a propósito, ninguno trae una regla que aplique
+en todas las sesiones):
+- MODE_Task_Management.md - Hierarchical planning for >3-step work, persisted in Engram
+  (the memory rules it relies on already live in this file)
+- MODE_Token_Efficiency.md - Symbol-heavy compressed output; only on `--uc` or high context
 - MODE_Brainstorming.md - Requirements discovery through Socratic dialogue
 - MODE_Business_Panel.md - Multi-expert business analysis (9 thought leaders)
 - MODE_DeepResearch.md - Systematic investigation with evidence-based reasoning
