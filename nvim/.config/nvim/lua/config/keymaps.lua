@@ -56,6 +56,23 @@ map("n", "<C-Down>",  "<cmd>resize -2<cr>",           { desc = "Reducir alto" })
 map("n", "<C-Left>",  "<cmd>vertical resize -2<cr>",  { desc = "Reducir ancho" })
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>",  { desc = "Aumentar ancho" })
 
+-- Alt+hjkl: tmux le reenvía la tecla a nvim (is_vim en .tmux.conf), así que
+-- nvim la resuelve: con splits redimensiona la ventana; sin splits la devuelve
+-- como resize del pane de tmux. Lo hacía tmux.nvim, que se quitó (#43).
+local function alt_resize(cmd_nvim, dir_tmux)
+  return function()
+    if vim.fn.winnr("$") > 1 then
+      vim.cmd(cmd_nvim)
+    elseif vim.env.TMUX then
+      vim.fn.system({ "tmux", "resize-pane", "-" .. dir_tmux, "1" })
+    end
+  end
+end
+map("n", "<M-h>", alt_resize("vertical resize -2", "L"), { desc = "Redimensionar ←" })
+map("n", "<M-l>", alt_resize("vertical resize +2", "R"), { desc = "Redimensionar →" })
+map("n", "<M-j>", alt_resize("resize -2", "D"),          { desc = "Redimensionar ↓" })
+map("n", "<M-k>", alt_resize("resize +2", "U"),          { desc = "Redimensionar ↑" })
+
 -- ============================================================================
 -- BUFFERS (<leader>b)
 -- ============================================================================
