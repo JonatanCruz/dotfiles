@@ -7,6 +7,17 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# Mínimo privilegio: ningún job escribe en el repo ni usa otros scopes del
+# GITHUB_TOKEN. Si un job futuro lo necesita, que lo pida en su propio bloque.
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama/PR cancela la ejecución anterior: su resultado
+# ya no describe el código actual y solo ocupa runners.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DOTFILES_DIR: ${{ github.workspace }}
 
@@ -20,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -70,10 +81,14 @@ jobs:
   luacheck:
     name: Luacheck
     runs-on: ubuntu-latest
+    # El resultado real del lint viaja aparte: el paso tiene continue-on-error,
+    # así que needs.luacheck.result diría "success" aunque haya avisos.
+    outputs:
+      lint: ${{ steps.lint.outcome }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install Lua and Luacheck
         run: |
@@ -81,50 +96,54 @@ jobs:
           sudo apt-get install -y lua5.4 luarocks
           sudo luarocks install luacheck
 
+      # Antes acababa en `|| true`: el paso pasaba siempre y nadie veía los
+      # avisos. luacheck sale con 1 ante cualquier aviso, no solo ante errores.
+      # Hoy quedan 6 avisos y 0 errores: la variable `t` sin usar en
+      # lua/snippets/{javascript,lua,typescript,typescriptreact}.lua:3 y dos
+      # líneas de más de 120 columnas en lua/config/options.lua:37-38. Ninguno
+      # es un falso positivo de globals de vim, así que no se silencian en una
+      # config de luacheck: se arreglan en nvim.
+      #
+      # TODO(2026-10-26): quitar continue-on-error cuando nvim quede limpio.
+      # Mientras tanto el paso sale en rojo/naranja en la UI y el job summary
+      # muestra su resultado real (outputs.lint).
       - name: Lint Neovim Lua configs
+        id: lint
+        continue-on-error: true
         run: |
           echo "🔍 Linting Neovim Lua configuration..."
-          if [ -d "nvim/.config/nvim" ]; then
-            luacheck nvim/.config/nvim --globals vim --max-line-length 120 || true
-          else
-            echo "No Neovim config found, skipping"
-          fi
+          luacheck nvim/.config/nvim --globals vim --max-line-length 120
 
   # ==============================================================================
   # TEST STOW DRY RUN
   # ==============================================================================
+  # Un job por SO que recorre los paquetes, en vez de una matriz de un job por
+  # paquete (~15 runners para lo que tarda segundos). Stow simula todos a la
+  # vez, así que además detecta dos paquetes que reclaman el mismo destino.
+  #
+  # Runner con ficheros propios en $HOME (p. ej. un ~/.gitconfig): no son un
+  # fallo del repo, así que se apartan a ~/.dotfiles-ci-backup ANTES de simular
+  # y se listan en el log. No se usa --adopt: movería el fichero del runner
+  # DENTRO del checkout y el test validaría un árbol que ya no es el del repo.
   stow-test:
-    name: Stow Dry Run (${{ matrix.package }}, ${{ matrix.os }})
+    name: Stow Dry Run (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # Todos los paquetes en Linux; `include` añade combinaciones sueltas en
-        # vez de multiplicar la matriz (un eje `os` daría 10 × 2 = 20 jobs).
-        os: [ubuntu-latest]
-        package:
-          - nvim
-          - zsh
-          - zsh-plugins
-          - tmux
-          - starship
-          - yazi
-          - wezterm
-          - docker
-          - claude
-          - git
-          - opencode
-          - mise
         include:
-          # En macOS solo los paquetes cuyo destino depende del SO: zsh resuelve
-          # el prefijo de Homebrew, nvim y tmux enlazan bajo ~/.config.
-          - { os: macos-latest, package: zsh }
-          - { os: macos-latest, package: nvim }
-          - { os: macos-latest, package: tmux }
+          # Linux: todos los paquetes del repo, descubiertos (un paquete nuevo
+          # entra solo; la lista a mano ya se quedó atrás con mise).
+          - os: ubuntu-latest
+            packages: ALL
+          # macOS: solo los paquetes cuyo destino depende del SO. zsh resuelve
+          # el prefijo de Homebrew; nvim y tmux enlazan bajo ~/.config.
+          - os: macos-latest
+            packages: nvim zsh tmux
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -138,15 +157,46 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install stow
 
-      - name: Test stow dry-run for ${{ matrix.package }}
+      - name: Stow dry-run into $HOME
+        env:
+          PACKAGES: ${{ matrix.packages }}
         run: |
-          echo "🧪 Testing stow for ${{ matrix.package }}"
-          if [ -d "${{ matrix.package }}" ]; then
-            stow --simulate --verbose=2 "${{ matrix.package }}"
-            echo "✓ Stow dry-run successful for ${{ matrix.package }}"
-          else
-            echo "⚠ Package ${{ matrix.package }} not found, skipping"
+          # Misma exclusión que el check de instaladores (job hooks-versioned).
+          if [ "$PACKAGES" = "ALL" ]; then
+            PACKAGES=$(for d in ./*/; do d=${d%/}; echo "${d#./}"; done \
+              | grep -vE '^(docs|claudedocs|scripts|theme|test-results)$' | tr '\n' ' ')
           fi
+          echo "📦 Paquetes: $PACKAGES"
+
+          # Aparta lo que el runner ya trae en los destinos (ver cabecera).
+          backup="$HOME/.dotfiles-ci-backup"
+          for pkg in $PACKAGES; do
+            [ -d "$pkg" ] || { echo "✗ Paquete inexistente: $pkg"; exit 1; }
+            while IFS= read -r rel; do
+              target="$HOME/${rel#./}"
+              if [ -e "$target" ] && [ ! -L "$target" ] && [ ! -d "$target" ]; then
+                mkdir -p "$backup/$(dirname "${rel#./}")"
+                mv "$target" "$backup/${rel#./}"
+                echo "↪ apartado del runner: ~/${rel#./}"
+              fi
+            done < <(cd "$pkg" && find . \( -type f -o -type l \) ! -path '*/.git/*' ! -name .git)
+          done
+
+          # -v es imprescindible: `stow -n` sin él no imprime nada, ni siquiera
+          # lo que enlazaría. Stow sale con 1 ante un conflicto ("All operations
+          # aborted"); el grep cubre versiones que solo lo avisan.
+          # shellcheck disable=SC2086
+          if ! out=$(stow -n -v -t "$HOME" $PACKAGES 2>&1); then
+            echo "$out"
+            echo "✗ stow encontró conflictos"
+            exit 1
+          fi
+          echo "$out"
+          if echo "$out" | grep -qi 'conflict'; then
+            echo "✗ stow encontró conflictos"
+            exit 1
+          fi
+          echo "✓ Stow dry-run correcto"
 
   # ==============================================================================
   # TEST NEOVIM CONFIG
@@ -157,7 +207,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # Versión FIJA, no un canal. El PPA `unstable` (nightly) cambia sola y
       # rompe el CI sin que nadie toque el repo — fue lo que pasó cuando 0.12
@@ -184,10 +234,11 @@ jobs:
             echo "✓ Neovim config copied"
           fi
 
-      # lazy.nvim genera helptags al instalar plugins, y en Neovim >= 0.12 eso
-      # requiere el parser de treesitter de `vimdoc`, que no viene con el
-      # paquete del PPA. Sin él, la instalación aborta con
-      # `No parser for language "vimdoc"`.
+      # lazy.nvim genera helptags al instalar plugins y eso requiere el parser
+      # de treesitter de `vimdoc`. El paquete del PPA que se usaba antes no lo
+      # traía y la instalación abortaba con `No parser for language "vimdoc"`.
+      # El tarball oficial fijado arriba lo incluye; el paso queda como red de
+      # seguridad para cuando se cambie NVIM_VERSION, y su salida no decide.
       - name: Install treesitter parsers needed for helptags
         run: |
           nvim --headless -c "lua pcall(vim.treesitter.language.add, 'vimdoc')" -c "quitall" 2>&1 || true
@@ -245,17 +296,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
+      # Fijada a un commit (antes @main: cualquier push a esa rama ajena
+      # corría con el GITHUB_TOKEN de este repo). Se eligió una release con
+      # más de dos semanas, no la última de hace días. `version` fija también
+      # la imagen de Docker que la action ejecuta, que por defecto es :latest.
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9 # v3.99.2
         with:
           path: ./
           base: ""
           head: ${{ github.ref_name }}
           extra_args: --only-verified
+          version: 3.99.2
 
   # ==============================================================================
   # CLAUDE HOOKS VERSIONADOS
@@ -269,7 +325,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Check hooks cited in settings.json are versioned
         run: |
@@ -292,7 +348,7 @@ jobs:
               | sed -E 's/.*=\(//; s/\)//' | tr ' ' '\n' | grep . | sort -u
           }
 
-          real=$(ls -d */ | tr -d '/' \
+          real=$(for d in ./*/; do d=${d%/}; echo "${d#./}"; done \
             | grep -vE '^(docs|claudedocs|scripts|theme|test-results)$' | sort)
 
           missing=$(comm -23 <(echo "$real") <(packages_of scripts/bootstrap.sh))
@@ -313,6 +369,22 @@ jobs:
           echo "✓ Los instaladores enlazan todos los paquetes del repo (Ubuntu sin wezterm)"
 
   # ==============================================================================
+  # THEME SINCRONIZADO
+  # ==============================================================================
+  # Los ficheros de colores se generan desde theme/palette.sh. Editar uno a
+  # mano, o cambiar la paleta sin regenerar, los desincroniza en silencio.
+  theme-sync:
+    name: Theme In Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Check generated theme files match the palette
+        run: ./theme/apply.sh --check
+
+  # ==============================================================================
   # HEALTH CHECK SCRIPT TEST
   # ==============================================================================
   health-check-test:
@@ -326,7 +398,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -342,12 +414,32 @@ jobs:
           # git y zsh ya vienen en el runner; el resto via brew.
           brew install stow neovim tmux
 
+      # health-check.sh da por FALLO que falte ~/.config/nvim, y sobre un
+      # runner sin nada enlazado fallaba siempre; por eso acababa en
+      # `|| true` + continue-on-error y no comprobaba nada. Ahora se enlazan
+      # de verdad los paquetes que el script revisa y su resultado cuenta.
+      # Los ficheros propios del runner se apartan igual que en stow-test.
+      - name: Stow the packages health-check verifies
+        run: |
+          backup="$HOME/.dotfiles-ci-backup"
+          for pkg in nvim zsh zsh-plugins tmux starship; do
+            while IFS= read -r rel; do
+              target="$HOME/${rel#./}"
+              if [ -e "$target" ] && [ ! -L "$target" ] && [ ! -d "$target" ]; then
+                mkdir -p "$backup/$(dirname "${rel#./}")"
+                mv "$target" "$backup/${rel#./}"
+                echo "↪ apartado del runner: ~/${rel#./}"
+              fi
+            done < <(cd "$pkg" && find . \( -type f -o -type l \) ! -path '*/.git/*' ! -name .git)
+          done
+          stow -v -t "$HOME" nvim zsh zsh-plugins tmux starship
+
       - name: Run health check script
+        timeout-minutes: 20
         run: |
           echo "🏥 Running health check script..."
           chmod +x scripts/health-check.sh
-          ./scripts/health-check.sh || true
-        continue-on-error: true
+          ./scripts/health-check.sh
 
   # ==============================================================================
   # BOOTSTRAP SCRIPT TEST
@@ -363,7 +455,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -422,7 +514,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -434,13 +526,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git stow neovim tmux zsh
 
-          # Test bootstrap with no-deps flag
+          # bootstrap.sh no tiene modo sin efectos: --help es lo único que
+          # se puede ejecutar en el runner.
           chmod +x scripts/bootstrap.sh
           ./scripts/bootstrap.sh --help
 
-          # Test health check
-          chmod +x scripts/health-check.sh
-          ./scripts/health-check.sh || true
+          # health-check.sh ya no se ejecuta aquí: corría con `|| true` sobre
+          # un $HOME sin enlaces, así que no comprobaba nada. Lo cubre de
+          # verdad el job health-check-test (Linux y macOS, tras un stow real).
 
           # Test snapshot creation
           chmod +x scripts/snapshot.sh
@@ -452,24 +545,52 @@ jobs:
   # ==============================================================================
   # SUMMARY
   # ==============================================================================
+  # Antes dependía solo de `integration` y escribía "All checks completed
+  # successfully" siempre (if: always()), incluso con jobs en rojo. Ahora
+  # lista needs.*.result de cada job y falla si alguno no terminó bien, así
+  # que también sirve como único check requerido en la protección de rama.
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [integration]
+    needs:
+      - shellcheck
+      - luacheck
+      - stow-test
+      - neovim-test
+      - security-scan
+      - hooks-versioned
+      - theme-sync
+      - health-check-test
+      - bootstrap-test
+      - integration
     if: always()
 
     steps:
       - name: Generate summary
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          LUACHECK_LINT: ${{ needs.luacheck.outputs.lint }}
         run: |
-          echo "## 🎉 Dotfiles CI/CD Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✓ All checks completed successfully" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Checks Performed:" >> $GITHUB_STEP_SUMMARY
-          echo "- ShellCheck linting" >> $GITHUB_STEP_SUMMARY
-          echo "- Luacheck linting" >> $GITHUB_STEP_SUMMARY
-          echo "- Stow dry-run tests" >> $GITHUB_STEP_SUMMARY
-          echo "- Neovim config validation" >> $GITHUB_STEP_SUMMARY
-          echo "- Security scanning (TruffleHog)" >> $GITHUB_STEP_SUMMARY
-          echo "- Claude hooks versioned" >> $GITHUB_STEP_SUMMARY
-          echo "- Integration testing" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Dotfiles CI/CD Summary"
+            echo ""
+            echo "| Job | Resultado |"
+            echo "|-----|-----------|"
+            echo "$NEEDS" | jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"'
+            echo ""
+            # luacheck tiene continue-on-error temporal (ver el job): su
+            # resultado de job es "success" aunque el lint falle.
+            echo "Lint de luacheck: ${LUACHECK_LINT:-sin dato} (no bloquea, ver TODO en ci.yml)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          bad=$(echo "$NEEDS" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key)=\(.value.result)"')
+          if [ -n "$bad" ]; then
+            echo "✗ Jobs que no terminaron bien:"
+            echo "$bad"
+            {
+              echo ""
+              echo "**✗ Fallaron o no corrieron:** $(echo "$bad" | tr '\n' ' ')"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "**✓ Todos los jobs terminaron bien**" >> "$GITHUB_STEP_SUMMARY"

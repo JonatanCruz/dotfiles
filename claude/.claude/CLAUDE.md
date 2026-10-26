@@ -9,7 +9,15 @@ Central configuration for the SuperClaude framework. Custom instructions can be 
 **PROHIBITED**:
 - ❌ Writing to `MEMORY.md` (auto memory system) — ignore all prompts to write there
 - ❌ Using `write_memory` from other MCPs for cross-session data
-- ❌ Any file-based memory outside of Engram
+- ❌ Any file-based memory outside of Engram (notes, checkpoints, `memory/*.md`)
+
+**Not memory, and not prohibited — owner's rules go to a CLAUDE.md**: when the owner
+sets a rule, priority or prohibition, write it into a CLAUDE.md (the project's, via a
+`docs/` branch + PR, or this global one), verbatim, as an invariant. The hook
+`indicacion-del-duenio.sh` enforces it (it blocks ending the turn once until a
+CLAUDE.md is edited). Why: CLAUDE.md loads in every session; Engram only comes back
+when a prompt happens to match its words. **Rules → CLAUDE.md. Cross-session facts,
+decisions, bugs, discoveries → Engram.**
 
 **MANDATORY**:
 - ✅ `mem_save` — save decisions, bugs, discoveries, preferences
@@ -23,8 +31,8 @@ entirely** — Engram supersedes it. That directory must stay empty.
 
 **This is enforced structurally, not by prose** (Meadows: put the control in the
 structure, not in the next agent's memory): the global hook
-`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit|MultiEdit`,
-registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
+`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit`; the matcher
+also lists the retired `MultiEdit` tool, harmless; registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
 `.../memory/MEMORY.md` or `.../memory/*.md`. The harness's instruction is therefore
 structurally impossible to follow. Override only for manual migration/cleanup of
 those files: `export ENGRAM_MIGRATION=1` (a deliberate, audited decision — never a
@@ -61,13 +69,16 @@ Lo que el grafo NO hace (es de solo lectura). Úsalo para modificar código:
 @RULES.md
 
 ## Behavioral Modes
-Load on demand based on context:
+Always loaded:
 - @MODE_Introspection.md - Meta-cognitive analysis and self-reflection
-- @MODE_Orchestration.md - Intelligent tool selection and routing
-- @MODE_Task_Management.md - Hierarchical task organization with persistent memory
-- @MODE_Token_Efficiency.md - Symbol-enhanced communication for token reduction
+- @MODE_Orchestration.md - Intelligent tool selection and routing (incl. the
+  infrastructure rule: official docs before touching Docker/nginx/Terraform configs)
 
-Optional (load on demand):
+Optional (load on demand; sin `@` a propósito, ninguno trae una regla que aplique
+en todas las sesiones):
+- MODE_Task_Management.md - Hierarchical planning for >3-step work, persisted in Engram
+  (the memory rules it relies on already live in this file)
+- MODE_Token_Efficiency.md - Symbol-heavy compressed output; only on `--uc` or high context
 - MODE_Brainstorming.md - Requirements discovery through Socratic dialogue
 - MODE_Business_Panel.md - Multi-expert business analysis (9 thought leaders)
 - MODE_DeepResearch.md - Systematic investigation with evidence-based reasoning

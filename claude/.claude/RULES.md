@@ -32,7 +32,9 @@
 ## 🟡 Important Rules (STRONG PREFERENCE)
 
 ### Workflow & Planning
-- **Task Pattern**: Understand → Plan → TodoWrite(≥3 tasks) → Execute → Validate
+- **Task Pattern**: Understand → Plan → Task list (≥3 steps) → Execute → Validate
+  (task list = `TaskCreate`/`TaskUpdate` when the session has them; newer models
+  track steps without a written checklist — `TodoWrite` is off by default)
 - **Batch Operations**: Parallel by default, sequential ONLY for dependencies
 - **Evidence-Based**: All claims verifiable via testing/docs/metrics
 
@@ -68,16 +70,16 @@
 
 | Task | Best Tool | Alternative |
 |------|-----------|-------------|
-| Multi-file edits | MultiEdit | Multiple Edits |
-| Complex analysis | Task agent | Manual steps |
-| Code search | Grep | Basic search |
-| UI components | Magic MCP | Manual |
+| Multi-file edits | Edit (one call per change, batched in parallel) | Write for full rewrites |
+| Complex analysis | Agent (subagent) | Manual steps |
+| Code search | codebase-memory graph / Grep | Basic search |
+| UI components | Magic MCP (optional: needs `MAGIC_API_KEY`, often fails auth) | Manual |
 | Docs | Context7 MCP | Web search |
 | Browser testing | Playwright MCP | Unit tests |
 
 ### Performance Optimization
 - **Parallel Everything**: Execute independent operations in parallel
-- **Batch Operations**: Group similar operations (MultiEdit, batch Reads)
+- **Batch Operations**: Group similar operations (parallel Edit/Read calls in one message)
 - **Smart Tool Selection**: Choose most efficient tool for task
 
 ---
@@ -93,17 +95,17 @@ File operation → Writing/Editing? → Read first → Edit with patterns
 ### 🟡 New Feature
 ```
 Feature request → Scope clear? No → Brainstorm mode
-              → ≥3 steps? Yes → TodoWrite required
+              → ≥3 steps? Yes → Task list (if available)
               → Patterns exist? → Follow exactly
 ```
 
 ### 🟢 Tool Selection
 ```
 Task → Best tool:
-├─ Multi-file edits → MultiEdit
-├─ Complex analysis → Task agent
-├─ Code search → Grep
-├─ UI components → Magic MCP
+├─ Multi-file edits → parallel Edit calls
+├─ Complex analysis → Agent
+├─ Code search → graph / Grep
+├─ UI components → Magic MCP (optional)
 ├─ Docs → Context7 MCP
 └─ Browser testing → Playwright MCP
 ```
@@ -120,7 +122,7 @@ Task → Best tool:
 - [ ] Absolute paths in responses
 
 ### 🟡 Strongly Preferred (Important)
-- [ ] TodoWrite for ≥3 step tasks
+- [ ] Task list for ≥3 step tasks (if available)
 - [ ] Complete all started implementations
 - [ ] Build only what's requested
 - [ ] Clean workspace after operations

@@ -411,8 +411,8 @@ ghcode <query>              # Buscar codigo en el repo actual
 ### Google Cloud (gcloud.zsh)
 
 ```bash
-# Alias base (CONFLICTO: g tambien es alias de git - el ultimo cargado gana)
-g              # gcloud
+# Alias base (no es `g`, que es git)
+gcl            # gcloud
 
 # Autenticacion y configuracion
 gauth          # gcloud auth login
@@ -577,7 +577,7 @@ pid         # pnpm install -D
 pig         # pnpm install -g
 pu          # pnpm uninstall
 pup         # pnpm update
-pr          # pnpm run
+pnr         # pnpm run
 prs         # pnpm run start
 prd         # pnpm run dev
 prb         # pnpm run build
@@ -594,7 +594,7 @@ px          # pnpm dlx (ejecutar sin instalar)
 
 ```bash
 yi          # yarn install
-ya          # yarn add
+yadd        # yarn add
 yad         # yarn add -D
 yag         # yarn global add
 yu          # yarn upgrade

@@ -30,9 +30,8 @@ lua/plugins/
 │   ├── formatting.lua
 │   ├── treesitter.lua
 │   └── ...
-├── coding/               # 2 plugins de autocompletado
-│   ├── cmp.lua
-│   └── ai.lua
+├── coding/               # autocompletado
+│   └── cmp.lua
 ├── lsp.lua               # LSP core
 ├── lsp/                  # Herramientas LSP adicionales
 │   └── linting.lua

@@ -505,10 +505,10 @@ grep "resurrect\|continuum" ~/.tmux.conf
 # set -g @continuum-restore 'on'
 
 # Guardar sesión manualmente
-# Prefix + Ctrl+s
+# Prefix + S
 
 # Restaurar sesión manualmente
-# Prefix + Ctrl+r
+# Prefix + R
 
 # Verificar auto-guardado
 tmux show-options -g | grep continuum
@@ -1104,7 +1104,7 @@ nvim
 :vsplit
 
 # Split horizontal en Tmux
-# Prefix + v
+# Prefix + -
 
 # Probar navegación con Ctrl+h/j/k/l
 # Debería moverse entre splits de Neovim y panes de Tmux sin problema

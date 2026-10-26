@@ -135,8 +135,8 @@ dotfiles/
 
 | Key | Action |
 |-----|--------|
-| `Prefix + v` | Split horizontal (top/bottom) |
-| `Prefix + h` | Split vertical (left/right) |
+| `Prefix + -` | Split horizontal (top/bottom) |
+| `Prefix + \|` | Split vertical (left/right) |
 | `Ctrl+h/j/k/l` | Navigate panes (no prefix) |
 | `Alt+h/j/k/l` | Resize panes (vim-aware) |
 | `Prefix + m` | Zoom pane toggle |
