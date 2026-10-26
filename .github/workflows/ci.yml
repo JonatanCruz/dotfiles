@@ -279,14 +279,17 @@ jobs:
       # Las listas de paquetes de los instaladores se mantienen a mano, así que
       # un paquete nuevo se añade al repo y nunca se enlaza. Pasó con `mise`.
       #
-      # bootstrap.sh es el instalador general y debe enlazarlo todo: ahí la
-      # divergencia falla. quick-setup-ubuntu.sh es un subconjunto deliberado
-      # para servidores sin escritorio, así que solo avisa.
+      # Ambos fallan ante un paquete sin enlazar. quick-setup-ubuntu.sh es para
+      # servidores sin escritorio: omite SOLO lo que figura en su exclusión
+      # (wezterm, un emulador gráfico). Una omisión nueva falla en vez de avisar,
+      # porque un aviso así se ignoró con mise y con opencode (PR #34).
       - name: Check installers list every stow package
         run: |
+          # bootstrap.sh declara la lista como `readonly STOW_PACKAGES=(…)`
+          # (la usan dos funciones); quick-setup como `local packages=(…)`.
           packages_of() {
-            grep -oE 'local packages=\([^)]*\)' "$1" \
-              | sed 's/local packages=(//; s/)//' | tr ' ' '\n' | sort -u
+            grep -oE '(local packages|STOW_PACKAGES)=\([^)]*\)' "$1" \
+              | sed -E 's/.*=\(//; s/\)//' | tr ' ' '\n' | grep . | sort -u
           }
 
           real=$(ls -d */ | tr -d '/' \
@@ -299,10 +302,15 @@ jobs:
             exit 1
           fi
 
-          diff=$(comm -23 <(echo "$real") <(packages_of scripts/quick-setup-ubuntu.sh))
-          [ -n "$diff" ] && echo "⚠ quick-setup-ubuntu.sh omite: $(echo "$diff" | tr '\n' ' ')"
+          sin_gui=$(echo "$real" | grep -vxE 'wezterm')
+          missing=$(comm -23 <(echo "$sin_gui") <(packages_of scripts/quick-setup-ubuntu.sh))
+          if [ -n "$missing" ]; then
+            echo "✗ scripts/quick-setup-ubuntu.sh no enlaza: $(echo "$missing" | tr '\n' ' ')"
+            echo "  Añádelos a su array 'packages' o a la exclusión 'sin_gui' si es a propósito."
+            exit 1
+          fi
 
-          echo "✓ bootstrap.sh enlaza todos los paquetes del repo"
+          echo "✓ Los instaladores enlazan todos los paquetes del repo (Ubuntu sin wezterm)"
 
   # ==============================================================================
   # HEALTH CHECK SCRIPT TEST

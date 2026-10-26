@@ -87,7 +87,8 @@ dlog() {
 # Limpiar todo (contenedores, imágenes, volúmenes, redes)
 dcleanall() {
     echo "⚠️  Esto eliminará TODOS los contenedores, imágenes, volúmenes y redes no utilizados"
-    read "?¿Continuar? (y/n) " -n 1 -r
+    # Sintaxis zsh: -k 1 lee una tecla; "VAR?texto" es el prompt.
+    read -k 1 "REPLY?¿Continuar? (y/n) "
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         docker system prune -a --volumes -f

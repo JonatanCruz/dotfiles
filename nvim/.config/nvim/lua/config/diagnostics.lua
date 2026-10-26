@@ -4,23 +4,22 @@
 -- Sistema completo de visualización y navegación de errores/warnings
 -- ============================================================================
 
--- Signos en el gutter (columna izquierda)
-local signs = {
-  { name = "DiagnosticSignError", text = "" },
-  { name = "DiagnosticSignWarn", text = "" },
-  { name = "DiagnosticSignHint", text = "" },
-  { name = "DiagnosticSignInfo", text = "" },
+-- Iconos del gutter (columna izquierda). Desde Neovim 0.10 se pasan en
+-- `vim.diagnostic.config({ signs = { text = ... } })`; los `sign_define`
+-- de DiagnosticSign* que se usaban antes se ignoran en 0.12.
+-- Glifos Nerd Font: U+F057, U+F071, U+F0335, U+F05A.
+local severity = vim.diagnostic.severity
+local sign_text = {
+  [severity.ERROR] = "",
+  [severity.WARN]  = "",
+  [severity.HINT]  = "󰌵",
+  [severity.INFO]  = "",
 }
-
-for _, sign in ipairs(signs) do
-  vim.fn.sign_define(sign.name, { texthl = sign.name, text = sign.text, numhl = "" })
-end
 
 -- Configuración global de diagnósticos
 vim.diagnostic.config({
-  -- Ventana flotante automática al hacer hover sobre error
+  -- Texto del diagnóstico al final de la línea
   virtual_text = {
-    enabled = true,
     prefix = "●", -- Prefijo antes del mensaje
     spacing = 4,
     severity = {
@@ -30,7 +29,7 @@ vim.diagnostic.config({
 
   -- Signos en el gutter
   signs = {
-    active = signs,
+    text = sign_text,
     priority = 10, -- Prioridad de signos (mayor = más visible)
   },
 
@@ -40,7 +39,7 @@ vim.diagnostic.config({
   -- Underline de errores
   underline = true,
 
-  -- Severidad mínima
+  -- Orden
   severity_sort = true, -- Ordenar por severidad (errors primero)
 
   -- Ventanas flotantes
@@ -48,13 +47,13 @@ vim.diagnostic.config({
     focusable = true, -- Poder entrar a la ventana flotante
     style = "minimal",
     border = "rounded",
-    source = "always", -- Mostrar fuente del diagnóstico (eslint, typescript, etc.)
+    source = true, -- Mostrar fuente del diagnóstico (eslint, typescript, etc.)
     header = "",
     prefix = "",
     format = function(diagnostic)
       -- Formato personalizado del mensaje
-      local severity = vim.diagnostic.severity[diagnostic.severity]
-      return string.format("[%s] %s", severity, diagnostic.message)
+      local name = vim.diagnostic.severity[diagnostic.severity]
+      return string.format("[%s] %s", name, diagnostic.message)
     end,
   },
 })
