@@ -83,7 +83,9 @@ FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"
 # fallo en los candidatos o en el total deja la salida vacía (fail-open, como antes).
 sqlq() { printf '%s' "$1" | sed "s/'/''/g"; }
 SQL_PROY="$( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(sqlq "$PROJECT")" )"
-SQL="SELECT 'C', o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), substr(o.created_at, 1, 10),
+SQL="SELECT 'C', replace(replace(replace(o.type, char(10), ' '), char(13), ' '), '|', '/'),
+         replace(replace(replace(o.title, char(10), ' '), char(13), ' '), '|', '/'),
+         substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), replace(substr(o.created_at, 1, 10), char(10), ' '),
          lower(replace(replace(o.title || ' ' || o.content, char(10), ' '), '|', '/'))
   FROM observations_fts f
   JOIN observations o ON o.id = f.rowid
@@ -102,15 +104,19 @@ SELECT 'D', $i, count(*) FROM observations_fts f JOIN observations o ON o.id = f
 done
 SALIDA="$(sqlite3 -cmd '.timeout 1000' -separator '|' "$DB" "$SQL" 2>/dev/null || true)"
 
-# Separar secciones. La fila T marca el fin de los candidatos (un título con salto de
-# línea seguiría saliendo tal cual, como antes).
+# Separar secciones. La fila T marca el fin de los candidatos. Ningún dato almacenado
+# puede falsificar una fila T o D: type, title y created_at llegan sin saltos de línea
+# (arriba, en el SQL) y content ya venía aplanado.
 CANDIDATOS="$(printf '%s\n' "$SALIDA" | awk '/^T\|[0-9]+$/ { exit } { sub(/^C\|/, ""); print }')"
 [ -n "$CANDIDATOS" ] || exit 0
 TOTAL="$(printf '%s\n' "$SALIDA" | awk '/^T\|[0-9]+$/ { print substr($0, 3); exit }')"
 [ "${TOTAL:-0}" -gt 0 ] 2>/dev/null || exit 0
 DF=()
 while IFS='|' read -r idx n; do
-  [ -n "$idx" ] && DF[idx]="$n"
+  # El subíndice de un array indexado se evalúa como aritmética: `x[$(cmd)]` ejecutaría
+  # cmd. Solo se aceptan números, aunque las filas D las genere este mismo SQL.
+  [[ "$idx" =~ ^[0-9]+$ && "$n" =~ ^[0-9]+$ ]] || continue
+  DF[idx]="$n"
 done < <(printf '%s\n' "$SALIDA" | awk 'f && sub(/^D\|/, "") { print } /^T\|[0-9]+$/ { f = 1 }')
 PESOS=""
 i=0
