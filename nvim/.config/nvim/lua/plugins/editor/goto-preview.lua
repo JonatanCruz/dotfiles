@@ -5,7 +5,9 @@
 
 return {
   "rmagatti/goto-preview",
-  event = "LspAttach",
+  -- Solo por teclas (default_mappings = false: no hay nada que montar antes).
+  -- Con event = "LspAttach" cargaba goto-preview y, con él, telescope en cada
+  -- archivo con LSP aunque nunca se usara un preview.
   keys = {
     { "gpd", function() require("goto-preview").goto_preview_definition() end, desc = "Preview definición" },
     { "gpt", function() require("goto-preview").goto_preview_type_definition() end, desc = "Preview tipo" },
@@ -14,24 +16,29 @@ return {
     { "gpr", function() require("goto-preview").goto_preview_references() end, desc = "Preview referencias" },
     { "gP", function() require("goto-preview").close_all_win() end, desc = "Cerrar previews" },
   },
-  opts = {
-    width = 120,
-    height = 25,
-    border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
-    default_mappings = false,
-    debug = false,
-    opacity = nil,
-    resizing_mappings = false,
-    post_open_hook = nil,
-    post_close_hook = nil,
-    references = {
-      telescope = require("telescope.themes").get_dropdown({ hide_preview = false }),
-    },
-    focus_on_open = true,
-    dismiss_on_move = false,
-    force_close = true,
-    bufhidden = "wipe",
-    stack_floating_preview_windows = true,
-    preview_window_title = { enable = true, position = "left" },
-  },
+  -- opts como función: el require de telescope.themes se evalúa al cargar
+  -- goto-preview, no al leer el spec (como tabla obligaba a cargar telescope al
+  -- arrancar, y con rocks desactivado ni siquiera estaba en el rtp todavía).
+  opts = function()
+    return {
+      width = 120,
+      height = 25,
+      border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+      default_mappings = false,
+      debug = false,
+      opacity = nil,
+      resizing_mappings = false,
+      post_open_hook = nil,
+      post_close_hook = nil,
+      references = {
+        telescope = require("telescope.themes").get_dropdown({ hide_preview = false }),
+      },
+      focus_on_open = true,
+      dismiss_on_move = false,
+      force_close = true,
+      bufhidden = "wipe",
+      stack_floating_preview_windows = true,
+      preview_window_title = { enable = true, position = "left" },
+    }
+  end,
 }
