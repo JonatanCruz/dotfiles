@@ -97,11 +97,12 @@ jobs:
           sudo luarocks install luacheck
 
       # Antes acababa en `|| true`: el paso pasaba siempre y nadie veía los
-      # avisos. Hoy luacheck devuelve 1 con 19 avisos en código de nvim (líneas
-      # con solo espacios y demasiado largas, variables `t` sin usar en
-      # snippets y `get_args` sin definir en plugins/debug/dap.lua:103, que es
-      # un bug real). Ninguno es un falso positivo de globals de vim, así que
-      # no se silencian en una config de luacheck: se arreglan en nvim.
+      # avisos. luacheck sale con 1 ante cualquier aviso, no solo ante errores.
+      # Hoy quedan 6 avisos y 0 errores: la variable `t` sin usar en
+      # lua/snippets/{javascript,lua,typescript,typescriptreact}.lua:3 y dos
+      # líneas de más de 120 columnas en lua/config/options.lua:37-38. Ninguno
+      # es un falso positivo de globals de vim, así que no se silencian en una
+      # config de luacheck: se arreglan en nvim.
       #
       # TODO(2026-10-26): quitar continue-on-error cuando nvim quede limpio.
       # Mientras tanto el paso sale en rojo/naranja en la UI y el job summary
