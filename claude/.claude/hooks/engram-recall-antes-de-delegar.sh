@@ -67,6 +67,14 @@ PROMPT="$(printf '%s' "$INPUT" | jq -r '
   [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
 ' 2>/dev/null || true)"
 [ -n "$PROMPT" ] || exit 0
+CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)"
+
+# SOLO decisiones de ESTE proyecto (ver lib/engram-proyecto.sh): las de otro repo
+# en un encargo lo contaminan con un dominio que no es el suyo.
+# shellcheck source=lib/engram-proyecto.sh
+. "$(dirname "${BASH_SOURCE[0]}")/lib/engram-proyecto.sh" 2>/dev/null || exit 0
+PROYECTO_WHERE="$(engram_proyecto_where "${CWD:-$PWD}")"
+[ -n "$PROYECTO_WHERE" ] || exit 0
 
 
 [ "${#PROMPT}" -ge 40 ] || exit 0
@@ -94,6 +102,7 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
+    AND $PROYECTO_WHERE
     $TYPE_FILTER
   ORDER BY rank
   LIMIT 4;

@@ -80,8 +80,8 @@ command -v jq >/dev/null 2>&1 || exit 0
 # sobre un pipe lee byte a byte y con prompts largos tardaba más que dos jq). Los saltos
 # finales se quitan en jq, igual que hacía la sustitución $(...) anterior (en bash,
 # ${x%"${x##*[!$'\n']}"} es cuadrático y costaba ~50 ms con prompts largos).
-PROMPT=""
-eval "$(jq -r '@sh "PROMPT=\(.prompt // "" | tostring | sub("\n+\\z"; ""))"' 2>/dev/null)" 2>/dev/null || exit 0
+PROMPT="" CWD=""
+eval "$(jq -r '@sh "PROMPT=\(.prompt // "" | tostring | sub("\n+\\z"; "")) CWD=\(.cwd // "" | tostring)"' 2>/dev/null)" 2>/dev/null || exit 0
 [ -n "$PROMPT" ] || exit 0
 
 # Avisos del sistema (resultados de agentes/shells en segundo plano): no son del dueño.
@@ -89,10 +89,14 @@ case "$PROMPT" in
   *"<task-notification>"*|*"SYSTEM NOTIFICATION"*) exit 0 ;;
 esac
 
-# SIN filtro por proyecto: las memorias de un mismo trabajo se guardan bajo varios
-# nombres (el del worktree, nombres viejos, o sin proyecto), y filtrar por el
-# basename del cwd las perdía. El IDF y los candidatos salen de toda la base; los
-# tipos que son ruido se excluyen con TYPE_FILTER.
+# SOLO memorias de ESTE proyecto: las de otro repo son contaminación aunque
+# matcheen las palabras. El proyecto se deduce (repo principal, sus worktrees y
+# los alias que el repo declare): ver lib/engram-proyecto.sh. Sin la biblioteca
+# o sin proyecto deducible no se inyecta nada (fail-open: no hay recall).
+# shellcheck source=lib/engram-proyecto.sh
+. "$(dirname "${BASH_SOURCE[0]}")/lib/engram-proyecto.sh" 2>/dev/null || exit 0
+PROYECTO_WHERE="$(engram_proyecto_where "${CWD:-$PWD}")"
+[ -n "$PROYECTO_WHERE" ] || exit 0
 
 # Prompts muy cortos (acks tipo "ok", "sí") no ameritan recall
 [ "${#PROMPT}" -ge 15 ] || exit 0
@@ -116,7 +120,7 @@ FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"
 # UNA sola apertura de la base para todo (antes eran 2 + una por palabra clave, ~10
 # procesos sqlite3 por prompt). Cada fila lleva una etiqueta en la 1.ª columna:
 #   C|…  candidatos (FTS, ORDER BY rank LIMIT 25)
-#   T|n  total de memorias vivas recordables (base del IDF)
+#   T|n  total de memorias vivas recordables del proyecto (base del IDF)
 #   D|i|n  en cuántas memorias aparece la palabra clave i (IDF)
 # Peso de cada palabra = qué tan rara es en las memorias del proyecto (IDF): una
 # palabra que aparece en un tercio de las memorias ("staging") casi no pesa; una que
@@ -125,7 +129,7 @@ FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"
 # fallar al instante o colgar el prompt. sqlite3 corta en el primer error, así que un
 # fallo en los candidatos o en el total deja la salida vacía (fail-open, como antes).
 sqlq() { printf '%s' "$1" | sed "s/'/''/g"; }
-SQL_TIPOS="$TYPE_FILTER"
+SQL_TIPOS="$TYPE_FILTER AND $PROYECTO_WHERE"
 SQL="SELECT 'C', replace(replace(replace(o.type, char(10), ' '), char(13), ' '), '|', '/'),
          replace(replace(replace(o.title, char(10), ' '), char(13), ' '), '|', '/'),
          substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), replace(substr(o.created_at, 1, 10), char(10), ' '),
@@ -134,7 +138,7 @@ SQL="SELECT 'C', replace(replace(replace(o.type, char(10), ' '), char(13), ' '),
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(sqlq "$FTS_QUERY")'
     AND o.deleted_at IS NULL
-    $TYPE_FILTER
+    $SQL_TIPOS
   ORDER BY rank
   LIMIT 25;
 SELECT 'T', count(*) FROM observations o WHERE o.deleted_at IS NULL $SQL_TIPOS;"

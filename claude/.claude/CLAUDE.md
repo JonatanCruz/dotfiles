@@ -153,7 +153,9 @@ content:
 
 ### Session Protocol — Non-Negotiable
 
-**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`
+**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`.
+`<project-name>` is the folder name of the MAIN repo (`basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`),
+never the worktree's: the recall hooks group memories by repo, and a worktree name scatters them.
 
 **Session End / "done"**: Call `mem_session_summary` with:
 ```
