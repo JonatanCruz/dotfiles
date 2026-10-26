@@ -131,7 +131,6 @@ check_symlinks() {
         "$HOME/.zsh:zsh-plugins"
         "$HOME/.config/starship.toml:starship"
         "$HOME/.config/yazi:yazi"
-        "$HOME/.config/wezterm:wezterm"
     )
 
     for entry in "${symlinks[@]}"; do
@@ -185,6 +184,50 @@ check_symlinks() {
     else
         check_warn "tmux config not found (package not installed)"
     fi
+}
+
+# ==============================================================================
+# STOW LINK COMPLETENESS
+# ==============================================================================
+
+# Un `git pull` actualiza los archivos ya enlazados, pero un archivo NUEVO en un
+# paquete no existe en $HOME hasta re-correr stow, y falla en silencio (así se
+# perdió ~/.tmux-colors.conf). Ojo: `stow -n` sin -v no imprime nada aunque
+# falten enlaces; por eso se cuentan las líneas LINK de la salida verbose.
+check_stow_links() {
+    print_section "Stow Link Completeness"
+
+    if ! command -v stow &>/dev/null; then
+        check_fail "stow not installed"
+        return
+    fi
+
+    local packages=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude opencode git mise)
+    local stow_args=(-n -v -d "$DOTFILES_DIR" -t "$HOME")
+
+    for pkg in "${packages[@]}"; do
+        [ -d "$DOTFILES_DIR/$pkg" ] || continue
+
+        # Un paquete sin ningún enlace no se usa en esta máquina (p. ej.
+        # wezterm en un servidor sin GUI): no es un fallo, se omite. La salida
+        # se captura antes de filtrarla: `stow | grep -q` con pipefail falla
+        # por SIGPIPE justo cuando grep encuentra la línea.
+        local output missing
+        output=$(stow "${stow_args[@]}" -D "$pkg" 2>&1 || true)
+        grep -q '^UNLINK:' <<<"$output" || continue
+
+        output=$(stow "${stow_args[@]}" "$pkg" 2>&1) || {
+            check_fail "$pkg: stow reports conflicts (run: stow -n -v $pkg)"
+            continue
+        }
+        missing=$(sed -nE 's/^LINK: ([^ ]+) =>.*/\1/p' <<<"$output" | paste -sd ' ' -)
+
+        if [ -n "$missing" ]; then
+            check_fail "$pkg: missing links: $missing (run: stow -R $pkg)"
+        else
+            check_pass "$pkg: all links present"
+        fi
+    done
 }
 
 # ==============================================================================
@@ -436,6 +479,7 @@ main() {
 
     check_binaries
     check_symlinks
+    check_stow_links
     check_neovim
     check_zsh
     check_tmux
