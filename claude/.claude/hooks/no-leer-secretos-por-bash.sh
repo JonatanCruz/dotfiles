@@ -15,16 +15,20 @@
 # sustituciones, pipes, `;`, `&`, backslashes ni `$'`.
 #
 # Lo único que se tolera como texto es un string entrecomillado de VARIAS
-# palabras (`git commit -m "no leer .env"`), y sólo si el comando no invoca un
-# intérprete (sh, bash, eval, source, xargs, python…) que pudiera ejecutarlo.
+# palabras en un mensaje de `git commit`/`git tag` (`git commit -m "no leer
+# .env"`), y sólo sin sustituciones, pipes, redirecciones ni encadenamiento. En
+# cualquier otro comando el texto entrecomillado cuenta: una lista de intérpretes
+# que "podrían ejecutarlo" nunca está completa (sudo, timeout, nohup, find -exec…).
 # Las llaves públicas (.pub) y las plantillas (.env.example) no son secretos.
 #
 # Ofuscación, sin intentar decodificar nada:
 #   - `$'…'` o `$"…"` en cualquier parte → bloquea siempre. `$'\x2e\x73\x73\x68'`
 #     es `.ssh` sin ninguna letra en claro. Cuesta usos legítimos raros
 #     (`IFS=$'\n'`, `printf $'\t'`): se reescriben con printf '%b' o comillas.
-#   - `\` o comillas vacías junto a un fragmento sensible (ssh, aws, gnupg, env,
-#     credential, secret) → bloquea. Da falsos positivos (`grep "process\.env"`).
+#   - `\` o comillas vacías en la MISMA palabra que un fragmento sensible (ssh,
+#     aws, gnupg, env, credential, secret) → bloquea: ahí vive la ofuscación
+#     (`.s\sh`, `.ss''h`). Mirar el comando entero bloqueaba `grep 'a\|b'
+#     hook-de-secretos.sh`. Sigue el falso positivo `grep "process\.env"`.
 #   - Expansión de llaves sin comillas (`{a,b}`, `{a..b}`) junto a una ruta
 #     (`/`, `~`, `$HOME`) o un fragmento parcial (ss, sh, aws, gnupg, env, cred,
 #     secret) → bloquea: `~/.s{s,}h/id_rsa` arma `.ssh` sin escribirlo. Cuesta
@@ -51,7 +55,6 @@ INI="(^|[[:space:]=<>:(])"
 SECRETO="${INI}[^[:space:]=<>:(${M}]*(\.ssh/id_[A-Za-z0-9_.-]*|\.aws/credentials|\.gnupg/[^[:space:]${M}]*|secrets\.zsh|\.credentials\.json)|${INI}([^[:space:]=<>:(${M}]*/)?\.env(\.[A-Za-z0-9_-]+)*(\$|[^A-Za-z0-9_.-])"
 NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$'
 SUELTO='ssh|aws|gnupg|env|credential|secret'
-INTERPRETE="(^|[[:space:];&|(\`])(sh|bash|zsh|dash|ksh|fish|eval|source|\.|exec|xargs|env|python[0-9.]*|node|perl|ruby|php|awk|gawk|osascript)([[:space:]]|\$)"
 
 # Imprime las rutas protegidas halladas que NO son públicas/plantilla.
 # Sin `grep -q` en tuberías: con pipefail, su salida temprana puede matar por
@@ -88,13 +91,16 @@ ofuscado() {
       return 0 ;;
   esac
   bajo="$(printf '%s' "$texto" | tr '[:upper:]' '[:lower:]')"
-  case "$texto" in
-    *\\* | *"''"* | *'""'*)
-      if [[ "$bajo" =~ $SUELTO ]]; then
-        echo "el comando combina escapes o comillas vacías con un nombre sensible."
-        return 0
-      fi ;;
-  esac
+  local palabra
+  for palabra in $bajo; do
+    case "$palabra" in
+      *\\* | *"''"* | *'""'*)
+        if [[ "$palabra" =~ $SUELTO ]]; then
+          echo "el comando combina escapes o comillas vacías con un nombre sensible."
+          return 0
+        fi ;;
+    esac
+  done
   # Llaves FUERA de comillas: lo entrecomillado se descarta antes de mirar.
   fuera="$(printf '%s' "$texto" | awk 'BEGIN { RS = "\001" } {
     s = $0; out = ""; q = ""; n = length(s)
@@ -155,11 +161,12 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
   printf "%s", out
 }')"
 
-# Con un intérprete en el comando, el texto entrecomillado puede ejecutarse:
-# deja de ser texto y sus espacios cuentan como bordes de token.
-espaciado="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
-if [[ "$espaciado" =~ $INTERPRETE ]]; then
-  normal="$espaciado"
+# El texto entrecomillado cuenta como tokens (sus espacios son bordes), salvo
+# en el mensaje de un git commit/tag simple: ahí es prosa y no se ejecuta.
+SIMPLE_RE='[`;&|<>]|\$\('
+if ! { [[ "$cmd" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
+       && ! [[ "$cmd" =~ $SIMPLE_RE ]] && [[ "$cmd" != *$'\n'* ]]; }; then
+  normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
 hallados="$(secretos_en "$normal")"
@@ -177,8 +184,12 @@ ejecutable="${palabras[0]:-}"
 case "${ejecutable##*/}" in
   ls | stat | test | '[' | chmod | chown | touch | ssh-add) exit 0 ;;
   ssh)
-    # Cada ruta protegida tiene que ser exactamente el valor de un `-i`.
+    # Cada ruta protegida tiene que ser exactamente el valor de un `-i`, y sin
+    # -o/-F: ProxyCommand y LocalCommand ejecutan comandos locales.
     for ((k = 1; k < ${#palabras[@]}; k++)); do
+      case "${palabras[k]}" in
+        -o* | -F*) bloquear "$motivo En ssh con la llave no se admiten -o ni -F." ;;
+      esac
       if [ -n "$(secretos_en "${palabras[k]}")" ] && [ "${palabras[k - 1]}" != "-i" ]; then
         bloquear "$motivo En ssh sólo se admite la llave como valor de -i."
       fi
