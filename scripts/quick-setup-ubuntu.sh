@@ -319,7 +319,7 @@ step_9_stow() {
 
     cd "$DOTFILES_DIR"
 
-    local packages=(nvim zsh zsh-plugins tmux starship yazi docker claude git mise)
+    local packages=(nvim zsh zsh-plugins tmux starship yazi docker claude opencode git mise)
     local stowed=0
 
     for pkg in "${packages[@]}"; do
