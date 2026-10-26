@@ -27,21 +27,21 @@ caso() { # caso <esperado> <desc> <file_path> <texto>
 }
 
 echo "── BLOQUEAN: las construcciones que violan una regla ──"
-caso 2 "frase libre viaja como motivo"      /r/a.ts 'const humanMessage = `No se pudo: ${motivo}`;'
-caso 2 "JOIN/FROM a tabla legacy"           /r/q.ts 'const q = `SELECT n FROM tabla_vieja`;'
-caso 2 "elemento resuelto contra identity"  /r/r.ts 'const v = await identityRepo.findItem(id);'
+caso 2 "contraseña asignada desde la petición" /r/a.ts 'user.password = req.body.password;'
+caso 2 "eval sobre entrada externa"         /r/b.js 'const r = eval(input);'
+caso 2 "SELECT * en una consulta"           /r/q.ts 'const q = `SELECT * FROM orders`;'
 
 echo "── NEGATIVOS: mismo vocabulario, uso legítimo ──"
-caso 0 "motivo como enum"                   /r/a.ts 'const motivo = MotivoRechazo.SALDO_INSUFICIENTE;'
-caso 0 "la frase libre va al log"           /r/a.ts 'logger.warn(`falla: ${motivo}`);'
-caso 0 "legacy nombrado en un comentario"   /r/a.ts '// migrado desde el legacy hace meses'
-caso 0 "FROM a tabla propia"                /r/q.ts 'SELECT * FROM lineas JOIN clientes ON a=b'
-caso 0 "identity resolviendo un usuario"    /r/r.ts 'const u = await identityRepo.findUser(id);'
-caso 0 "elemento en su propio registro"       /r/r.ts 'const v = await itemRepo.findItem(tel);'
+caso 0 "contraseña derivada con hash"       /r/a.ts 'user.password = await hash(req.body.password);'
+caso 0 "política de contraseñas"            /r/a.ts 'const passwordPolicy = loadPolicy();'
+caso 0 "eval nombrado en un comentario"     /r/b.js '// nunca usar eval con datos de afuera'
+caso 0 "una función que termina en eval"    /r/b.js 'const r = retrieval(input);'
+caso 0 "consulta que nombra sus columnas"   /r/q.ts 'SELECT id, total FROM orders JOIN users ON a=b'
+caso 0 "count(*) no es SELECT *"            /r/q.ts 'SELECT count(*) FROM orders'
 
 echo "── EXENTOS: nombrar la regla es el trabajo del archivo ──"
-caso 0 "markdown (un ADR la discute)"       /r/ADR.md 'identityRepo.findItem y tabla_vieja'
-caso 0 "test (cita el texto gobernado)"     /r/x.test.ts 'identityRepo.findItem(id)'
+caso 0 "markdown (un ADR la discute)"       /r/ADR.md 'user.password = req.body y SELECT * FROM'
+caso 0 "test (cita el texto gobernado)"     /r/x.test.ts 'user.password = req.body.password'
 
 echo "── BANALES ──"
 caso 0 "bump de versión"                    /r/package.json '{"version":"1.4.2"}'
@@ -57,7 +57,7 @@ if [ $? = 2 ]; then ok=$((ok+1)); echo "  ✓ sin jq bloquea (no se rinde en sil
 else fail=$((fail+1)); echo "  ✗ sin jq NO bloqueó"; fi
 
 # Engram aporta el texto, no el veredicto: sin DB el patrón debe seguir cazando.
-printf '%s' '{"tool_input":{"file_path":"/r/r.ts","new_string":"await identityRepo.findItem(i);"}}' \
+printf '%s' '{"tool_input":{"file_path":"/r/a.ts","new_string":"user.password = req.body.password;"}}' \
   | ENGRAM_DB=/nonexistente/x.db "$HOOK" >/dev/null 2>&1
 if [ $? = 2 ]; then ok=$((ok+1)); echo "  ✓ sin DB igual bloquea"
 else fail=$((fail+1)); echo "  ✗ sin DB dejó pasar el cruce"; fi
@@ -80,7 +80,7 @@ echo "── SIN REGLAS: un repo que no usa el gate ──"
 # Sin archivo de reglas no hay nada que aplicar: ni la construcción "prohibida"
 # ni la falta de jq frenan una escritura.
 SIN="$(mktemp -d)"; git -C "$SIN" init -q 2>/dev/null
-printf '%s' '{"tool_input":{"file_path":"/r/r.ts","new_string":"await identityRepo.findItem(i);"}}' \
+printf '%s' '{"tool_input":{"file_path":"/r/a.ts","new_string":"user.password = req.body.password;"}}' \
   | (cd "$SIN" && env -u ENGRAM_REGLAS_ARCHIVO CLAUDE_PROJECT_DIR="$SIN" "$HOOK") >/dev/null 2>&1
 if [ $? = 0 ]; then ok=$((ok+1)); echo "  ✓ repo sin reglas: no bloquea"
 else fail=$((fail+1)); echo "  ✗ repo sin reglas bloqueó"; fi
@@ -90,7 +90,7 @@ if [ $? = 0 ]; then ok=$((ok+1)); echo "  ✓ repo sin reglas y sin jq: no bloqu
 else fail=$((fail+1)); echo "  ✗ repo sin reglas y sin jq bloqueó"; fi
 # Las reglas del repo, en <raíz>/.claude/reglas-escritura.tsv, se aplican solas.
 mkdir -p "$SIN/.claude" && cp "$ENGRAM_REGLAS_ARCHIVO" "$SIN/.claude/reglas-escritura.tsv"
-printf '%s' '{"tool_input":{"file_path":"/r/r.ts","new_string":"await identityRepo.findItem(i);"}}' \
+printf '%s' '{"tool_input":{"file_path":"/r/a.ts","new_string":"user.password = req.body.password;"}}' \
   | (cd "$SIN" && env -u ENGRAM_REGLAS_ARCHIVO CLAUDE_PROJECT_DIR="$SIN" "$HOOK") >/dev/null 2>&1
 if [ $? = 2 ]; then ok=$((ok+1)); echo "  ✓ reglas del repo: se aplican"
 else fail=$((fail+1)); echo "  ✗ reglas del repo: no se aplicaron"; fi

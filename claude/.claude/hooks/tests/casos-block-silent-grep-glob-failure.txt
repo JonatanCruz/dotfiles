@@ -6,7 +6,7 @@
 0	echo que la explica	echo "usa --include=*.ts con comillas"
 0	heredoc que la documenta	cat > /tmp/nota.md <<EOF\n--include=*.ts falla en zsh\nEOF
 0	comentario al final del comando	ls src/  # ojo con --include=*.ts
-0	buscar la sintaxis en los docs	grep -rn "include=" /home/jonatan/docs
+0	buscar la sintaxis en los docs	grep -rn "include=" docs/
 0	entrecomillado con dobles	grep -rn "foo" . --include="*.ts"
 0	entrecomillado con simples	grep -rn "foo" . --include='*.ts'
 0	sin glob	grep -rn "foo" . --include=Makefile

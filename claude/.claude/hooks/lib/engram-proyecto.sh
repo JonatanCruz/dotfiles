@@ -11,15 +11,22 @@
 #   1. el nombre del repo PRINCIPAL (`--git-common-dir`): igual desde cualquiera
 #      de sus worktrees;
 #   2. el nombre de cada worktree actual del repo;
-#   3. los alias que el PROPIO proyecto declare en `<repo>/.claude/engram-proyectos`
-#      (uno por línea, `#` comenta): nombres viejos, worktrees ya borrados.
+#   3. los alias que el PROPIO proyecto declare en `engram.proyectos` de su
+#      `.claude/hooks.json` (ver lib/config.sh): nombres viejos, worktrees ya
+#      borrados. Por compatibilidad se lee también `<repo>/.claude/engram-proyectos`
+#      (uno por línea, `#` comenta).
 # Fuera de un repo de git: el nombre de la carpeta (la convención de
 # mem_session_start).
 #
-# El archivo de alias viene del repo y un repo clonado no es de confianza: sólo
-# se aceptan nombres `[A-Za-z0-9._-]{1,64}`, y salen hacia SQL ya escapados.
+# Los alias vienen del repo y un repo clonado no es de confianza: sólo se
+# aceptan nombres `[A-Za-z0-9._-]{1,64}`, y salen hacia SQL ya escapados.
 # Lo peor que puede hacer un alias ajeno es pedir memorias de otro nombre: el
 # recall es de sólo lectura y no puede modificar la base.
+
+_engram_cfg="$(dirname "${BASH_SOURCE[0]}")/config.sh"
+# shellcheck source=config.sh
+[ -r "$_engram_cfg" ] && . "$_engram_cfg"
+unset _engram_cfg
 
 # engram_proyectos [dir] → un nombre por línea, validados y sin repetir.
 engram_proyectos() {
@@ -34,7 +41,8 @@ engram_proyectos() {
     if [ -n "$raiz" ]; then
       printf '%s\n' "${raiz##*/}"
       git -C "$raiz" worktree list --porcelain 2>/dev/null | sed -n 's#^worktree .*/##p'
-      [ -r "$raiz/.claude/engram-proyectos" ] && sed 's/#.*//' "$raiz/.claude/engram-proyectos"
+      [ -f "$raiz/.claude/engram-proyectos" ] && sed 's/#.*//' "$raiz/.claude/engram-proyectos"
+      command -v config_engram_proyectos >/dev/null 2>&1 && config_engram_proyectos "$dir"
     else
       printf '%s\n' "${dir##*/}"
     fi

@@ -230,7 +230,7 @@ serena_search_for_pattern(
 
 # Buscar rutas absolutas
 serena_search_for_pattern(
-  substring_pattern="/home/jonatan|/Users/jonatan",
+  substring_pattern="/home/[a-z_][a-z0-9_-]*/|/Users/[A-Za-z0-9_-]+/",
   relative_path="."
 )
 ```

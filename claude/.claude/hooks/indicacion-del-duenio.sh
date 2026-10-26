@@ -9,12 +9,12 @@
 #   Stop             → si el marcador sigue, BLOQUEA terminar el turno una vez
 #                      (stop_hook_active evita el bucle).
 #
-# Por qué existe (2026-10-14): el dueño dio la indicación de no crear worktrees fuera
+# Por qué existe: el dueño dio la indicación de no crear worktrees fuera
 # del repo, no se guardó y se volvió a violar. Sus palabras: "ese es el detalle, que no
 # lo guardas cuando fue una indicación mía". Un aviso solo no basta: el Stop impide
 # cerrar el turno sin guardarla.
 #
-# Por qué el destino es CLAUDE.md y no Engram (2026-10-23): Engram sólo vuelve al
+# Por qué el destino es CLAUDE.md y no Engram: Engram sólo vuelve al
 # contexto si engram-autorecall.sh acierta por coincidencia de palabras, y una regla
 # tiene que estar presente cuando toca, no cuando el prompt la nombra. CLAUDE.md se
 # carga en cada sesión. El dueño: "engram no sirve para estas reglas, porque no lo

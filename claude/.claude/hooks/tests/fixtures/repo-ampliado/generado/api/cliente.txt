@@ -1,0 +1,1 @@
+cliente generado: handler(a, b)

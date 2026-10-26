@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # PreToolUse (matcher: Bash). BLOQUEA (exit 2) los comandos que nombran un
 # secreto conocido de esta máquina: llaves privadas de ~/.ssh, ~/.aws/credentials,
-# ~/.gnupg, secrets.zsh, .credentials.json de Claude Code y archivos .env.
+# ~/.gnupg, secrets.zsh, .credentials.json de Claude Code y archivos .env; y los
+# CLIs que devuelven el VALOR de un secreto (tabla SECRETOS_CLIS, ampliable por
+# proyecto en .claude/hooks.json).
 #
 # ES UNA CAPA DE DEFENSA EN PROFUNDIDAD, NO LA DEFENSA. No es completa ni puede
 # serlo: un filtro de texto no reimplementa el parser de bash (variables opacas,
@@ -169,12 +171,107 @@ ofuscado() {
   return 1
 }
 
+# CLIs que DEVUELVEN el valor de un secreto. Su argumento es un nombre, no una
+# ruta: ninguna detección de rutas los ve. Veto directo cuando un tramo contiene
+# la secuencia; los subcomandos de metadatos (list, describe, names…) pasan.
+# Una entrada: ejecutable, subcomandos en orden (con lo que sea en medio) y, si
+# empieza con `--`, una opción que tiene que estar. kubectl va aparte: sólo
+# revela con -o/--output/--template.
+# Cada proyecto puede AÑADIR entradas (secretos.clis en .claude/hooks.json),
+# nunca quitarlas: la tabla de abajo siempre aplica.
+SECRETOS_CLIS='gcloud secrets versions access
+aws secretsmanager get-secret-value
+aws secretsmanager batch-get-secret-value
+aws ssm get-parameter --with-decryption
+aws ssm get-parameters --with-decryption
+aws ssm get-parameters-by-path --with-decryption
+az keyvault secret show
+az keyvault secret download
+vault kv get
+vault read
+op read
+op item get
+op document get
+doppler secrets get
+doppler secrets download'
+_cfg="$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+# shellcheck source=lib/config.sh
+if [ -r "$_cfg" ] && . "$_cfg" 2>/dev/null && command -v config_secretos_clis >/dev/null 2>&1; then
+  _dir_cfg="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
+  [ -d "$_dir_cfg" ] || _dir_cfg="${CLAUDE_PROJECT_DIR:-$PWD}"
+  _extra="$(config_secretos_clis "$_dir_cfg")"
+  [ -z "$_extra" ] || SECRETOS_CLIS="$SECRETOS_CLIS"$'\n'"$_extra"
+fi
+# Se busca la secuencia como PALABRAS en cualquier posición del tramo (`aws` …
+# `secretsmanager` … `get-secret-value`), no sólo al inicio tras una lista de
+# envoltorios: cualquier envoltorio con argumentos (`sudo -u x`, `timeout -s
+# KILL 5`, `env -u X`) la esquivaba. El texto entrecomillado se evalúa TAMBIÉN
+# partido en palabras: una lista de intérpretes que "podrían ejecutarlo" nunca
+# está completa (env -S, flock, awk system(), git -c alias, tmux, /bin/sh…).
+# La única exención es la de las rutas: el mensaje de un git commit/tag simple.
+# Las opciones obligatorias (`--with-decryption`, la salida de kubectl) se buscan
+# en el comando ENTERO: un corte artificial no puede esconderlas.
+# es_palabra <palabra> <nombre>: `aws` o `/usr/local/bin/aws`.
+es_palabra() { [ "$1" = "$2" ] || [[ "$1" == */"$2" ]]; }
+# vetar_clis <texto>: bloquea si un tramo ejecuta un CLI de la tabla.
+vetar_clis() {
+  local tramo entrada w i n ok_kc tiene_get tiene_secret tiene_salida=0
+  local -a palabras req todas
+  # Comillas y llaves que quedan dentro de un texto citado (`awk 'BEGIN{system("op
+  # read …")}'`) no son parte de la palabra: `"op` es `op`. Tampoco `=` ni `!`:
+  # `alias.x='!aws …'` ejecuta `aws`.
+  local texto
+  texto="$(printf '%s' "$1" | tr "\"'{}=!" '      ')"
+  read -r -a todas <<<"$(printf '%s' "$texto" | tr ";&|()\`\n" '      ')"
+  for w in ${todas[@]+"${todas[@]}"}; do [[ "$w" =~ $RE_KUBE_SALIDA ]] && tiene_salida=1; done
+  while IFS= read -r tramo; do
+    read -r -a palabras <<<"$tramo"
+    n="${#palabras[@]}"
+    [ "$n" -gt 0 ] || continue
+    while IFS= read -r entrada; do
+      [ -n "$entrada" ] || continue
+      read -r -a req <<<"$entrada"
+      # Subsecuencia ordenada de las palabras; las opciones `--x` pueden ir en
+      # cualquier lugar después del ejecutable (también como `--x=valor`).
+      local j=0 nw=0 opciones_ok=1 o
+      for o in "${req[@]}"; do [[ "$o" == --* ]] || nw=$((nw+1)); done
+      for ((i = 0; i < n && j < nw; i++)); do
+        if { [ "$j" = 0 ] && es_palabra "${palabras[i]}" "${req[0]}"; } || { [ "$j" -gt 0 ] && [ "${palabras[i]}" = "${req[j]}" ]; }; then
+          j=$((j+1))
+        fi
+      done
+      [ "$j" = "$nw" ] || continue
+      for o in "${req[@]:j}"; do
+        [[ "$o" == --* ]] || { opciones_ok=0; break; }
+        case " ${todas[*]} " in *" $o "* | *" $o="*) ;; *) opciones_ok=0 ;; esac
+      done
+      [ "$opciones_ok" = 1 ] || continue
+      bloquear "\`$entrada\` devuelve el valor de un secreto. Para metadatos usá el subcomando de listar o describir."
+    done <<<"$SECRETOS_CLIS"
+    # kubectl, en cualquier orden: (a) kubectl + get + secret(s) en el tramo;
+    # (b) una salida que muestra los datos, en cualquier parte del comando.
+    ok_kc=0; tiene_get=0; tiene_secret=0
+    for w in "${palabras[@]}"; do
+      es_palabra "$w" kubectl && ok_kc=1
+      [ "$w" = get ] && tiene_get=1
+      [[ "$w" =~ $RE_KUBE_SECRET ]] && tiene_secret=1
+    done
+    if [ "$ok_kc$tiene_get$tiene_secret$tiene_salida" = 1111 ]; then
+      bloquear "\`kubectl get secret\` con -o/--output/--template devuelve los valores del secreto. Para metadatos: kubectl get secrets (sin -o) / describe secret."
+    fi
+  done < <(printf '%s\n' "$texto" | tr ";&|()\`" '\n\n\n\n\n\n')
+}
+RE_KUBE_SECRET='^(([a-z0-9.-]+,)*secrets?(,[a-z0-9.-]+)*)(/.*)?$'
+RE_KUBE_SALIDA='^(-o.*|--output(=.*)?|--template(=.*)?|--go-template.*)$'
+
 if ! command -v jq >/dev/null 2>&1; then
   [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (jq no está instalado: se evaluó el payload crudo)."
+  vetar_clis "$(printf '%s' "$payload" | tr '"' ';')"
   exit 0
 fi
 if ! cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null)"; then
   [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (JSON ilegible: se evaluó el payload crudo)."
+  vetar_clis "$(printf '%s' "$payload" | tr '"' ';')"
   exit 0
 fi
 [ -n "$cmd" ] || exit 0
@@ -233,8 +330,9 @@ fi
 
 # Normalización básica como la de bash: fuera de comillas, `\x` → `x`; las
 # comillas se quitan y su contenido se conserva, con sus espacios y separadores
-# marcados (\037/\036) para que un texto de varias palabras no forme tokens
-# sueltos ni corte el comando.
+# marcados (\037 espacio, \036 ; & |, \035 \034 \033 paréntesis y backtick)
+# para que un texto de varias palabras no forme tokens sueltos ni corte el comando.
+# Para las rutas los paréntesis y el backtick citados se restituyen enseguida.
 normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
   s = $0; out = ""; q = ""; n = length(s)
   for (i = 1; i <= n; i++) {
@@ -249,6 +347,9 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
       if (q == "\"" && c == "\\" && i < n) { i++; c = substr(s, i, 1) }
       if (c == " " || c == "\t" || c == "\n") c = "\037"
       else if (c == ";" || c == "&" || c == "|") c = "\036"
+      else if (c == "(") c = "\035"
+      else if (c == ")") c = "\034"
+      else if (c == "`") c = "\033"
       out = out c
     }
   }
@@ -258,21 +359,23 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
 # El texto entrecomillado cuenta como tokens (sus espacios son bordes), salvo
 # en el mensaje de un git commit/tag simple: ahí es prosa y no se ejecuta.
 SIMPLE_RE='[`;&|<>]|\$\('
-if ! { [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
-       && ! [[ "$original" =~ $SIMPLE_RE ]] && [[ "$original" != *$'\n'* ]] \
-       && [[ "$original" != *\\* ]]; }; then
+normal_citado="$normal"
+normal="$(printf '%s' "$normal" | tr '\035\034\033' '()`')"
+commit_simple=0
+if [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
+   && ! [[ "$original" =~ $SIMPLE_RE ]] && [[ "$original" != *$'\n'* ]] \
+   && [[ "$original" != *\\* ]]; then
+  commit_simple=1
+else
   normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
-# `gcloud secrets versions access` devuelve el VALOR del secreto, y su argumento
-# es un nombre, no una ruta: ninguna detección de rutas lo ve. Veto directo
-# cuando gcloud es el ejecutable de un tramo; `gcloud secrets list`/`describe`
-# devuelven metadatos y siguen permitidos. Sobre `normal` antes de espaciar: un
-# `echo "gcloud secrets versions access"` lleva \037 y no coincide.
-SEP=$'\036'
-GCLOUD_ACCESS="(^|[;&|(${SEP}]|\\\$\\()[[:space:]]*gcloud[[:space:]]([^;&|${SEP}]*[[:space:]])?secrets[[:space:]]+versions[[:space:]]+access([[:space:]]|\$)"
-if [[ "$normal" =~ $GCLOUD_ACCESS ]]; then
-  bloquear "\`gcloud secrets versions access\` devuelve el valor del secreto. Para metadatos: gcloud secrets list / versions list / describe."
+# CLIs de secretos: el texto citado cuenta partido en palabras y SIN cortes (un
+# `(` o un `;` citados no separan comandos), salvo en el commit simple.
+if [ "$commit_simple" = 1 ]; then
+  vetar_clis "$normal_citado"
+else
+  vetar_clis "$(printf '%s' "$normal_citado" | tr '\037\036\035\034\033' '     ')"
 fi
 
 hallados="$(secretos_en "$normal"; globs_sospechosos "$cmd")"
