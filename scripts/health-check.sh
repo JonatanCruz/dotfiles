@@ -66,6 +66,26 @@ check_warn() {
     ((++CHECKS_WARNING))
 }
 
+# Ruta canónica, portable. `readlink -f` no existe en macOS anteriores a 12.3,
+# así que allí se usa Python. La ruta va como ARGUMENTO (sys.argv[1]), nunca
+# interpolada en el código: una ruta con una comilla rompía el script y una con
+# `'); …` ejecutaba Python arbitrario. Nunca falla: con set -e, un $(…) fallido
+# en una asignación abortaría el health check entero.
+resolve_path() {
+    if [[ "$OS" == "macOS" ]]; then
+        python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1" 2>/dev/null || true
+    else
+        readlink -f "$1" 2>/dev/null || true
+    fi
+}
+
+# Permisos en octal (p.ej. 600), siguiendo symlinks. GNU stat usa -c y BSD -f;
+# se prueba GNU primero porque en Linux `stat -f` existe pero significa otra
+# cosa (estado del sistema de archivos). Vacío si no se puede leer.
+file_mode() {
+    stat -L -c %a "$1" 2>/dev/null || stat -L -f %Lp "$1" 2>/dev/null || true
+}
+
 # ==============================================================================
 # BINARY CHECKS
 # ==============================================================================
@@ -131,7 +151,6 @@ check_symlinks() {
         "$HOME/.zsh:zsh-plugins"
         "$HOME/.config/starship.toml:starship"
         "$HOME/.config/yazi:yazi"
-        "$HOME/.config/wezterm:wezterm"
     )
 
     for entry in "${symlinks[@]}"; do
@@ -140,13 +159,7 @@ check_symlinks() {
 
         if [ -L "$path" ]; then
             local target
-            # Cross-platform canonical path resolution
-            if [[ "$OS" == "macOS" ]]; then
-                # macOS doesn't have readlink -f, use Python for portability
-                target=$(python3 -c "import os; print(os.path.realpath('$path'))" 2>/dev/null)
-            else
-                target=$(readlink -f "$path" 2>/dev/null)
-            fi
+            target=$(resolve_path "$path")
             if [[ "$target" == *"$DOTFILES_DIR/$name"* ]]; then
                 check_pass "$(basename "$path") → $name"
             else
@@ -159,9 +172,8 @@ check_symlinks() {
         fi
     done
 
-    # tmux accepts either the classic ~/.tmux.conf or the XDG ~/.config/tmux/.
-    # This repo uses the classic one; checking only for the XDG path reported a
-    # missing package that was in fact correctly linked.
+    # tmux admite el clásico ~/.tmux.conf o el XDG ~/.config/tmux/. Hay que
+    # aceptar ambos: comprobar solo uno da un falso "no instalado".
     local tmux_path=""
     if [ -L "$HOME/.tmux.conf" ]; then
         tmux_path="$HOME/.tmux.conf"
@@ -171,11 +183,7 @@ check_symlinks() {
 
     if [ -n "$tmux_path" ]; then
         local tmux_target
-        if [[ "$OS" == "macOS" ]]; then
-            tmux_target=$(python3 -c "import os; print(os.path.realpath('$tmux_path'))" 2>/dev/null)
-        else
-            tmux_target=$(readlink -f "$tmux_path" 2>/dev/null)
-        fi
+        tmux_target=$(resolve_path "$tmux_path")
         if [[ "$tmux_target" == *"$DOTFILES_DIR/tmux"* ]]; then
             check_pass "$(basename "$tmux_path") → tmux"
         else
@@ -186,6 +194,50 @@ check_symlinks() {
     else
         check_warn "tmux config not found (package not installed)"
     fi
+}
+
+# ==============================================================================
+# STOW LINK COMPLETENESS
+# ==============================================================================
+
+# Un `git pull` actualiza los archivos ya enlazados, pero un archivo NUEVO en un
+# paquete no existe en $HOME hasta re-correr stow, y falla en silencio (así se
+# perdió ~/.tmux-colors.conf). Ojo: `stow -n` sin -v no imprime nada aunque
+# falten enlaces; por eso se cuentan las líneas LINK de la salida verbose.
+check_stow_links() {
+    print_section "Stow Link Completeness"
+
+    if ! command -v stow &>/dev/null; then
+        check_fail "stow not installed"
+        return
+    fi
+
+    local packages=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude opencode git mise)
+    local stow_args=(-n -v -d "$DOTFILES_DIR" -t "$HOME")
+
+    for pkg in "${packages[@]}"; do
+        [ -d "$DOTFILES_DIR/$pkg" ] || continue
+
+        # Un paquete sin ningún enlace no se usa en esta máquina (p. ej.
+        # wezterm en un servidor sin GUI): no es un fallo, se omite. La salida
+        # se captura antes de filtrarla: `stow | grep -q` con pipefail falla
+        # por SIGPIPE justo cuando grep encuentra la línea.
+        local output missing
+        output=$(stow "${stow_args[@]}" -D "$pkg" 2>&1 || true)
+        grep -q '^UNLINK:' <<<"$output" || continue
+
+        output=$(stow "${stow_args[@]}" "$pkg" 2>&1) || {
+            check_fail "$pkg: stow reports conflicts (run: stow -n -v $pkg)"
+            continue
+        }
+        missing=$(sed -nE 's/^LINK: ([^ ]+) =>.*/\1/p' <<<"$output" | paste -sd ' ' -)
+
+        if [ -n "$missing" ]; then
+            check_fail "$pkg: missing links: $missing (run: stow -R $pkg)"
+        else
+            check_pass "$pkg: all links present"
+        fi
+    done
 }
 
 # ==============================================================================
@@ -360,11 +412,44 @@ check_submodules() {
         return
     fi
 
-    if echo "$submodule_status" | grep -q "^-"; then
+    # Sin `echo | grep -q`: con pipefail, la salida temprana de grep puede matar
+    # a echo por SIGPIPE y la tubería daría el resultado contrario.
+    if [[ "$submodule_status" == -* || "$submodule_status" == *$'\n'-* ]]; then
         check_warn "Submodules not initialized (run: git submodule update --init --recursive)"
     else
         check_pass "Git submodules initialized"
     fi
+}
+
+# ==============================================================================
+# SECRET FILE PERMISSIONS
+# ==============================================================================
+
+check_secret_perms() {
+    print_section "Secret File Permissions"
+
+    local secrets=(
+        "$HOME/.config/zsh/secrets.zsh"
+        "$HOME/.gitconfig-local"
+    )
+
+    for file in "${secrets[@]}"; do
+        local name="${file/#$HOME/\~}"
+        if [ ! -e "$file" ]; then
+            check_pass "$name no existe (nada que proteger)"
+            continue
+        fi
+
+        local mode
+        mode=$(file_mode "$file")
+        if [ -z "$mode" ]; then
+            check_warn "$name: no se pudieron leer sus permisos"
+        elif [ "$mode" = "600" ]; then
+            check_pass "$name permisos 600"
+        else
+            check_warn "$name tiene permisos $mode (debe ser 600): chmod 600 $name"
+        fi
+    done
 }
 
 # ==============================================================================
@@ -386,9 +471,9 @@ check_stale_claude() {
     local output
     output=$("$reaper" 2>/dev/null || true)
 
-    if echo "$output" | grep -q "Nothing to reap"; then
+    if [[ "$output" == *"Nothing to reap"* ]]; then
         check_pass "No stale Claude sessions"
-    elif echo "$output" | grep -q "Found"; then
+    elif [[ "$output" == *"Found"* ]]; then
         local summary
         summary=$(echo "$output" | grep "Found" | sed -E 's/\x1b\[[0-9;]*m//g; s/^[^F]*//; s/:$//')
         check_warn "$summary — run: scripts/reap-stale-claude.sh --kill"
@@ -437,10 +522,12 @@ main() {
 
     check_binaries
     check_symlinks
+    check_stow_links
     check_neovim
     check_zsh
     check_tmux
     check_submodules
+    check_secret_perms
     check_stale_claude
 
     print_summary

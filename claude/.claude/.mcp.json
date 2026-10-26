@@ -3,21 +3,21 @@
     "playwright-chrome": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.83",
         "--browser=chrome"
       ]
     },
     "playwright-firefox": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.83",
         "--browser=firefox"
       ]
     },
     "playwright-safari": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.83",
         "--browser=webkit"
       ]
     },
@@ -33,7 +33,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@21st-dev/magic@latest"
+        "@21st-dev/magic@0.2.3"
       ],
       "env": {
         "API_KEY": "${MAGIC_API_KEY}"
@@ -43,21 +43,21 @@
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp@latest"
+        "@upstash/context7-mcp@4.4.4"
       ]
     },
     "sequential-thinking": {
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-sequential-thinking@latest"
+        "@modelcontextprotocol/server-sequential-thinking@2.0.0"
       ]
     },
     "tavily": {
       "command": "npx",
       "args": [
         "-y",
-        "tavily-mcp@latest"
+        "tavily-mcp@0.2.22"
       ],
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"

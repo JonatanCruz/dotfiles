@@ -10,7 +10,9 @@
 # escapes en el prompt.
 #
 # Diferencias con el original (bash -> zsh):
-#   - $SECONDS es float en zsh; se usa $EPOCHSECONDS (entero) via zsh/datetime
+#   - Se usa $EPOCHSECONDS (entero, de zsh/datetime) en vez de $SECONDS: este
+#     también es entero en zsh, pero `typeset -F SECONDS` en cualquier sitio lo
+#     vuelve float; la hora epoch no depende de eso
 #   - ${letters:i:1} es indexado 0 en bash; en zsh se usa ${letters[i+1]}
 #   - Se conserva el "fail closed" de _ssh_interactive tal cual
 
@@ -114,8 +116,20 @@ ssh() {
 # permitiendo probar websockets y service workers contra una caja remota.
 #
 # Cambios: `command ssh` para saltar el wrapper de reconexión de arriba (un
-# forward con -f -N no es interactivo), y `pgrep -fl` porque el -a de Linux
-# no imprime la línea de comando en macOS.
+# forward con -f -N no es interactivo), y _pgrep_cmdline (abajo), porque la
+# opción de pgrep que muestra la línea de comando no es la misma en Linux y
+# en macOS.
+
+# pgrep que imprime "PID línea-de-comando-completa" en ambos sistemas. En
+# Linux (procps) eso es -a: con -l solo sale el nombre del proceso. En
+# macOS/BSD es -l, y -a significa otra cosa (incluir procesos ancestros).
+_pgrep_cmdline() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    pgrep -fl "$@"
+  else
+    pgrep -af "$@"
+  fi
+}
 
 # fip <host> <puerto> [puerto...] — abre forwards en background
 fip() {
@@ -149,7 +163,7 @@ dip() {
 
 # lip — lista los forwards activos
 lip() {
-  pgrep -fl "ssh.*-L [0-9]+:localhost:[0-9]+" || echo "Sin forwards activos"
+  _pgrep_cmdline "ssh.*-L [0-9]+:localhost:[0-9]+" || echo "Sin forwards activos"
 }
 
 # ==============================================================================
@@ -169,9 +183,9 @@ lip() {
 # Cambios para macOS:
 #  - inotifywait -> fswatch -1 (espera un evento y sale, igual que inotifywait)
 #  - setsid --fork no existe -> nohup en subshell
-#  - pgrep -af -> -fl (el -a de Linux no imprime la cmdline en macOS)
+#  - pgrep -af -> _pgrep_cmdline (-af en Linux, -fl en macOS)
 #
-# Requiere: brew install fswatch
+# Requiere fswatch (brew install fswatch; en Linux también está en apt).
 
 # rsw <origen> <destino> — sincroniza en background ante cada cambio
 rsw() {
@@ -191,7 +205,7 @@ rsw() {
   local rsh="ssh -o ControlMaster=auto -o ControlPath=$sockets/rsw-%r@%h:%p -o ControlPersist=yes"
 
   # $0 del shell hijo es 'rsw-watch': así lo descubren lsw/dsw
-  # El script va en UNA línea a propósito: pgrep -fl imprime la cmdline
+  # El script va en UNA línea a propósito: _pgrep_cmdline imprime la cmdline
   # completa, y un script multilínea produce una "coincidencia" por línea,
   # rompiendo el parseo de lsw.
   ( nohup env RSYNC_RSH="$rsh" bash -c 'rsync -a "$1/" "$2"; while fswatch -1 -r "$1" >/dev/null; do rsync -a "$1/" "$2"; done' rsw-watch "$src" "$dest" >/dev/null 2>&1 & )
@@ -203,7 +217,7 @@ rsw() {
 lsw() {
   local line pid rest found=0
   # Solo las líneas que llevan la etiqueta rsw-watch seguida de los 2 paths
-  for line in ${(f)"$(pgrep -fl 'rsw-watch ' 2>/dev/null)"}; do
+  for line in ${(f)"$(_pgrep_cmdline 'rsw-watch ' 2>/dev/null)"}; do
     [[ "$line" == *"rsw-watch "* ]] || continue
     pid="${line%% *}"
     rest="${line##*rsw-watch }"

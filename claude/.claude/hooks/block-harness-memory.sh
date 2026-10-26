@@ -10,7 +10,7 @@
 # ordena escribir esos archivos. Eso ENTRA EN CONFLICTO con la regla "Engram ONLY"
 # de ~/.claude/CLAUDE.md. Una regla de prosa no previene el "error competente"
 # (el agente que cree que cumple). Este hook hace el conflicto estructuralmente
-# imposible — patrón Meadows ya usado en guard-sensitive-exec.sh / Reglas #13/#14.
+# imposible — mismo patrón estructural que las Reglas #13/#14.
 #
 # Read NO se bloquea (el usuario puede pedir leer un archivo viejo sin migrar aún).
 # Override consciente y auditable: export ENGRAM_MIGRATION=1 (para migrar/limpiar

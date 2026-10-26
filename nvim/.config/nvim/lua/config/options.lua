@@ -34,7 +34,8 @@ opt.undofile = true              -- Habilita el historial persistente de deshace
 opt.backup = false               -- No crear archivos de respaldo
 opt.writebackup = false          -- No crear respaldo antes de sobrescribir
 opt.swapfile = false             -- No crear archivos swap
-opt.updatetime = 300             -- Tiempo de espera para escribir el swap (ms)
+opt.updatetime = 300             -- ms sin teclear hasta CursorHold (hover de diagnósticos, resaltado LSP); el swap está desactivado
+opt.modeline = false             -- Ignora modelines (`vim: set ...`) de archivos ajenos: históricamente vector de ejecución de código
 opt.timeoutlen = 400             -- Tiempo de espera para secuencias de teclas (ms)
 opt.autoread = true              -- Recarga automática de archivos modificados externamente
 opt.hidden = true                -- Permite cambiar de buffer sin guardar
@@ -63,7 +64,7 @@ opt.incsearch = true             -- Búsqueda incremental
 -- RENDIMIENTO
 -- ============================================================================
 
-opt.lazyredraw = false           -- No redesibuja durante macros (puede causar problemas)
+opt.lazyredraw = false           -- Redibuja durante macros: lazyredraw rompe plugins con UI async
 opt.synmaxcol = 240              -- Límite de columnas para resaltado de sintaxis
 
 -- ============================================================================

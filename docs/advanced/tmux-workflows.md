@@ -9,7 +9,6 @@ Workflows y técnicas avanzadas para maximizar productividad con Tmux, SessionX,
 - [SessionX con Zoxide](#sessionx-con-zoxide)
 - [Persistencia con Resurrect + Continuum](#persistencia-con-resurrect--continuum)
 - [Integración con Neovim](#integración-con-neovim)
-- [Thumbs para Copia Rápida](#thumbs-para-copia-rápida)
 - [Automatización con Scripts](#automatización-con-scripts)
 
 ## Session Management Avanzado
@@ -163,13 +162,13 @@ Prefix + Space
 tmux
 
 # 2. Split vertical
-Prefix + v
+Prefix + |
 
 # 3. Navegar a derecha
 Ctrl + l
 
 # 4. Split horizontal en pane derecho
-Prefix + h
+Prefix + -
 
 # 5. Navegar a pane inferior izquierdo
 Ctrl + j
@@ -187,9 +186,9 @@ Alt + l  # Más ancho
 Alt + j  # Más alto
 Alt + k  # Más bajo
 
-# O con Prefix
-Prefix + H  # Resize izquierda (hold)
-Prefix + L  # Resize derecha
+# O con Prefix (atajos por defecto de tmux, repetibles)
+Prefix + Alt+flechas   # Resize de 5 en 5
+Prefix + Ctrl+flechas  # Resize de 1 en 1
 ```
 
 ### Layout: Backend + Database
@@ -215,21 +214,21 @@ Prefix + L  # Resize derecha
 nvim
 
 # 2. Split vertical → Database
-Prefix + v
+Prefix + |
 psql -U usuario database
 
 # 3. Ir a Neovim
 Ctrl + h
 
 # 4. Split horizontal → Server
-Prefix + h
+Prefix + -
 npm start
 
 # 5. Ir a Database
 Ctrl + l
 
 # 6. Split horizontal → Tests
-Prefix + h
+Prefix + -
 npm test
 
 # Layout completo
@@ -339,7 +338,7 @@ Continuum guarda automáticamente cada 15 minutos.
 **Guardar manualmente:**
 
 ```bash
-Prefix + Ctrl+s
+Prefix + S
 # Output: "Tmux environment saved!"
 ```
 
@@ -350,7 +349,7 @@ Prefix + Ctrl+s
 tmux
 
 # Restaurar última sesión
-Prefix + Ctrl+r
+Prefix + R
 # Output: "Tmux restore complete!"
 ```
 
@@ -398,7 +397,7 @@ ls -lh ~/.tmux/resurrect/
 
 ```bash
 # 1. Guardar manualmente (opcional)
-Prefix + Ctrl+s
+Prefix + S
 
 # 2. Cerrar terminal normalmente
 # Continuum ya guardó en últimos 15 min
@@ -559,79 +558,6 @@ yazi
 
 # Integra con Neovim:
 # Enter en archivo .lua → abre en Neovim
-```
-
-## Thumbs para Copia Rápida
-
-### Copiar Texto sin Mouse
-
-**Activación:**
-
-```bash
-Prefix + Space
-```
-
-**Workflow:**
-
-```bash
-# 1. Estás viendo output con URLs o paths
-# Ejemplo:
-# Error in file: /home/usuario/proyectos/app/src/utils/auth.js:42
-# See docs: https://example.com/api/authentication
-
-# 2. Activar Thumbs
-Prefix + Space
-
-# 3. Thumbs marca texto:
-# [a] /home/usuario/proyectos/app/src/utils/auth.js:42
-# [b] https://example.com/api/authentication
-
-# 4. Presionar letra
-# Presiona 'a' → path copiado al clipboard
-# Presiona 'b' → URL copiada
-
-# 5. Pegar donde necesites
-Ctrl + Shift + V  # En terminal
-```
-
-**Casos de uso:**
-
-1. **Copiar paths de errores**:
-```bash
-Error: ENOENT: /var/log/app/error.log
-# Thumbs → copiar path → nvim [paste]
-```
-
-2. **Copiar URLs de logs**:
-```bash
-API Response: https://api.example.com/v1/users/123
-# Thumbs → copiar → curl [paste]
-```
-
-3. **Copiar hashes de Git**:
-```bash
-commit a3f8d92 (HEAD -> main)
-# Thumbs → copiar hash → git show [paste]
-```
-
-4. **Copiar comandos largos del historial**:
-```bash
-docker run -d -p 3000:3000 --name app ...
-# Thumbs → copiar comando → editar y ejecutar
-```
-
-### Configuración de Hints
-
-**Caracteres de hints:**
-
-```bash
-# Configuración actual: alfabeto
-a b c d e f g h i j k l m n ...
-
-# Ventajas:
-# - Una tecla por hint
-# - Rápido para copiar
-# - No necesita confirmación
 ```
 
 ## Copy Mode Avanzado
@@ -845,11 +771,10 @@ tka                 # Matar todo y empezar de nuevo
 1. **Nombra tus sesiones siempre**: Más fácil de encontrar con SessionX
 2. **Usa Zoom Mode**: `Prefix + m` para foco total
 3. **Copy Mode para logs**: Busca errores con `/`, copia con `y`
-4. **Thumbs para URLs**: Copia links sin mouse
-5. **Scripts de proyecto**: Automatiza layouts complejos
-6. **Confía en Continuum**: Auto-guarda cada 15 min
-7. **SessionX + Zoxide**: Indexa tus proyectos navegando a ellos
-8. **Status bar minimalista**: `Prefix + \` para más espacio
+4. **Scripts de proyecto**: Automatiza layouts complejos
+5. **Confía en Continuum**: Auto-guarda cada 15 min
+6. **SessionX + Zoxide**: Indexa tus proyectos navegando a ellos
+7. **Status bar minimalista**: `Prefix + \` para más espacio
 
 ## Recursos Adicionales
 

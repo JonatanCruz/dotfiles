@@ -431,7 +431,7 @@ q                           # Salir
 
 ```bash
 # 1. En Tmux, crear pane para Yazi
-Prefix + v
+Prefix + |
 
 # 2. Abrir Yazi
 yazi
@@ -495,12 +495,12 @@ pwd  # /home/usuario/proyectos/web-app
 tmux
 
 # 2. Split vertical (Yazi)
-Prefix + v
+Prefix + |
 yazi
 
 # 3. Split vertical (Neovim)
 Ctrl + l
-Prefix + v
+Prefix + |
 nvim
 
 # 4. Pane derecho queda para comandos
@@ -955,7 +955,7 @@ gr → Ver referencias
 K → Hover docs
 
 # File explorer
-Prefix + v
+Prefix + |
 yazi
 
 # Copiar error del log

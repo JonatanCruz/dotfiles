@@ -513,7 +513,7 @@ $character\
 Editar archivo correspondiente en `~/.config/nvim/lua/plugins/`:
 
 ```lua
--- Ejemplo: Agregar Undotree a editing.lua
+-- Ejemplo: Agregar Undotree en un archivo nuevo, lua/plugins/editor/undotree.lua
 return {
   {
     "mbbill/undotree",

@@ -929,7 +929,7 @@ setw synchronize-panes off
 
 ```bash
 # Desde cualquier sesión Tmux:
-Ctrl+s + o    # Abre SessionX
+Ctrl+s + s    # Abre SessionX
 
 # Fuzzy search de sesiones con preview
 # Enter para cambiar

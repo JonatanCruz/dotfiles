@@ -2,9 +2,6 @@
 # GITHUB CLI - Aliases para gh (GitHub CLI)
 # ==============================================================================
 
-# Comando base (no-op alias removed to allow lazy loading in plugins.zsh)
-# alias gh='gh'
-
 # ==============================================================================
 # AUTENTICACIÓN Y CONFIGURACIÓN
 # ==============================================================================
@@ -396,9 +393,15 @@ ghrepo-new() {
         local description="${2:-$name}"
         local private="${3:-n}"
 
-        local flags="--description '$description'"
-        [ "$private" = "y" ] && flags="$flags --private" || flags="$flags --public"
+        # Array de argumentos, nunca un string reevaluado: con `eval`, una
+        # descripción con comillas o `$(…)` se ejecutaba como código.
+        local -a args=(repo create "$name" --description "$description" --clone)
+        if [ "$private" = "y" ]; then
+            args+=(--private)
+        else
+            args+=(--public)
+        fi
 
-        eval "gh repo create $name $flags --clone"
+        gh "${args[@]}"
     fi
 }

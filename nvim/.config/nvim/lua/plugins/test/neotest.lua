@@ -26,7 +26,6 @@ return {
 		dependencies = {
 			"nvim-neotest/nvim-nio",
 			"nvim-lua/plenary.nvim",
-			"antoinemadec/FixCursorHold.nvim",
 			"nvim-treesitter/nvim-treesitter",
 			-- Adaptadores de testing
 			"nvim-neotest/neotest-jest",
@@ -164,7 +163,7 @@ return {
 				adapters = adapters,
 
 				-- ═══════════════════════════════════════════════════════════
-				-- Icons personalizados (Dracula theme compatible)
+				-- Icons personalizados del tema
 				-- ═══════════════════════════════════════════════════════════
 				icons = {
 					passed = "✅",
@@ -338,14 +337,14 @@ return {
 			})
 
 			-- ╭─────────────────────────────────────────────────────────────╮
-			-- │ Configuración de Highlights (Dracula theme)                 │
+			-- │ Configuración de Highlights                                  │
 			-- ╰─────────────────────────────────────────────────────────────╯
-			vim.api.nvim_set_hl(0, "NeotestPassed", { fg = "#50fa7b", bold = true }) -- Verde Dracula
-			vim.api.nvim_set_hl(0, "NeotestFailed", { fg = "#ff5555", bold = true }) -- Rojo Dracula
-			vim.api.nvim_set_hl(0, "NeotestRunning", { fg = "#ffb86c", bold = true }) -- Naranja Dracula
-			vim.api.nvim_set_hl(0, "NeotestSkipped", { fg = "#6272a4", bold = true }) -- Gris Dracula
-			vim.api.nvim_set_hl(0, "NeotestUnknown", { fg = "#8be9fd" }) -- Cyan Dracula
-			vim.api.nvim_set_hl(0, "NeotestWatching", { fg = "#bd93f9" }) -- Púrpura Dracula
+			vim.api.nvim_set_hl(0, "NeotestPassed", { fg = "#50fa7b", bold = true })
+			vim.api.nvim_set_hl(0, "NeotestFailed", { fg = "#ff5555", bold = true })
+			vim.api.nvim_set_hl(0, "NeotestRunning", { fg = "#ffb86c", bold = true })
+			vim.api.nvim_set_hl(0, "NeotestSkipped", { fg = "#6272a4", bold = true })
+			vim.api.nvim_set_hl(0, "NeotestUnknown", { fg = "#8be9fd" })
+			vim.api.nvim_set_hl(0, "NeotestWatching", { fg = "#bd93f9" })
 
 			-- ╭─────────────────────────────────────────────────────────────╮
 			-- │ Configuración de Signs en Gutter                            │

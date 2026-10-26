@@ -45,10 +45,7 @@ tdl() {
   tmux send-keys -t "$cmd_pane" "$cmd" C-m
   tmux send-keys -t "$editor_pane" "$EDITOR ." C-m
 
-  # El original tenía aquí `select-pane -t "$opencode_pane"`, una variable que
-  # solo existe en tds() — en tdl estaba vacía, así que hacía select-pane -t ""
-  # y enfocaba el pane equivocado, justo lo contrario de lo que dice su
-  # comentario ("Select the nvim pane for focus").
+  # El original enfocaba $opencode_pane, variable de tds() que aquí está vacía.
   tmux select-pane -t "$editor_pane"
 }
 

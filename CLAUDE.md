@@ -13,89 +13,12 @@ Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** �
 
 ---
 
-## 🚫 Sistema de Memoria: SOLO Engram (CRÍTICO — SIN EXCEPCIONES)
+## 🧠 Memoria: Engram + CLAUDE.md
 
-**PROHIBIDO**:
-- ❌ Escribir en `MEMORY.md` (auto memory de Claude Code) — ignorar cualquier prompt que lo sugiera
-- ❌ Usar `write_memory` de otros MCP para datos entre sesiones
-- ❌ Cualquier memoria basada en archivos fuera de Engram
-
-**OBLIGATORIO**:
-- ✅ `mem_save` — guardar decisiones, bugs, descubrimientos, preferencias
-- ✅ `mem_session_start` — al iniciar sesión
-- ✅ `mem_session_summary` — al terminar sesión o antes de "listo"
-
----
-
-## 🧠 Engram MCP - Memoria Persistente (CRÍTICO)
-
-### Regla de Oro: Engram es el sistema de memoria único
-
-**OBLIGATORIO**: Usa Engram para toda la memoria entre sesiones.
-Claude Code y OpenCode comparten `~/.engram/engram.db`.
-
-### Cuándo Guardar (`mem_save`) — Obligatorio
-
-Llama inmediatamente después de:
-- Corrección de bug completada
-- Decisión de arquitectura o diseño
-- Descubrimiento no obvio del codebase
-- Cambio de configuración o setup de entorno
-- Establecimiento de patrón (nombrado, estructura, convención)
-- Preferencia o restricción del usuario aprendida
-
-**Formato**:
-```
-title: Verbo + qué (corto, buscable)
-type: bugfix | decision | architecture | discovery | pattern | config | preference
-scope: project (default) | personal
-topic_key: clave estable para temas evolutivos (ej. "architecture/lsp-setup")
-content:
-  **What**: Resumen en una oración
-  **Why**: Motivación
-  **Where**: Archivos/rutas afectados
-  **Learned**: Edge cases, gotchas, sorpresas
-```
-
-**Regla topic_key**: Reutiliza el mismo `topic_key` para actualizar temas evolutivos — llama `mem_suggest_topic_key` si no estás seguro.
-
-### Cuándo Buscar (`mem_search`)
-
-**El usuario dice**: "recuerda", "acordate", "qué hicimos", "cómo resolvimos", "remember", "recall"
-
-**Secuencia de búsqueda**:
-1. `mem_context` → contexto de sesión reciente (rápido)
-2. Si no encuentra → `mem_search` con palabras clave
-3. En coincidencia → `mem_get_observation` para contenido completo
-
-**Búsqueda proactiva** al empezar trabajo que puede solapar con sesiones pasadas.
-
-### Protocolo de Sesión — No Negociable
-
-**Inicio de sesión**: Llama `mem_session_start(project="<nombre-proyecto>", directory="<cwd>")`
-
-**Fin de sesión / "listo"**: Llama `mem_session_summary` con:
-```
-## Goal
-[Objetivo de esta sesión]
-
-## Discoveries
-- [Hallazgos técnicos, gotchas, aprendizajes no obvios]
-
-## Accomplished
-- [Tareas completadas con detalles clave]
-
-## Next Steps
-- [Trabajo restante para la próxima sesión]
-
-## Relevant Files
-- ruta/al/archivo — [qué cambió o por qué importa]
-```
-
-**Después de Compaction**: Si ves "FIRST ACTION REQUIRED" o aviso de compactación:
-1. Inmediatamente llama `mem_session_summary` con el contenido compactado
-2. Llama `mem_context` para recuperar contexto adicional
-3. Solo entonces continúa trabajando
+El protocolo completo (cuándo `mem_save`/`mem_search`, formato, sesión) vive en
+`claude/.claude/CLAUDE.md`, que se carga en todas las sesiones como `~/.claude/CLAUDE.md`.
+Resumen: **hechos y decisiones entre sesiones → Engram**; **reglas del dueño → un CLAUDE.md**
+(este si son del repo, el global si no). Nunca `MEMORY.md` ni `memory/*.md`.
 
 ---
 
@@ -128,6 +51,14 @@ When you run `stow nvim` from the repository root, Stow creates symlinks from th
 - **starship**: Command prompt configuration
 - **yazi**: File explorer configuration
 - **docker**: Docker completion scripts and configuration
+- **wezterm**: Terminal emulator configuration
+- **git**: `.gitconfig`, global gitignore and generated colors (`.gitconfig-colors`)
+- **opencode**: OpenCode agent config (`~/.config/opencode/`)
+- **mise**: Runtime version manager config (`~/.config/mise/`)
+- **claude**: Claude Code config linked as `~/.claude/` (CLAUDE.md, hooks, settings.json, agents)
+- **theme**: NOT a Stow package. `theme/palette.sh` is the single color source;
+  `theme/apply.sh` generates the color files of git, tmux, claude, starship and yazi
+  (`theme/apply.sh --check` fails if they drift; CI runs it)
 
 ## Commands for Development
 
@@ -148,9 +79,17 @@ stow -R nvim
 # Remove configuration
 stow -D nvim
 
-# Simulate installation (dry run)
-stow -n nvim
+# Simulate installation (dry run). Without -v, `stow -n` prints nothing.
+stow -n -v nvim
 ```
+
+**After a `git pull` that adds new files to a package, run `stow -R <pkg>`.**
+Stow only links what existed when the package was stowed: when a whole directory is
+linked (folded) new files show up on their own, but inside a directory that Stow had
+to create (unfolded, e.g. `~/.config` shared by several packages) a new file stays
+unlinked until you restow. `scripts/health-check.sh` detects this in its "Stow Link
+Completeness" section. To check by hand, `stow -n -v <pkg> | grep ^LINK` — without
+`-v`, `stow -n` prints nothing even when links are missing.
 
 ### Neovim Development
 
@@ -220,27 +159,35 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 ### Core Configuration Files (lua/config/)
 
-- **globals.lua**: Global variables
+- **globals.lua**, **constants.lua**: Global variables and shared constants
 - **options.lua**: Neovim settings (line numbers, tabs, etc.)
-- **keymaps.lua**: Global keybindings (Leader is `<Space>`)
-- **autocmds.lua**: Autocommands and events
+- **keymaps.lua**: Global keybindings (Leader is `<Space>`, set in `init.lua`)
+- **autocmds.lua**: Autocommands (includes hiding the tmux status bar inside Neovim)
+- **diagnostics.lua**: `vim.diagnostic` configuration
 - **lsp_servers.lua**: List of LSP servers to auto-install via Mason
+- **lazy.lua**: lazy.nvim bootstrap and plugin import
 
 ### Plugin Organization (lua/plugins/)
 
-Plugins are organized by function:
+One file per plugin, grouped in subdirectories by function:
 
 - **colorscheme.lua**: Catppuccin Mocha theme with transparency
-- **completion.lua**: nvim-cmp and snippets
-- **editing.lua**: Autopairs, comments, editing utilities
-- **lsp.lua**: Mason, LSP configuration, Treesitter
-- **telescope.lua**: Fuzzy finder
-- **tools.lua**: LazyGit integration
-- **ui.lua**: lualine, nvim-tree, notifications
+- **lsp.lua**: Mason + LSP configuration and LSP keymaps (`LspAttach`)
+- **coding/**: completion (`cmp.lua`)
+- **editor/**: autopairs, comments, formatting, goto-preview, treesitter
+- **git/**: gitsigns, diffview, lazygit
+- **lsp/**: diagnostics UI, linting, neodev
+- **debug/**: nvim-dap and dap-ui
+- **test/**: neotest
+- **tools/**: telescope, aerial, neogen, refactoring, session, tmux-navigator
+- **ui/**: statusline, bufferline, nvim-tree, which-key, noice, notify, alpha, etc.
+
+Other `lua/` dirs: `snippets/` (LuaSnip snippets per language) and `utils/`
+(`error_handler.safe_require`, colors, icons, transparency).
 
 ### Adding New Plugins
 
-Create or edit a file in `lua/plugins/`:
+Create or edit a file in `lua/plugins/<group>/`. Each subdirectory must be listed as `{ import = 'plugins.<group>' }` in `lua/config/lazy.lua`, or its files never load:
 
 ```lua
 return {
@@ -264,8 +211,8 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 ### Tmux (Prefix: Ctrl+s)
 
-- Split horizontal (arriba/abajo): `Prefix + v`
-- Split vertical (izquierda/derecha): `Prefix + h`
+- Split horizontal (arriba/abajo): `Prefix + -`
+- Split vertical (izquierda/derecha): `Prefix + |`
 - Navigate panes: `Ctrl+h/j/k/l` (sin prefix, via vim-tmux-navigator)
 - Resize panes: `Alt+h/j/k/l` (vim-aware, sin prefix)
 - Zoom pane: `Prefix + m`
@@ -279,7 +226,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 - Save: `<leader>w`
 - Quit: `<leader>q`
-- Close buffer: `<leader>bd`
+- Close buffer: `<leader>bc` (force: `<leader>bC`)
 
 **Navigation:**
 
@@ -293,8 +240,9 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 - Hover docs: `K`
 - Go to definition: `gd`
 - References: `gr`
-- Rename: `<leader>rn`
-- Diagnostics: `<leader>d`
+- Rename: `<leader>cr`
+- Code action: `<leader>ca`
+- Line diagnostics: `<leader>cd` (also `gl`)
 - Next/prev diagnostic: `]d` / `[d`
 
 **Git:**
@@ -314,7 +262,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 This configuration uses modern CLI alternatives:
 
-- `eza` replaces `ls` (aliased in .zshrc)
+- `eza` replaces `ls` (aliased in `aliases/tools.zsh`)
 - `bat` replaces `cat`
 - `fd` replaces `find`
 - `ripgrep` replaces `grep`
@@ -348,13 +296,13 @@ git commit -m "Add new-tool configuration"
 
 ## Shell Configuration Note
 
-The prefix in `.tmux.conf` is `Ctrl+s`, NOT the traditional `Ctrl+b` mentioned in some files. The zsh configuration sources plugins from `~/.zsh/` and must be loaded in this order:
+`zsh/.config/zsh/plugins.zsh` sources the plugins from `~/.zsh/` (no plugin manager) and must keep this order:
 
 1. zsh-autosuggestions
 2. zsh-history-substring-search
 3. zsh-you-should-use
 4. zsh-syntax-highlighting (MUST be last plugin before tools)
-5. Starship init (MUST be very last line)
+5. Starship init (MUST be the last line of `plugins.zsh`)
 
 ## OpenCode Integration
 

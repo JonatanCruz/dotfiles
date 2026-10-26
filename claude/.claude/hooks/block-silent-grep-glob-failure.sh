@@ -13,11 +13,9 @@
 # El comando NUNCA CORRE. La salida es vacía, y el vacío se lee igual que
 # "no existe" — un falso negativo SILENCIOSO, que es la peor clase.
 #
-# En una sola sesión esto produjo TRES conclusiones equivocadas:
-#   1. "el bot no tiene restos del monitoreo viejo"  → falso, sí los tenía
-#   2. "svc-a no menciona al bot"             → falso, 106 menciones
-#   3. "campoX no existe"                 → falso, y por poco desmiento
-#                                                      el hallazgo correcto de un agente
+# En una sola sesión esto produjo TRES conclusiones equivocadas ("X no tiene
+# restos de Y", "el servicio Z no menciona a X", "el campo W no existe"): las
+# tres eran falsas, y por poco se desmintió el hallazgo correcto de un agente.
 #
 # El fix es trivial: comillas. `--include="*.ts"` funciona perfecto (verificado).
 #
@@ -28,9 +26,16 @@
 # falsos positivos entrenan al `--no-verify` crónico.
 #
 # Éste no adivina NADA. No interpreta si la búsqueda era apropiada, ni sobre qué
-# archivos, ni con qué intención. Sólo detecta una sintaxis que en este shell está
-# rota SIEMPRE, para cualquier uso. Falso positivo imposible: si el glob no está
-# entrecomillado, el comando falla — con o sin hook.
+# archivos, ni con qué intención. Sólo detecta una sintaxis que en este shell
+# falla siempre que el glob no matchea en el cwd.
+#
+# Falsos positivos que SÍ existen y cómo se acotan:
+#   - El patrón dentro de un string (un payload JSON, un mensaje de commit) no se
+#     ejecuta: el contenido entrecomillado se descarta antes de buscar.
+#   - Si el glob SÍ matchea en el cwd, zsh lo expande y el comando corre (con un
+#     argumento distinto del escrito). Se bloquea igual: el resultado depende de
+#     qué haya en el cwd, que es justo lo que no se debe dejar al azar.
+#   - El cuerpo de un heredoc no se distingue del comando: puede bloquear de más.
 #
 # Es la distinción que hace que valga la pena: no cierra una categoría de conducta,
 # cierra un modo de falla concreto y medido.
@@ -42,23 +47,42 @@
 
 set -uo pipefail
 
-payload="$(cat)"
+# Falla ABIERTO sin jq o con JSON ilegible: no es un control de seguridad, y sin
+# jq el comando viaja dentro de las comillas del JSON, así que no se puede aislar.
+payload="$(cat 2>/dev/null || true)"
+command -v jq >/dev/null 2>&1 || exit 0
+cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+[ -n "$cmd" ] || exit 0
 
-if command -v jq >/dev/null 2>&1; then
-  cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
-else
-  cmd="$payload"
-fi
-
-[ -z "$cmd" ] && exit 0
+# Lo entrecomillado es texto, no argumentos que zsh vaya a expandir: se reemplaza
+# por un marcador `Q`. Así `--include="*.ts"` queda `--include=Q` (permitido) y
+# un `'{"x":"--include=*.ts"}'` desaparece entero.
+sin_comillas="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
+  s = $0; out = ""; q = ""; n = length(s)
+  for (i = 1; i <= n; i++) {
+    c = substr(s, i, 1)
+    if (q == "") {
+      if (c == "\\" && i < n) { out = out c substr(s, i + 1, 1); i++; continue }
+      if (c == "\047" || c == "\"") { q = c; out = out "Q"; continue }
+      out = out c
+    } else if (c == q) {
+      q = ""
+    } else if (q == "\"" && c == "\\" && i < n) {
+      i++
+    }
+  }
+  printf "%s", out
+}')"
 
 # `--include=` o `--exclude=` (o su forma `--include-dir`) seguido de un valor que
-# contiene un metacaracter de glob (* ? [) y que NO abre con comilla simple o doble.
+# contiene un metacaracter de glob (* ? [) fuera de comillas.
 #
 # Entrecomillado (`--include="*.ts"` / `--include='*.ts'`) → se permite: funciona.
 # Sin glob (`--include=Makefile`) → se permite: zsh no lo expande, no rompe.
-if printf '%s' "$cmd" |
-  grep -qE '\-\-(include|exclude)(-dir)?=[^"'"'"'[:space:]]*[*?[]'; then
+# `[[ =~ ]]` y no `grep -q` en una tubería: con pipefail, la salida temprana de
+# grep puede matar a printf por SIGPIPE.
+glob_sin_comillas='--(include|exclude)(-dir)?=[^[:space:]]*[*?[]'
+if [[ "$sin_comillas" =~ $glob_sin_comillas ]]; then
   cat >&2 <<'MSG'
 BLOQUEADO: `--include=`/`--exclude=` con glob SIN COMILLAS.
 
@@ -78,7 +102,7 @@ QUÉ HACER:
        mcp__codebase-memory-mcp__search_code    (texto, enriquecido con el grafo)
        mcp__codebase-memory-mcp__search_graph   (símbolos: funciones, clases, rutas)
        mcp__codebase-memory-mcp__trace_path     (quién llama a qué)
-     Proyecto: `PROYECTO`. Si el índice está viejo, REINDEXÁ — no vuelvas a grep.
+     (list_projects da el nombre del índice). Si está viejo, REINDEXÁ — no vuelvas a grep.
 
   2. Si de verdad necesitás grep (logs, JSON, YAML, salida de gcloud/gh):
        poné comillas →  --include="*.ts"

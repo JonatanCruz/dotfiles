@@ -19,8 +19,8 @@ return {
     { "<leader>ot", "<cmd>AerialToggle<cr>", desc = "Toggle Outline (Treesitter)" },
     { "<leader>on", "<cmd>AerialNext<cr>", desc = "Next Symbol" },
     { "<leader>op", "<cmd>AerialPrev<cr>", desc = "Previous Symbol" },
-    -- NOTA: { y } se mantienen como nativos de Vim (moverse entre párrafos)
-    -- Dentro del panel Aerial, { y } navegarán entre símbolos
+    -- { y } solo se reasignan DENTRO del panel (ver opts.keymaps); fuera
+    -- siguen siendo el salto de párrafo nativo de Vim.
   },
   opts = {
     -- ========================================================================
@@ -189,7 +189,7 @@ return {
   config = function(_, opts)
     require("aerial").setup(opts)
 
-    -- Configuración de colores Dracula con transparencia
+    -- Colores del tema (utils/colors.lua) con transparencia
     local colors = require("utils.colors")
     local transparency = require("utils.transparency")
 
@@ -198,11 +198,11 @@ return {
     transparency.set_transparent("AerialNormalNC")
     transparency.set_transparent("AerialBorder", { fg = colors.primary })
 
-    -- Símbolos con colores Dracula
+    -- Símbolos
     vim.api.nvim_set_hl(0, "AerialLine", { bg = colors.catppuccin.surface0 })
     vim.api.nvim_set_hl(0, "AerialGuide", { fg = colors.catppuccin.overlay0, bg = "none" })
 
-    -- Icons específicos por tipo de símbolo (colores Dracula)
+    -- Icons por tipo de símbolo
     vim.api.nvim_set_hl(0, "AerialClass", { fg = colors.secondary, bg = "none" })
     vim.api.nvim_set_hl(0, "AerialFunction", { fg = colors.catppuccin.green, bg = "none" })
     vim.api.nvim_set_hl(0, "AerialMethod", { fg = colors.catppuccin.green, bg = "none" })

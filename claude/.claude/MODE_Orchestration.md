@@ -10,13 +10,13 @@
 ## Tool Selection Matrix
 | Task | Best Tool | Alternative |
 |------|-----------|-------------|
-| UI components | Magic MCP | Manual |
+| UI components | Magic MCP (optional, needs API key) | Manual |
 | Deep analysis | Sequential MCP | Native |
 | Symbol ops | Serena MCP | Manual search |
-| Pattern edits | Morphllm MCP | Individual edits |
+| Pattern edits | Morphllm MCP (not configured) | Individual edits |
 | Docs | Context7 MCP | Web search |
 | Browser testing | Playwright MCP | Unit tests |
-| Multi-file edits | MultiEdit | Sequential |
+| Multi-file edits | Parallel Edit calls | Sequential |
 
 ## Infrastructure Rule
 **CRITICAL**: Infrastructure configs MUST consult official docs first

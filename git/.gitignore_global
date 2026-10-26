@@ -1,5 +1,6 @@
 # Global gitignore — aplica a todos los repos
-# Configurado vía: git config --global core.excludesfile ~/.gitignore_global
+# Lo activa core.excludesfile en git/.gitconfig (stow enlaza ambos a ~/); no
+# hace falta ejecutar `git config --global` a mano.
 
 # ----- macOS -----
 .DS_Store

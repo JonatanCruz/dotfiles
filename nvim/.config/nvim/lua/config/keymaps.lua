@@ -7,7 +7,7 @@
 --   [/]           → Navegación entre elementos (diagnósticos, hunks, tabs)
 --   <leader>b     → Buffers
 --   <leader>c     → Código / LSP actions
---   <leader>d     → Debug (DAP)
+--   <leader>d     → Debug (DAP)   (<leader>D = borrar sin registro)
 --   <leader>e     → Explorer (árbol de archivos)
 --   <leader>f     → Find / Telescope
 --   <leader>g     → Git
@@ -36,11 +36,9 @@ map("n", "<leader>Q",  "<cmd>qa!<cr>", { desc = "󰗼 Salir sin guardar" })
 -- ============================================================================
 -- NAVEGACIÓN ENTRE VENTANAS
 -- ============================================================================
-
-map("n", "<C-h>", "<C-w>h", { desc = "Ventana ←" })
-map("n", "<C-j>", "<C-w>j", { desc = "Ventana ↓" })
-map("n", "<C-k>", "<C-w>k", { desc = "Ventana ↑" })
-map("n", "<C-l>", "<C-w>l", { desc = "Ventana →" })
+-- <C-h/j/k/l> los define vim-tmux-navigator (plugins/tools/tmux-navigator.lua):
+-- se mueven entre splits y, en el borde, saltan al panel de tmux vecino.
+-- Un `<C-w>h` aquí los pisaría y nvim nunca soltaría el foco hacia tmux.
 
 -- ============================================================================
 -- WINDOWS / SPLITS (<leader>w)
@@ -58,6 +56,23 @@ map("n", "<C-Down>",  "<cmd>resize -2<cr>",           { desc = "Reducir alto" })
 map("n", "<C-Left>",  "<cmd>vertical resize -2<cr>",  { desc = "Reducir ancho" })
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>",  { desc = "Aumentar ancho" })
 
+-- Alt+hjkl: tmux le reenvía la tecla a nvim (is_vim en .tmux.conf), así que
+-- nvim la resuelve: con splits redimensiona la ventana; sin splits la devuelve
+-- como resize del pane de tmux. Lo hacía tmux.nvim, que se quitó (#43).
+local function alt_resize(cmd_nvim, dir_tmux)
+  return function()
+    if vim.fn.winnr("$") > 1 then
+      vim.cmd(cmd_nvim)
+    elseif vim.env.TMUX then
+      vim.fn.system({ "tmux", "resize-pane", "-" .. dir_tmux, "1" })
+    end
+  end
+end
+map("n", "<M-h>", alt_resize("vertical resize -2", "L"), { desc = "Redimensionar ←" })
+map("n", "<M-l>", alt_resize("vertical resize +2", "R"), { desc = "Redimensionar →" })
+map("n", "<M-j>", alt_resize("resize -2", "D"),          { desc = "Redimensionar ↓" })
+map("n", "<M-k>", alt_resize("resize +2", "U"),          { desc = "Redimensionar ↑" })
+
 -- ============================================================================
 -- BUFFERS (<leader>b)
 -- ============================================================================
@@ -65,13 +80,12 @@ map("n", "<C-Right>", "<cmd>vertical resize +2<cr>",  { desc = "Aumentar ancho" 
 map("n", "<S-l>", "<cmd>bnext<cr>",     { desc = "󰒭 Siguiente buffer" })
 map("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "󰒮 Buffer anterior" })
 
+-- <leader>bp/bl/bo/bc/bx/br y el movimiento de pestañas los define
+-- bufferline (plugins/ui/bufferline.lua); aquí solo los que no usa.
 map("n", "<leader>bd", "<cmd>bdelete<cr>",     { desc = "󰅖 Cerrar buffer" })
 map("n", "<leader>bD", "<cmd>bdelete!<cr>",    { desc = "󰅖 Forzar cierre" })
 map("n", "<leader>bn", "<cmd>bnext<cr>",       { desc = "󰒭 Siguiente" })
-map("n", "<leader>bp", "<cmd>bprevious<cr>",   { desc = "󰒮 Anterior" })
 map("n", "<leader>bf", "<cmd>bfirst<cr>",      { desc = "󰮳 Primero" })
-map("n", "<leader>bl", "<cmd>blast<cr>",       { desc = "󰮱 Último" })
-map("n", "<leader>bo", "<cmd>%bdelete|edit#|bdelete#<cr>", { desc = " Solo actual" })
 
 -- Ir a buffer por número (1-9)
 for i = 1, 9 do
@@ -102,7 +116,9 @@ map({ "n", "v" }, "<leader>y",  '"+y',  { desc = " Copiar al portapapeles" })
 map("n",          "<leader>Y",  '"+Y',  { desc = " Copiar línea al portapapeles" })
 map({ "n", "v" }, "<leader>p",  '"+p',  { desc = " Pegar desde portapapeles" })
 map("v",          "<leader>P",  '"_dP', { desc = " Pegar sin perder registro" })
-map({ "n", "v" }, "<leader>d",  '"_d',  { desc = "󰅗 Eliminar sin registro" })
+-- En <leader>D y no <leader>d: <leader>d es el grupo de DAP (<leader>db...),
+-- y un `"_d` en <leader>d hacía esperar a timeoutlen y leer la `b` como movimiento.
+map({ "n", "v" }, "<leader>D",  '"_d',  { desc = "󰅗 Eliminar sin registro" })
 
 -- ============================================================================
 -- BÚSQUEDA / REEMPLAZAR (<leader>s)
@@ -177,6 +193,8 @@ map("t", "<Esc><Esc>", "<C-\\><C-n>",       { desc = "Salir del terminal" })
 -- ============================================================================
 
 map("n", "<leader>cx", "<cmd>!chmod +x %<cr>", { silent = true, desc = " Hacer ejecutable" })
-map("n", "<leader>rr", "<cmd>source $MYVIMRC<cr>", { desc = "󰑓 Recargar config" })
+-- Sin "recargar config" (`source $MYVIMRC`): con lazy.nvim re-ejecutar init.lua
+-- vuelve a llamar a lazy.setup(), que lo rechaza. Para cambios en plugins,
+-- lazy los detecta solo (change_detection); para el resto, reinicia nvim.
 map("n", "<leader>+",  "<C-a>", { desc = " Incrementar número" })
 map("n", "<leader>-",  "<C-x>", { desc = " Decrementar número" })

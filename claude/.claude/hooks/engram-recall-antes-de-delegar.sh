@@ -7,7 +7,7 @@
 # justo el momento en que el olvido cuesta caro: el encargo sale escrito desde
 # el código, ignorando decisiones que el dueño ya tomó en sesiones anteriores.
 #
-# Costo medido ese día: se encargó mover el gate del bot preguntando un destino
+# Costo medido ese día: se encargó mover un componente preguntando un destino
 # YA decidido, y se reportó como "hallazgo" la ubicación de una tabla que YA
 # estaba deliberada. El dueño lo nombró: *"¿de qué sirve estar escribiendo en la
 # memoria una y otra vez la misma regla?"* — porque escribir sin leer acumula.
@@ -17,7 +17,8 @@
 # Este hook lo pone en la estructura: al delegar, la memoria relevante llega
 # sola, ANTES de que el encargo se ejecute.
 #
-# NO bloquea: inyecta contexto y sale 0. Fail-open ante cualquier error.
+# NO bloquea: inyecta contexto (additionalContext) y sale 0. Fail-open ante
+# cualquier error, incluida la falta de jq o de sqlite3.
 
 set -uo pipefail
 
@@ -29,7 +30,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 INPUT="$(cat 2>/dev/null || true)"
 
 # El texto del encargo es `tool_input.prompt`. Se le suma `description` porque
-# suele nombrar el dominio en pocas palabras ("el bot pregunta a distributors").
+# suele nombrar el dominio en pocas palabras ("el servicio X consulta a Y").
 PROMPT="$(printf '%s' "$INPUT" | jq -r '
   [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
 ' 2>/dev/null || true)"
@@ -70,11 +71,19 @@ RESULTS="$(sqlite3 -separator '|' "$DB" "
 
 [ -n "$RESULTS" ] || exit 0
 
-echo "🧠 ANTES DE DELEGAR — decisiones ya tomadas que matchean este encargo:"
-printf '%s\n' "$RESULTS" | while IFS='|' read -r TYPE TITLE EXCERPT DATE; do
-  echo "- [$DATE·$TYPE] $TITLE — $EXCERPT…"
-done
-echo ""
-echo "Si alguna CONTRADICE el encargo que estás por lanzar, corregí el encargo ANTES de mandarlo:"
-echo "el agente trabaja con lo que le diste, no con lo que el dueño decidió en otra sesión."
+# En PreToolUse el stdout plano con exit 0 sólo va al log de depuración: el
+# modelo no lo ve. Para que llegue hay que emitirlo como `additionalContext`
+# (code.claude.com/docs/en/hooks, "Add context for Claude"). El JSON se arma con
+# `jq --arg`, nunca concatenando: los títulos de las memorias traen comillas.
+LINEAS="$(printf '%s\n' "$RESULTS" | while IFS='|' read -r TYPE TITLE EXCERPT DATE; do
+  printf -- '- [%s·%s] %s — %s…\n' "$DATE" "$TYPE" "$TITLE" "$EXCERPT"
+done)"
+MENSAJE="🧠 ANTES DE DELEGAR — decisiones ya tomadas que matchean este encargo:
+$LINEAS
+
+Si alguna CONTRADICE el encargo que estás por lanzar, corregí el encargo ANTES de mandarlo:
+el agente trabaja con lo que le diste, no con lo que el dueño decidió en otra sesión."
+
+jq -n --arg ctx "$MENSAJE" \
+  '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}' 2>/dev/null || true
 exit 0

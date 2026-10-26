@@ -80,17 +80,76 @@
   // - refactor.md: Intelligent code refactoring
 
   // ============================================================================
-  // PERMISSIONS - MINIMAL PROMPTS FOR REMOTE SERVER
+  // PERMISSIONS
   // ============================================================================
-  // Configuración optimizada para servidor remoto:
-  // - Lectura/escritura/edición: AUTOMÁTICA (sin permisos)
-  // - Comandos destructivos: REQUIEREN CONFIRMACIÓN
-  // - Archivos sensibles: BLOQUEADOS
+  // - Por defecto todo PREGUNTA ("*": "ask"); se permite sólo lo listado.
+  // - Lectura/escritura/edición de archivos: automáticas.
+  // - Bash: allowlist de comandos de solo lectura o de bajo riesgo; el resto
+  //   pregunta. En OpenCode gana la ÚLTIMA regla que matchea, por eso el
+  //   comodín va primero y los destructivos al final.
+  // - Archivos sensibles: la herramienta `read` los DENIEGA, pero eso no cubre
+  //   bash: un `cat .env` pasa por la regla de bash (que pregunta, salvo que
+  //   el comando esté en la allowlist). No es un bloqueo total.
 
   "permission": {
-    "*": "allow",
+    "*": "ask",
     "bash": {
-      "*": "allow",
+      "*": "ask",
+      // Ejecutan código arbitrario - REQUIEREN CONFIRMACIÓN. Van ANTES de la
+      // allowlist para que `npm run test*` (más abajo) gane sobre `npm run*`.
+      // (npm install corre scripts postinstall; npm run, cualquier script;
+      // docker exec, un shell dentro del contenedor)
+      "npm install*": "ask",
+      "npm run*": "ask",
+      "docker exec*": "ask",
+      // Comandos seguros - AUTOMÁTICOS
+      // git de lectura: SÓLO formas exactas, sin comodín. git acepta prefijos
+      // únicos de opciones largas (`git fetch --upload-p=CMD` ejecuta CMD;
+      // verificado con git 2.43), así que ninguna lista de opciones
+      // prohibidas es completa. Cualquier otra forma pregunta.
+      "git status": "allow",
+      "git status --short": "allow",
+      "git status -s": "allow",
+      "git diff": "allow",
+      "git diff --stat": "allow",
+      "git diff --cached": "allow",
+      "git diff --staged": "allow",
+      "git log": "allow",
+      "git log --oneline": "allow",
+      "git log --oneline -10": "allow",
+      "git log --oneline -20": "allow",
+      "git show": "allow",
+      "git show --stat": "allow",
+      "git branch": "allow",
+      "git add*": "allow",
+      "git commit*": "allow",
+      "git push": "allow",
+      "git pull": "allow",
+      "git fetch": "allow",
+      "git fetch origin": "allow",
+      "ls": "allow",
+      "ls *": "allow",
+      "pwd": "allow",
+      // rg y fd NO van en la allowlist: `rg --pre=CMD` y `fd -x/--exec`
+      // ejecutan comandos arbitrarios. Para buscar están las herramientas
+      // nativas grep y glob de OpenCode.
+      "wc *": "allow",
+      "which *": "allow",
+      // npm test/lint/typecheck NO van en la allowlist: ejecutan código del
+      // proyecto, y con edit/write en allow el agente puede escribir ese código
+      // (un test, o el script "test" de package.json) y luego lanzarlo sin
+      // preguntar. Quedan en el "ask" por defecto.
+      "docker ps*": "allow",
+      "docker logs*": "allow",
+      // Opciones que convierten un comando "de lectura" en ejecución o
+      // escritura arbitraria (git diff --ext-diff, git log --output=,
+      // git fetch --upload-pack=, git -c core.pager=…). Van DESPUÉS de la
+      // allowlist para ganarle: en OpenCode gana la última regla que matchea.
+      "*--ext-diff*": "ask",
+      "*--textconv*": "ask",
+      "*--output*": "ask",
+      "*--upload-pack*": "ask",
+      "* -c *": "ask",
       // Comandos destructivos de archivos - REQUIEREN CONFIRMACIÓN
       "rm *": "ask",
       "rm -f *": "ask",
@@ -118,30 +177,14 @@
       "docker rm *": "ask",
       "docker rmi *": "ask",
       "docker system prune*": "ask",
-      "docker volume rm*": "ask",
-      // Comandos seguros - AUTOMÁTICOS
-      "git status": "allow",
-      "git diff*": "allow",
-      "git log*": "allow",
-      "git branch": "allow",
-      "git add*": "allow",
-      "git commit*": "allow",
-      "git push": "allow",
-      "git pull": "allow",
-      "git fetch*": "allow",
-      "npm install*": "allow",
-      "npm run*": "allow",
-      "npm test*": "allow",
-      "docker ps*": "allow",
-      "docker logs*": "allow",
-      "docker exec*": "allow"
+      "docker volume rm*": "ask"
     },
     // Operaciones de archivos - AUTOMÁTICAS (sin permisos)
     "edit": "allow",
     "write": "allow",
     "read": {
       "*": "allow",
-      // Archivos sensibles - BLOQUEADOS
+      // Archivos sensibles - DENEGADOS a la herramienta read (no a bash)
       "*.env": "deny",
       "*.env.*": "deny",
       "*.env.local": "deny",
@@ -173,8 +216,8 @@
     "task": "allow",
     "todoread": "allow",
     "todowrite": "allow",
-    // Web - AUTOMÁTICO
-    "webfetch": "allow",
+    // Web - PREGUNTA: una página puede traer instrucciones inyectadas
+    "webfetch": "ask",
     // Seguridad
     "external_directory": "ask",
     "doom_loop": "ask"
@@ -196,7 +239,7 @@
       "command": [
         "uvx",
         "--from",
-        "git+https://github.com/oraios/serena",
+        "git+https://github.com/oraios/serena@v2.1.0",
         "serena",
         "start-mcp-server",
         "--context",
@@ -208,13 +251,13 @@
     },
     "playwright": {
       "type": "local",
-      "command": ["npx", "-y", "@executeautomation/playwright-mcp-server"],
+      "command": ["npx", "-y", "@executeautomation/playwright-mcp-server@1.0.12"],
       "enabled": true,
       "timeout": 10000
     },
     "engram": {
       "type": "local",
-      "command": ["/home/linuxbrew/.linuxbrew/bin/engram", "mcp"],
+      "command": ["engram", "mcp"],
       "enabled": true,
       "timeout": 10000
     },

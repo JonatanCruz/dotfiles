@@ -7,17 +7,13 @@
 # lo cazó y lo nombró: *"ahí está el error, no defiendas, primero rompe y luego
 # repara"*.
 #
-# No es la primera vez. El mismo patrón está corregido en memoria al menos tres
-# veces (2026-08-06, 2026-08-10, 2026-08-13) y siguió ocurriendo — porque una
-# nota en memoria depende de que yo la lea en el momento exacto en que estoy
-# por escribir la cláusula, y ese es justo el momento en que no la leo.
+# Corregido en memoria al menos tres veces sin efecto: una nota depende de que
+# la lea justo cuando escribo la cláusula, que es cuando no la leo. Por eso la
+# regla va en la ESTRUCTURA (Meadows), en el instante donde se rompe: el
+# encargo, ANTES de que el agente lo ejecute.
 #
-# El dueño lo nombró textual: *"se te está olvidando a cada rato y ya ni sé
-# cuántas memorias has guardado con esto"*. Escribir la regla otra vez sería
-# repetir el error. Este hook la pone en la ESTRUCTURA (Meadows), en el único
-# instante donde se rompe: el encargo, ANTES de que el agente lo ejecute.
-#
-# NO bloquea — señala el texto exacto que hay que reescribir y sale 0.
+# NO bloquea — señala el texto exacto que hay que reescribir (como
+# additionalContext) y sale 0. Sin jq sale 0 sin avisar.
 
 set -uo pipefail
 
@@ -31,7 +27,10 @@ PROMPT="$(printf '%s' "$INPUT" | jq -r '
 
 # Sólo interesa cuando el encargo ES de borrado/descontaminación. Sin esto el
 # hook gritaría en cada delegación y se volvería ruido que se aprende a ignorar.
-printf '%s' "$PROMPT" | grep -qiE 'borra|elimin|descontamin|retira|quitar|legacy|contaminaci' || exit 0
+# `borr`/`retir`/`quit` cortan ANTES de la vocal acentuada: el imperativo con
+# tilde (`Borrá`, `retirá`, `quitá`) es la forma que más se usa al escribir un
+# encargo, y un fragmento que incluya la vocal no lo matchea.
+printf '%s' "$PROMPT" | grep -qiE 'borr|elimin|descontamin|retir|quit|legacy|contaminaci' || exit 0
 
 # Las formas concretas en que escribo el veto. Deliberadamente específicas: una
 # heurística amplia daría falsos positivos y el hook moriría por desconfianza
@@ -42,15 +41,21 @@ ESCAPES="$(printf '%s' "$PROMPT" | grep -oiE \
 
 [ -n "$ESCAPES" ] || exit 0
 
-echo "🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:"
-printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/'
-echo ""
-echo "La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»"
-echo "· «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara»."
-echo ""
-echo "Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar."
-echo "Medí para saber QUÉ REPARAR, no para decidir SI borrás."
-echo ""
-echo "El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder el"
-echo "perder datos deja la operación sin servicio). Romper código ≠ romper el negocio."
+CITAS="$(printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/')"
+MENSAJE="🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:
+$CITAS
+
+La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»
+· «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara».
+
+Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar.
+Medí para saber QUÉ REPARAR, no para decidir SI borrás.
+
+El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder
+datos que la operación en producción necesita). Romper código ≠ romper el negocio."
+
+# En PreToolUse el stdout plano con exit 0 no llega al modelo (sólo al log de
+# depuración): tiene que ir como `additionalContext`. JSON armado con `jq --arg`.
+jq -n --arg ctx "$MENSAJE" \
+  '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}' 2>/dev/null || true
 exit 0

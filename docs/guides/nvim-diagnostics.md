@@ -115,7 +115,7 @@ Los errores aparecen:
 2. j/k             → Navegar en lista
 3. Enter           → Saltar al warning
 4. <leader>ca      → Ver soluciones
-5. <leader>rn      → Renombrar si es necesario
+5. <leader>cr      → Renombrar si es necesario
 ```
 
 ### Escenario 3: Limpieza de Código
@@ -146,7 +146,7 @@ Los errores aparecen:
 
 | Comando | Acción | Uso |
 |---------|--------|-----|
-| `<leader>ul` | Toggle LSP Lines | Alternar vista de diagnósticos como líneas |
+| `<leader>uL` | Toggle líneas virtuales | `virtual_lines` nativo de nvim (apagado por defecto) |
 
 ### Trouble.nvim (UI Mejorada)
 
@@ -222,7 +222,7 @@ Los errores se muestran en orden de importancia:
 → `<leader>ca` → Buscar "Organize imports"
 
 **"Renombrar variable problemática"**
-→ `<leader>rn`
+→ `<leader>cr`
 
 **"Formatear después de arreglar"**
 → `<leader>f`
@@ -243,7 +243,7 @@ Los errores se muestran en orden de importancia:
 ```vim
 gR → Ver todas las referencias
 <leader>ca → Code actions
-<leader>rn → Renombrar si es necesario
+<leader>cr → Renombrar si es necesario
 <leader>f → Formatear
 ]d → Verificar que no hay nuevos errores
 ```
