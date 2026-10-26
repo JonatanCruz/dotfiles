@@ -197,9 +197,9 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `gD` | Go to declaration |
 | `gr` | Go to references |
 | `gi` | Go to implementation |
-| `<leader>rn` | Rename symbol |
+| `<leader>cr` | Rename symbol |
 | `<leader>ca` | Code actions |
-| `<leader>d` | Ver diagnósticos |
+| `<leader>cd` | Ver diagnósticos de la línea (también `gl`) |
 | `]d` | Siguiente diagnóstico |
 | `[d` | Diagnóstico anterior |
 | `<leader>f` | Format documento |

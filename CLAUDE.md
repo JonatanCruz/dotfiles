@@ -177,7 +177,7 @@ One file per plugin, grouped in subdirectories by function:
 - **git/**: gitsigns, diffview, lazygit
 - **lsp/**: diagnostics UI, linting, neodev
 - **debug/**: nvim-dap and dap-ui
-- **test/**: neotest
+- **test/**: neotest (NOT imported in `lua/config/lazy.lua` today, so it does not load)
 - **tools/**: telescope, aerial, neogen, refactoring, session
 - **ui/**: statusline, bufferline, nvim-tree, which-key, noice, notify, alpha, etc.
 
@@ -186,7 +186,7 @@ Other `lua/` dirs: `snippets/` (LuaSnip snippets per language) and `utils/`
 
 ### Adding New Plugins
 
-Create or edit a file in `lua/plugins/`:
+Create or edit a file in `lua/plugins/<group>/`. Each subdirectory must be listed as `{ import = 'plugins.<group>' }` in `lua/config/lazy.lua`, or its files never load:
 
 ```lua
 return {

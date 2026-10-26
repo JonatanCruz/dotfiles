@@ -33,7 +33,7 @@ Esta guía documenta todos los keybindings para navegar entre archivos, funcione
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
 | `<leader>ca` | **Code actions** | Muestra acciones disponibles (refactorings, fixes) |
-| `<leader>rn` | **Renombrar** | Renombra símbolo en todo el proyecto |
+| `<leader>cr` | **Renombrar** | Renombra símbolo en todo el proyecto |
 | `<leader>f` | **Formatear** | Formatea el archivo actual |
 
 ## 🐛 Navegación de Diagnósticos (Errores/Warnings)
@@ -82,7 +82,7 @@ Esta guía documenta todos los keybindings para navegar entre archivos, funcione
 
 ```
 1. Posiciona cursor sobre variable/función
-2. <leader>rn → Renombrar en todo el proyecto
+2. <leader>cr → Renombrar en todo el proyecto
 3. <leader>ca → Ver code actions disponibles
 4. <leader>f  → Formatear después de cambios
 ```
@@ -134,7 +134,7 @@ gr → j → Enter
 gi → gR (ver todas las referencias de esa implementación)
 
 " Renombrar con preview
-<leader>rn → escribe nuevo nombre → Enter
+<leader>cr → escribe nuevo nombre → Enter
 ```
 
 ## 🚀 Atajos Rápidos por Categoría
@@ -145,7 +145,7 @@ gi → gR (ver todas las referencias de esa implementación)
 **"Ver dónde se usa algo"** → `gr` o `gR`
 **"Saber qué hace esto"** → `K`
 **"Encontrar la implementación"** → `gi`
-**"Renombrar esto en todo el proyecto"** → `<leader>rn`
+**"Renombrar esto en todo el proyecto"** → `<leader>cr`
 **"Arreglar este error"** → `<leader>ca`
 **"Ir al siguiente error"** → `]d` o `]e`
 **"Volver de donde salté"** → `Ctrl+o`
