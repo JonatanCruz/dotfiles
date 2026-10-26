@@ -136,7 +136,10 @@ fi
 # `\` + salto de línea es una continuación: bash borra ambos y une las líneas,
 # así que `~/.s\⏎sh` es `.ssh`. Se unen ANTES de cualquier otra comprobación.
 # Dentro de comillas simples bash no las une; unirlas igual sólo puede añadir
-# detecciones, nunca quitarlas (fail-closed).
+# detecciones, nunca quitarlas (fail-closed). La unión sólo sirve para DETECTAR:
+# las excepciones se evalúan sobre `original`, porque en `\\⏎` la barra está
+# escapada y el salto es un separador real que la unión borraría.
+original="$cmd"
 cmd="${cmd//$'\\\n'/}"
 
 if motivo_ofuscado="$(ofuscado "$cmd")"; then
@@ -170,8 +173,9 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
 # El texto entrecomillado cuenta como tokens (sus espacios son bordes), salvo
 # en el mensaje de un git commit/tag simple: ahí es prosa y no se ejecuta.
 SIMPLE_RE='[`;&|<>]|\$\('
-if ! { [[ "$cmd" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
-       && ! [[ "$cmd" =~ $SIMPLE_RE ]] && [[ "$cmd" != *$'\n'* ]]; }; then
+if ! { [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
+       && ! [[ "$original" =~ $SIMPLE_RE ]] && [[ "$original" != *$'\n'* ]] \
+       && [[ "$original" != *\\* ]]; }; then
   normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
@@ -180,7 +184,7 @@ hallados="$(secretos_en "$normal")"
 
 # ── Única exención: un comando simple de la lista corta ────────────────────
 motivo="nombra $(printf '%s\n' "$hallados" | head -1)."
-case "$cmd" in
+case "$original" in
   *'<'* | *'>'* | *'|'* | *';'* | *'&'* | *'$('* | *'`'* | *\\* | *"\$'"* | *$'\n'*)
     bloquear "$motivo Con redirecciones, pipes, sustituciones o varios comandos no hay exención." ;;
 esac

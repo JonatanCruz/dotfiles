@@ -95,5 +95,13 @@ probar 2 $'cat ~/.ssh/id_\\\nrsa'
 probar 2 $'cat ~/.a\\\nws/credentials'
 probar 2 $'cat "~/.s\\\nsh/id_rsa"'
 
+# ── Ronda 5: la unión de continuaciones no debe borrar un separador real ────
+# En `\\⏎` la barra está escapada y el salto separa comandos: la excepción de
+# git commit y la de comandos simples se evalúan sobre el comando original.
+probar 2 $'git commit -m x \\\\\ncat ~/.ssh/id_rsa'
+probar 2 $'git commit -m "a b" \\\\\nbash -c "cat ~/.ssh/id_rsa"'
+probar 2 $'ls ~/.ssh \\\\\ncat ~/.ssh/id_rsa'
+probar 2 $'git commit -m "no leer\n~/.ssh/id_rsa"'
+
 echo "hook-secretos: ok=$ok mal=$mal"
 [ "$mal" -eq 0 ]
