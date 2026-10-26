@@ -41,22 +41,32 @@
       "Read(./**/*password*)",
       "Read(./.aws/**)",
       "Read(./.ssh/**)",
-      "Edit(./secrets/**)"
+      "Edit(./secrets/**)",
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Edit(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Edit(~/.gnupg/**)",
+      "Read(~/.config/zsh/secrets.zsh)",
+      "Edit(~/.config/zsh/secrets.zsh)",
+      "Read(~/.claude/.credentials.json)",
+      "Edit(~/.claude/.credentials.json)",
+      "Read(//**/.env*)"
     ],
     "ask": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Edit(./.env)",
-      "Edit(./.env.*)",
-      "Bash(rm :*)",
-      "Bash(git push --force:*)",
+      "Edit(//**/.env*)",
+      "Bash(rm *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
       "Bash(git reset --hard:*)",
       "Bash(npm publish:*)",
       "Bash(brew uninstall:*)"
     ],
     "defaultMode": "auto"
   },
-  "enableAllProjectMcpServers": true,
   "hooks": {
     "PreToolUse": [
       {
@@ -282,7 +292,6 @@
   "outputStyle": "catppuccin-dev",
   "alwaysThinkingEnabled": false,
   "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
   "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "theme": "custom:catppuccin-mocha"
