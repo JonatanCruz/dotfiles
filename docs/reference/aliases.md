@@ -47,7 +47,7 @@ Todos los aliases y funciones disponibles en este entorno de desarrollo, organiz
 
 Archivo: `zsh/.config/zsh/aliases/git.zsh`
 
-> Nota: `gcloud.zsh` tambien define `alias g='gcloud'`. Si ambos archivos estan activos, el orden de carga determina cual prevalece. Para git, usar el comando completo `git` o el alias `lg` para lazygit.
+> Nota: `g` es solo git. El alias base de gcloud es `gcl` (ver [Google Cloud](#google-cloud-gcloud)).
 
 ### Basicos
 
@@ -429,7 +429,7 @@ Archivo: `zsh/.config/zsh/aliases/node.zsh`
 | `pig` | `pnpm install -g` | Instalar globalmente |
 | `pu` | `pnpm uninstall` | Desinstalar paquete |
 | `pup` | `pnpm update` | Actualizar paquetes |
-| `pr` | `pnpm run` | Ejecutar script |
+| `pnr` | `pnpm run` | Ejecutar script (no `pr`: es un comando de coreutils) |
 | `prs` | `pnpm run start` | Start |
 | `prd` | `pnpm run dev` | Dev server |
 | `prb` | `pnpm run build` | Build |
@@ -446,7 +446,7 @@ Archivo: `zsh/.config/zsh/aliases/node.zsh`
 | Alias | Expansion | Descripcion |
 |-------|-----------|-------------|
 | `yi` | `yarn install` | Instalar dependencias |
-| `ya` | `yarn add` | Agregar paquete |
+| `yadd` | `yarn add` | Agregar paquete (no `ya`: es el CLI de yazi) |
 | `yad` | `yarn add -D` | Agregar como devDependency |
 | `yag` | `yarn global add` | Agregar globalmente |
 | `yu` | `yarn upgrade` | Actualizar paquetes |
@@ -638,13 +638,13 @@ Archivo: `zsh/.config/zsh/aliases/utils.zsh`
 
 Archivo: `zsh/.config/zsh/aliases/gcloud.zsh`
 
-> Nota: Este archivo define `alias g='gcloud'`, lo que redefine el alias `g='git'` de `git.zsh` segun el orden de carga.
+> Nota: el alias base es `gcl`, no `g` (que es git) ni `gc` (que es `git commit -m`).
 
 ### Autenticacion y configuracion
 
 | Alias | Expansion | Descripcion |
 |-------|-----------|-------------|
-| `g` | `gcloud` | Comando gcloud base |
+| `gcl` | `gcloud` | Comando gcloud base |
 | `gauth` | `gcloud auth login` | Autenticar con Google Cloud |
 | `gauthlist` | `gcloud auth list` | Listar cuentas autenticadas |
 | `grevoke` | `gcloud auth revoke` | Revocar autenticacion |
