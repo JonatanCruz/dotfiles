@@ -48,23 +48,80 @@ payload="$(cat 2>/dev/null || true)"
 [ -n "${payload//[[:space:]]/}" ] || exit 0
 
 M=$'\037'
-INI="(^|[[:space:]=<>:(])"
+# Bordes de una ruta: espacio, `=<>:(`, y también comillas y coma, porque dentro
+# de código entrecomillado la ruta va pegada a ellas (`open('.env')`).
+INI="(^|[[:space:]=<>:(,'\"])"
+NR="[^[:space:]=<>:(,'\"${M}]"
 # Rutas protegidas sobre texto normalizado. `~`, `$HOME` y `${HOME}` no hace
 # falta resolverlos: se busca el sufijo que identifica al secreto. Ningún patrón
 # cruza un \037 (el espacio de un string de varias palabras).
-SECRETO="${INI}[^[:space:]=<>:(${M}]*(\.ssh/id_[A-Za-z0-9_.-]*|\.aws/credentials|\.gnupg/[^[:space:]${M}]*|secrets\.zsh|\.credentials\.json)|${INI}([^[:space:]=<>:(${M}]*/)?\.env(\.[A-Za-z0-9_-]+)*(\$|[^A-Za-z0-9_.-])"
-NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$'
+#   - Del home: llaves de ~/.ssh, ~/.aws/credentials, ~/.gnupg, secrets.zsh,
+#     .credentials.json de Claude Code, y archivos .env.
+#   - De proyecto: lo que vive en un directorio secrets/, las llaves y
+#     certificados (.key .pem .p12 .pfx .jks), y los archivos cuyo NOMBRE dice
+#     credentials/password/passwd/secret y llevan extensión (un `grep password`
+#     busca la palabra; `db-password.txt` es el secreto).
+SECRETO="${INI}${NR}*(\.ssh/id_[A-Za-z0-9_.-]*|\.aws/credentials|\.gnupg/[^[:space:]${M}]*|secrets\.zsh|\.credentials\.json)|${INI}(${NR}*/)?\.env(\.[A-Za-z0-9_-]+)*(\$|[^A-Za-z0-9_.-])|${INI}${NR}*secrets/${NR}+|${INI}${NR}*\.(key|pem|p12|pfx|jks)(\$|[^A-Za-z0-9_.-])|${INI}${NR}*(credentials|password|passwd|secret)[^[:space:]/=<>:(,'\"${M}]*\.[A-Za-z0-9]+"
+# No son secretos: llaves públicas, plantillas de .env, y los casos versionados
+# de los propios hooks (tests/*.txt|md nombran rutas para probarlas).
+NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$|(^|/)(tests?|__tests__)/[^/]*\.(txt|md)$'
+# Un archivo de CÓDIGO no es un secreto aunque se llame password o viva en
+# secrets/ (`reset-user-password.usecase.ts`, `secrets/secret-loader.service.ts`).
+# Sin `.txt` ni `.json`: `db-password.txt` y `credentials.json` SON el secreto.
+# Esta exención no alcanza a los secretos del home (secrets.zsh termina en .zsh).
+EXT_CODIGO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma|md|ya?ml|toml|lock|snap|sh|bash|zsh|fish|gitignore)$'
+DEL_HOME='(\.ssh/id_|\.aws/credentials|\.gnupg/|secrets\.zsh$|\.credentials\.json$|(^|/)\.env)'
 SUELTO='ssh|aws|gnupg|env|credential|secret'
 
-# Imprime las rutas protegidas halladas que NO son públicas/plantilla.
+# Imprime las rutas protegidas halladas que NO son públicas/plantilla/código.
 # Sin `grep -q` en tuberías: con pipefail, su salida temprana puede matar por
 # SIGPIPE al que escribe y la tubería daría el resultado contrario.
 secretos_en() {
-  local hallado
+  local hallado ruta
   hallado="$(printf '%s' "$1" | grep -oE "$SECRETO" 2>/dev/null || true)"
   [ -n "$hallado" ] || return 0
-  hallado="$(printf '%s\n' "$hallado" | sed -E 's/^[[:space:]=<>:(]//; s/[^A-Za-z0-9_.-]$//')"
-  printf '%s\n' "$hallado" | grep -vE "$NO_SECRETO" 2>/dev/null || true
+  hallado="$(printf '%s\n' "$hallado" | sed -E "s/^[[:space:]=<>:(,'\"]//; s/[^A-Za-z0-9_.-]\$//")"
+  while IFS= read -r ruta; do
+    [ -n "$ruta" ] || continue
+    [[ "$ruta" =~ $NO_SECRETO ]] && continue
+    [[ "$ruta" =~ $EXT_CODIGO ]] && ! [[ "$ruta" =~ $DEL_HOME ]] && continue
+    printf '%s\n' "$ruta"
+  done <<<"$hallado"
+}
+
+# Texto FUERA de comillas (lo entrecomillado se descarta): ahí es donde bash
+# expande llaves y comodines.
+sin_comillas() {
+  printf '%s' "$1" | awk 'BEGIN { RS = "\001" } {
+    s = $0; out = ""; q = ""; n = length(s)
+    for (i = 1; i <= n; i++) {
+      c = substr(s, i, 1)
+      if (q == "") {
+        if (c == "\\" && i < n) { out = out substr(s, i + 1, 1); i++; continue }
+        if (c == "\047" || c == "\"") { q = c; continue }
+        out = out c
+      } else if (c == q) { q = "" }
+    }
+    printf "%s", out
+  }'
+}
+
+# Comodines sin comillas que pueden expandirse a un secreto: `cat .e*`,
+# `cat .e?`, `cat secrets*/x`. No se expanden (sería tocar disco): se mira si
+# lo literal ya delata el destino. `*.sh` o `src/**/*.ts` no delatan nada.
+GLOB_FRAG='env|ssh|aws|gnupg|secret|cred|passw|\.pem|\.key|id_'
+globs_sospechosos() {
+  local palabra lit base
+  for palabra in $(sin_comillas "$1" | tr '[:upper:]' '[:lower:]'); do
+    case "$palabra" in *'*'* | *'?'* | *'['*) ;; *) continue ;; esac
+    lit="${palabra//[*?\[\]]/}"
+    base="${palabra##*/}"; base="${base%%[*?\[]*}"
+    if [[ "$lit" =~ $GLOB_FRAG ]]; then
+      printf '%s\n' "$palabra"
+    elif [ "${#base}" -ge 2 ] && { [[ ".env" == "$base"* ]] || [[ ".ssh" == "$base"* ]] || [[ ".aws" == "$base"* ]] || [[ ".gnupg" == "$base"* ]]; }; then
+      printf '%s\n' "$palabra"
+    fi
+  done
 }
 
 bloquear() {
@@ -102,18 +159,7 @@ ofuscado() {
     esac
   done
   # Llaves FUERA de comillas: lo entrecomillado se descarta antes de mirar.
-  fuera="$(printf '%s' "$texto" | awk 'BEGIN { RS = "\001" } {
-    s = $0; out = ""; q = ""; n = length(s)
-    for (i = 1; i <= n; i++) {
-      c = substr(s, i, 1)
-      if (q == "") {
-        if (c == "\\" && i < n) { out = out substr(s, i + 1, 1); i++; continue }
-        if (c == "\047" || c == "\"") { q = c; continue }
-        out = out c
-      } else if (c == q) { q = "" }
-    }
-    printf "%s", out
-  }')"
+  fuera="$(sin_comillas "$texto")"
   # Un fragmento parcial no basta: `.s{s,}h` parte `ss` y `sh`. Por eso cuenta
   # también cualquier ruta (`/`, `~`, `$HOME`) en el comando.
   if [[ "$fuera" =~ $LLAVES ]] && { [[ "$bajo" =~ $PARCIAL ]] || [[ "$texto" == *[/~]* ]] || [[ "$texto" == *'$HOME'* ]]; }; then
@@ -140,6 +186,45 @@ fi
 # las excepciones se evalúan sobre `original`, porque en `\\⏎` la barra está
 # escapada y el salto es un separador real que la unión borraría.
 original="$cmd"
+
+# ── Heredoc que ESCRIBE texto: documentación, no lectura ───────────────────
+# `cat > notas.md <<'EOF'` o `git commit -F - <<'EOF'` con un cuerpo que NOMBRA
+# .env o ~/.ssh no abre nada: lo escribe. Se permite sólo si es eso y nada más:
+# la cabecera es exactamente uno de esos dos comandos, tras el terminador no
+# queda ningún comando, y el cuerpo no tiene `$(` ni backticks (con delimitador
+# sin comillas bash los ejecutaría: `$(cat ~/.ssh/id_rsa)` en el cuerpo sí lee).
+# Un heredoc a un intérprete (`bash <<EOF`) no entra aquí y se evalúa entero.
+heredoc_que_escribe() {
+  local cabecera delim resto linea visto=0 citado=0
+  cabecera="${original%%$'\n'*}"
+  [ "$cabecera" != "$original" ] || return 1
+  local re_cat='^[[:space:]]*cat[[:space:]]*>[[:space:]]*[^[:space:]<>|;&$`]+[[:space:]]*<<-?[[:space:]]*'
+  local re_git='^[[:space:]]*git[[:space:]]+(commit|tag)[[:space:]]([^<>|;&$`]*[[:space:]])?-F[[:space:]]*-[[:space:]]*<<-?[[:space:]]*'
+  [[ "$cabecera" =~ ${re_cat}(.*)$ ]] || [[ "$cabecera" =~ ${re_git}(.*)$ ]] || return 1
+  delim="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
+  delim="${delim%"${delim##*[![:space:]]}"}"
+  case "$delim" in
+    \'*\' | \"*\") citado=1; delim="${delim:1:${#delim}-2}" ;;
+  esac
+  [[ "$delim" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 1
+  resto="${original#*$'\n'}"
+  local cuerpo=""
+  while IFS= read -r linea; do
+    if [ "$visto" = 1 ]; then
+      [ -z "${linea//[[:space:]]/}" ] || return 1
+      continue
+    fi
+    if [ "${linea#"${linea%%[!$'\t']*}"}" = "$delim" ]; then visto=1; continue; fi
+    cuerpo+="$linea"$'\n'
+  done <<<"$resto"
+  [ "$visto" = 1 ] || return 1
+  if [ "$citado" = 0 ]; then
+    case "$cuerpo" in *'$('* | *'`'*) return 1 ;; esac
+  fi
+  return 0
+}
+heredoc_que_escribe && exit 0
+
 cmd="${cmd//$'\\\n'/}"
 
 if motivo_ofuscado="$(ofuscado "$cmd")"; then
@@ -179,8 +264,19 @@ if ! { [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$)
   normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
-hallados="$(secretos_en "$normal")"
-[ -n "$hallados" ] || exit 0
+# `gcloud secrets versions access` devuelve el VALOR del secreto, y su argumento
+# es un nombre, no una ruta: ninguna detección de rutas lo ve. Veto directo
+# cuando gcloud es el ejecutable de un tramo; `gcloud secrets list`/`describe`
+# devuelven metadatos y siguen permitidos. Sobre `normal` antes de espaciar: un
+# `echo "gcloud secrets versions access"` lleva \037 y no coincide.
+SEP=$'\036'
+GCLOUD_ACCESS="(^|[;&|(${SEP}]|\\\$\\()[[:space:]]*gcloud[[:space:]]([^;&|${SEP}]*[[:space:]])?secrets[[:space:]]+versions[[:space:]]+access([[:space:]]|\$)"
+if [[ "$normal" =~ $GCLOUD_ACCESS ]]; then
+  bloquear "\`gcloud secrets versions access\` devuelve el valor del secreto. Para metadatos: gcloud secrets list / versions list / describe."
+fi
+
+hallados="$(secretos_en "$normal"; globs_sospechosos "$cmd")"
+[ -n "${hallados//[[:space:]]/}" ] || exit 0
 
 # ── Única exención: un comando simple de la lista corta ────────────────────
 motivo="nombra $(printf '%s\n' "$hallados" | head -1)."
@@ -192,7 +288,15 @@ esac
 read -r -a palabras <<<"$normal"
 ejecutable="${palabras[0]:-}"
 case "${ejecutable##*/}" in
-  ls | stat | test | '[' | chmod | chown | touch | ssh-add) exit 0 ;;
+  # wc cuenta líneas/bytes: dice el tamaño, no el contenido. rm borra sin leer.
+  ls | stat | test | '[' | chmod | chown | touch | ssh-add | wc | rm) exit 0 ;;
+  find)
+    # find sólo nombra rutas; con estas acciones ejecuta, borra o escribe.
+    case " ${palabras[*]} " in
+      *' -exec'* | *' -ok'* | *' -delete '* | *' -fprint'* | *' -fls '*)
+        bloquear "$motivo find con -exec/-ok/-delete/-fprint no tiene exención." ;;
+    esac
+    exit 0 ;;
   ssh)
     # Cada ruta protegida tiene que ser exactamente el valor de un `-i`, y sin
     # -o/-F: ProxyCommand y LocalCommand ejecutan comandos locales.

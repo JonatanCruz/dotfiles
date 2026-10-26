@@ -70,7 +70,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit",
+        "matcher": "Write|Edit|MultiEdit|Bash",
         "hooks": [
           {
             "type": "command",
@@ -131,6 +131,25 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/no-delegar-sobre-supuestos.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-afirmar-sin-medir.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/engram-reglas-antes-de-escribir.sh",
+            "timeout": 10
           }
         ]
       },

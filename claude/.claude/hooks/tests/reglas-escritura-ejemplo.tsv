@@ -1,0 +1,7 @@
+# Reglas de EJEMPLO para las pruebas de engram-reglas-antes-de-escribir.sh.
+# Formato: PATRÓN<0x01>id de Engram<0x01>título<0x01>qué exige la regla. Líneas con # se ignoran.
+# Las reglas reales de un proyecto van en <raíz del repo>/.claude/reglas-escritura.tsv,
+# versionadas en el repo de ESE proyecto, no aquí.
+(humanmessage|mensaje|texto|motivo|razon|razón|detalle)[a-z]*[[:space:]]*[:=][^=;]{0,80}\$\{[[:space:]]*(motivo|razon|razón|error|falla|detalle)1482Sólo viaja el enum: negativa, fallo Y validación. La frase va al logEntre servicios viaja el ENUM, no la frase. El texto para humanos se arma en el borde; la frase libre va al log, nunca al contrato.
+(join|from)[[:space:]]+[a-z_."`]*(legacy|legacy_app|legacy_prod)1310El legacy es EVIDENCIA de qué significan sus valores, NO fuente de lógica de negocioEl legacy sirve para SABER qué significó un valor, no para que la plataforma dependa de él en runtime. Si la lógica lo consulta en vivo, se invirtió la relación.
+(identity|users)[a-z_.]*\.(find|get|select|query|buscar)[a-z_]*(proveedor|socio|sub)1237EL CRITERIO de identidad: el proveedor NO es usuario de la plataformaLos proveedores no viven en identity: el registro está en svc-catalog, con su propia clave. Resolverlos contra identity.users es buscarlos donde no están.

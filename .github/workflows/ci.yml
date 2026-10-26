@@ -324,6 +324,17 @@ jobs:
       - name: Regression tests for the secrets hook
         run: bash scripts/tests/hook-secretos.sh
 
+      # Casos versionados de cada hook (tests/casos-*.txt y los runners propios
+      # de los hooks de Write/Edit). CLAUDE_MEMORY_DIR necesita la forma
+      # .../projects/<x>/memory: block-harness-memory sólo reconoce esa forma.
+      - name: Hook case suites
+        env:
+          CLAUDE_MEMORY_DIR: /tmp/ci/.claude/projects/-ci/memory
+        run: |
+          mkdir -p "$CLAUDE_MEMORY_DIR"
+          bash claude/.claude/hooks/tests/correr.sh
+          bash claude/.claude/hooks/tests/correr-engram-reglas-antes-de-escribir.sh
+
       # Las listas de paquetes de los instaladores se mantienen a mano, así que
       # un paquete nuevo se añade al repo y nunca se enlaza. Pasó con `mise`.
       #
