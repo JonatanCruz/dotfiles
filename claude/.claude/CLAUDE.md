@@ -40,6 +40,17 @@ silent bypass). `Read` is not blocked (you may read an un-migrated old file).
 
 ---
 
+## 🖥️ Runners self-hosted: un pool genérico
+
+Los hosts `ci-runner-N` son un pool compartido por todos los clientes que no pagan runners
+de GitHub.
+
+- El nombre y el directorio de un runner identifican su host, nunca a un cliente.
+- Al diagnosticar el pool se miden todos los runners dados de alta en la organización y todo
+  lo que corre en cada host, sin importar de qué cliente sea.
+
+---
+
 ## 🤖 Code Navigation: Serena + codebase-memory (grafo)
 
 Dos MCP complementarios para código. **Engram sigue siendo el único sistema de memoria** — ninguno de estos dos guarda memoria entre sesiones.
