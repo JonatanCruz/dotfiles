@@ -1,19 +1,17 @@
-# ~/.config/yazi/yazi.toml (Configuración general)
+# ~/.config/yazi/yazi.toml (configuración general; yazi 26.x)
 
-# --- Comportamiento del Gestor ---
+# --- Comportamiento del gestor ---
 [mgr]
-show_hidden = true  # Mostrar archivos y carpetas ocultos por defecto
+show_hidden = true        # Mostrar archivos y carpetas ocultos por defecto
 sort_by = "alphabetical"
 sort_dir_first = true
 
-# --- Abridor de archivos ---
-[opener]
-# Abre cualquier archivo de texto con Neovim
-text = [
-    { run = 'nvim "$@"', block = true },
-]
-# Regla por defecto para cualquier otro tipo de archivo
-# Puedes añadir más reglas aquí para imágenes, videos, etc.
-default = [
-    { run = 'open "$@"', orphan = true },  # macOS usa 'open' en lugar de 'xdg-open'
-]
+# --- Abrir archivos ---
+# Sin [opener]/[open] propios a propósito: los de yazi ya son portables.
+#   - texto, código y archivos vacíos -> opener `edit` = ${EDITOR:-vi}, con
+#     block = true (EDITOR=nvim viene de zsh/config/environment.zsh);
+#   - el resto -> `open` = xdg-open en Linux y open en macOS.
+# Lo que había aquí definía openers `text` y `default` que ninguna regla de
+# [open] usaba (no hacían nada) y llamaba a `open`, que no existe en Linux.
+# Para añadir uno, define el opener en [opener] y enlázalo con
+# [open] prepend_rules = [ { mime = "...", use = "nombre" } ].
