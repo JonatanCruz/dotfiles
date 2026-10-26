@@ -137,6 +137,57 @@ jq -nc '{tool_input:{file_path:"/r/a.ts",new_string:"console.log(x);"}}' \
   | (cd "$AMP" && PATH="$SINJQ" CLAUDE_PROJECT_DIR="$AMP" /bin/bash "$HOOKS/engram-reglas-antes-de-escribir.sh") >/dev/null 2>&1
 igual "sin jq, el hooks.json no se lee y no frena" "0" "$?"
 
+echo "── búsqueda de código: valores por defecto en cada stack ──"
+busca() { # busca <esperado> <desc> <repo> <comando> [VAR=valor…]
+  local esp="$1" desc="$2" d="$3" c="$4"; shift 4
+  jq -nc --arg c "$c" --arg d "$d" '{tool_input:{command:$c},cwd:$d}' \
+    | env "$@" CLAUDE_PROJECT_DIR="$d" bash "$HOOKS/redirect-code-search-to-mcp.sh" >/dev/null 2>&1
+  igual "$desc" "$esp" "$?"
+}
+busca 2 "ts: grep -r sobre src/" "$TS" 'grep -rn handler src/'
+busca 0 "ts: grep -r sobre docs/" "$TS" 'grep -rn handler docs/'
+busca 2 "py: grep -r sobre app/" "$PY" 'grep -rn handler app/'
+busca 0 "py: grep -r sobre data/ (csv)" "$PY" 'grep -rn handler data/'
+busca 2 "go: rg sin ruta en la raíz" "$GO" 'rg -n Handler'
+busca 2 "go: grep -r sobre internal/" "$GO" 'grep -rn Handler internal/'
+busca 0 "go: grep -r sobre docs/" "$GO" 'grep -rn Handler docs/'
+busca 0 "go: UN archivo .go" "$GO" 'grep -n Handler internal/store/store.go'
+
+echo "── búsqueda de código: lo que suma el proyecto ──"
+busca 2 "ampliado: .tmpl es código por su hooks.json" "$AMP" 'grep -rn handler plantillas/'
+busca 2 "ampliado: generado/api es código por su hooks.json" "$AMP" 'grep -rn handler generado/'
+busca 0 "ampliado: docs/ sigue sin ser código" "$AMP" 'grep -rn handler docs/'
+cp -R "$AMP/plantillas" "$TS/plantillas"
+busca 0 "sin hooks.json, .tmpl no es código" "$TS" 'grep -rn handler plantillas/'
+
+echo "── búsqueda de código: el repo hostil no quita nada ──"
+busca 2 "hostil: .ts sigue siendo código" "$HOS" 'grep -rn handler src/'
+busca 2 "hostil: comodín *.py sigue bloqueando" "$HOS" 'grep -n handler src/*.py'
+busca 2 "JSON roto: valores por defecto" "$HOS" 'grep -rn handler src/' CLAUDE_HOOKS_CONFIG="$HOS/roto.json"
+SINJQ_H="$T/sinjq-hook"; mkdir -p "$SINJQ_H"
+for b in bash git grep sed tr head cat dirname timeout cut paste sort awk find mkdir date env; do
+  ln -sf "$(command -v "$b")" "$SINJQ_H/$b" 2>/dev/null || true
+done
+busca 2 "sin jq: sigue bloqueando con los valores por defecto" "$HOS" 'grep -rn handler src/' PATH="$SINJQ_H"
+
+echo "── búsqueda de código: medir o no abrir ──"
+# git ls-files que tarda: el timeout corta y el gate bloquea (no deja pasar).
+LENTO="$T/git-lento"; mkdir -p "$LENTO"
+cat > "$LENTO/git" <<EOF
+#!/usr/bin/env bash
+for a in "\$@"; do [ "\$a" = ls-files ] && { sleep 5; exit 0; }; done
+exec $(command -v git) "\$@"
+EOF
+chmod +x "$LENTO/git"
+inicio=$SECONDS
+busca 2 "git ls-files lento: no se pudo medir → bloquea" "$TS" 'grep -rn handler docs/' PATH="$LENTO:$PATH"
+[ $((SECONDS - inicio)) -le 4 ] && bien "el timeout corta la medición (≤4 s)" || mal "la medición no respetó el timeout"
+# Fuera de git: se mide con find.
+mkdir -p "$T/fuera/codigo" "$T/fuera/notas"
+printf 'x = 1\n' > "$T/fuera/codigo/a.py"; printf '# n\n' > "$T/fuera/notas/a.md"
+busca 2 "fuera de git: directorio con .py" "$T/fuera" 'grep -rn x codigo/'
+busca 0 "fuera de git: directorio sólo con .md" "$T/fuera" 'grep -rn x notas/'
+
 echo
 echo "pasan: $ok · fallan: $fail"
 [ "$fail" = 0 ]

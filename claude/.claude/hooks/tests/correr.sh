@@ -20,6 +20,18 @@ cd "$(dirname "$0")" || exit 1
 filtro="${1:-}"
 total_p=0; total_f=0
 
+# Los casos corren DENTRO de un repo de git hecho con fixtures/repo-casos: el
+# gate de búsqueda mide si un directorio contiene código, así que las rutas de
+# los casos tienen que existir. Y la suite es hermética: ni el hooks.json del
+# proyecto desde el que se corre ni $CLAUDE_HOOKS_CONFIG cambian el resultado.
+REPO_CASOS="$(mktemp -d)"
+trap 'rm -rf "$REPO_CASOS"' EXIT
+cp -R fixtures/repo-casos/. "$REPO_CASOS/"
+git -C "$REPO_CASOS" init -q && git -C "$REPO_CASOS" add -A \
+  && git -C "$REPO_CASOS" -c user.name=t -c user.email=t@t commit -qm casos \
+  || { echo "❌ no se pudo armar el repo de casos"; exit 1; }
+export CLAUDE_HOOKS_CONFIG="$REPO_CASOS/.sin-config.json"
+
 for casos in casos-*.txt; do
   [ -e "$casos" ] || continue
   hook_name="${casos#casos-}"; hook_name="${hook_name%.txt}"
@@ -58,8 +70,8 @@ for casos in casos-*.txt; do
     esac
     [ -z "${cmd:-}" ] && { saltadas=$((saltadas+1)); continue; }
     cmd="${cmd//@MEM@/$MEM}"
-    real=$(jq -nc --arg c "$cmd" '{tool_input:{command:$c}}' \
-      | CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}" bash "$hook" >/dev/null 2>&1; echo $?)
+    real=$(jq -nc --arg c "$cmd" --arg d "$REPO_CASOS" '{tool_input:{command:$c},cwd:$d}' \
+      | CLAUDE_PROJECT_DIR="$REPO_CASOS" bash "$hook" >/dev/null 2>&1; echo $?)
     if [ "$real" = "$esperado" ]; then
       p=$((p+1))
     else
