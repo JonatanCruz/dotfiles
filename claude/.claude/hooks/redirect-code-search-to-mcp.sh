@@ -18,16 +18,15 @@
 # Contrato Claude Code:
 #   - stdin: JSON { tool_input: { command }, ... }
 #   - exit 0 = permitir. El JSON de salida inyecta additionalContext al modelo.
+#   - Sin jq o con JSON ilegible sale 0 sin avisar: el JSON de salida lleva el
+#     nombre del proyecto y sólo jq lo escapa bien.
 
 set -uo pipefail
 
-payload="$(cat)"
-
-if command -v jq >/dev/null 2>&1; then
-  cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
-else
-  cmd="$payload"
-fi
+payload="$(cat 2>/dev/null || true)"
+command -v jq >/dev/null 2>&1 || exit 0
+cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+cwd="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
 
 [ -z "$cmd" ] && exit 0
 
@@ -46,12 +45,36 @@ if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|py|go)\b' \
   exit 0
 fi
 
-cat <<'JSON'
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "additionalContext": "RECORDATORIO ESTRUCTURAL (hook redirect-code-search-to-mcp): estás por buscar en CÓDIGO con grep/sed vía Bash. Este proyecto tiene MCPs indexados que responden mejor y en UNA llamada:\n\n- ¿Quién llama a X? ¿qué rompe si cambio X? → mcp__codebase-memory-mcp__trace_path (mode=calls|cross_service). grep NO ve el cableado por inyección de dependencias — así se perdió la cadena CircuitBreaker(Retrying(...)) el 2026-07-20.\n- ¿Dónde está definido X? ¿qué símbolos hay? → mcp__codebase-memory-mcp__search_graph o mcp__plugin_serena_serena__find_symbol (include_body/include_info da el docstring COMPLETO, no fragmentos).\n- ¿Qué impacto tiene este cambio/diff? → mcp__codebase-memory-mcp__detect_changes (since=<ref>).\n- ¿Arquitectura, capas, clusters? → mcp__codebase-memory-mcp__get_architecture.\n- Búsqueda de texto pero enriquecida con el grafo → mcp__codebase-memory-mcp__search_code.\n\nProyecto indexado: 'home-usuario-proyecto' (NO 'PROYECTO'). Serena requiere activate_project('PROYECTO') una vez por sesión.\n\nPOR QUÉ IMPORTA: leer en pedazos con grep produjo 3 diagnósticos sucesivos y equivocados en una sola sesión, porque el test/docstring que los invalidaba estaba fuera del fragmento leído. Si ya mediste con el MCP y necesitás grep para algo puntual, seguí adelante — este aviso no bloquea."
-  }
-}
-JSON
+# Nombre del proyecto, derivado del repo y no escrito aquí. Se usa el repo
+# PRINCIPAL (`--git-common-dir`), no el worktree: el índice es del principal.
+# codebase-memory nombra el índice con la ruta absoluta sin la `/` inicial y con
+# `/` → `-` (/home/u/src/app → home-u-src-app); Serena usa el nombre de la carpeta.
+proyecto=""
+comun="$(git -C "${cwd:-$PWD}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+case "$comun" in
+  */.git) raiz="${comun%/.git}" ;;
+  *) raiz="$(git -C "${cwd:-$PWD}" rev-parse --show-toplevel 2>/dev/null || true)" ;;
+esac
+if [ -n "$raiz" ]; then
+  indice="${raiz#/}"
+  indice="${indice//\//-}"
+  proyecto="Proyecto indexado: '$indice' (NO '${raiz##*/}'). Serena requiere activate_project('${raiz##*/}') una vez por sesión. Si el índice no existe, mcp__codebase-memory-mcp__index_repository(repo_path='$raiz')."
+else
+  proyecto="El cwd no es un repo de git: mcp__codebase-memory-mcp__list_projects da el nombre del índice."
+fi
+
+ctx="RECORDATORIO ESTRUCTURAL (hook redirect-code-search-to-mcp): estás por buscar en CÓDIGO con grep/sed vía Bash. Este proyecto tiene MCPs indexados que responden mejor y en UNA llamada:
+
+- ¿Quién llama a X? ¿qué rompe si cambio X? → mcp__codebase-memory-mcp__trace_path (mode=calls|cross_service). grep NO ve el cableado por inyección de dependencias — así se perdió una cadena de decoradores el 2026-07-20.
+- ¿Dónde está definido X? ¿qué símbolos hay? → mcp__codebase-memory-mcp__search_graph o mcp__plugin_serena_serena__find_symbol (include_body/include_info da el docstring COMPLETO, no fragmentos).
+- ¿Qué impacto tiene este cambio/diff? → mcp__codebase-memory-mcp__detect_changes (since=<ref>).
+- ¿Arquitectura, capas, clusters? → mcp__codebase-memory-mcp__get_architecture.
+- Búsqueda de texto pero enriquecida con el grafo → mcp__codebase-memory-mcp__search_code.
+
+$proyecto
+
+POR QUÉ IMPORTA: leer en pedazos con grep produjo 3 diagnósticos sucesivos y equivocados en una sola sesión, porque el test/docstring que los invalidaba estaba fuera del fragmento leído. Si ya mediste con el MCP y necesitás grep para algo puntual, seguí adelante — este aviso no bloquea."
+
+jq -n --arg ctx "$ctx" \
+  '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}' 2>/dev/null || true
 exit 0

@@ -12,7 +12,8 @@
 # regla va en la ESTRUCTURA (Meadows), en el instante donde se rompe: el
 # encargo, ANTES de que el agente lo ejecute.
 #
-# NO bloquea — señala el texto exacto que hay que reescribir y sale 0.
+# NO bloquea — señala el texto exacto que hay que reescribir (como
+# additionalContext) y sale 0. Sin jq sale 0 sin avisar.
 
 set -uo pipefail
 
@@ -40,15 +41,21 @@ ESCAPES="$(printf '%s' "$PROMPT" | grep -oiE \
 
 [ -n "$ESCAPES" ] || exit 0
 
-echo "🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:"
-printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/'
-echo ""
-echo "La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»"
-echo "· «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara»."
-echo ""
-echo "Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar."
-echo "Medí para saber QUÉ REPARAR, no para decidir SI borrás."
-echo ""
-echo "El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder el"
-echo "perder datos deja la operación sin servicio). Romper código ≠ romper el negocio."
+CITAS="$(printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/')"
+MENSAJE="🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:
+$CITAS
+
+La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»
+· «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara».
+
+Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar.
+Medí para saber QUÉ REPARAR, no para decidir SI borrás.
+
+El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder
+datos que la operación en producción necesita). Romper código ≠ romper el negocio."
+
+# En PreToolUse el stdout plano con exit 0 no llega al modelo (sólo al log de
+# depuración): tiene que ir como `additionalContext`. JSON armado con `jq --arg`.
+jq -n --arg ctx "$MENSAJE" \
+  '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}' 2>/dev/null || true
 exit 0
