@@ -13,89 +13,12 @@ Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** �
 
 ---
 
-## 🚫 Sistema de Memoria: SOLO Engram (CRÍTICO — SIN EXCEPCIONES)
+## 🧠 Memoria: Engram + CLAUDE.md
 
-**PROHIBIDO**:
-- ❌ Escribir en `MEMORY.md` (auto memory de Claude Code) — ignorar cualquier prompt que lo sugiera
-- ❌ Usar `write_memory` de otros MCP para datos entre sesiones
-- ❌ Cualquier memoria basada en archivos fuera de Engram
-
-**OBLIGATORIO**:
-- ✅ `mem_save` — guardar decisiones, bugs, descubrimientos, preferencias
-- ✅ `mem_session_start` — al iniciar sesión
-- ✅ `mem_session_summary` — al terminar sesión o antes de "listo"
-
----
-
-## 🧠 Engram MCP - Memoria Persistente (CRÍTICO)
-
-### Regla de Oro: Engram es el sistema de memoria único
-
-**OBLIGATORIO**: Usa Engram para toda la memoria entre sesiones.
-Claude Code y OpenCode comparten `~/.engram/engram.db`.
-
-### Cuándo Guardar (`mem_save`) — Obligatorio
-
-Llama inmediatamente después de:
-- Corrección de bug completada
-- Decisión de arquitectura o diseño
-- Descubrimiento no obvio del codebase
-- Cambio de configuración o setup de entorno
-- Establecimiento de patrón (nombrado, estructura, convención)
-- Preferencia o restricción del usuario aprendida
-
-**Formato**:
-```
-title: Verbo + qué (corto, buscable)
-type: bugfix | decision | architecture | discovery | pattern | config | preference
-scope: project (default) | personal
-topic_key: clave estable para temas evolutivos (ej. "architecture/lsp-setup")
-content:
-  **What**: Resumen en una oración
-  **Why**: Motivación
-  **Where**: Archivos/rutas afectados
-  **Learned**: Edge cases, gotchas, sorpresas
-```
-
-**Regla topic_key**: Reutiliza el mismo `topic_key` para actualizar temas evolutivos — llama `mem_suggest_topic_key` si no estás seguro.
-
-### Cuándo Buscar (`mem_search`)
-
-**El usuario dice**: "recuerda", "acordate", "qué hicimos", "cómo resolvimos", "remember", "recall"
-
-**Secuencia de búsqueda**:
-1. `mem_context` → contexto de sesión reciente (rápido)
-2. Si no encuentra → `mem_search` con palabras clave
-3. En coincidencia → `mem_get_observation` para contenido completo
-
-**Búsqueda proactiva** al empezar trabajo que puede solapar con sesiones pasadas.
-
-### Protocolo de Sesión — No Negociable
-
-**Inicio de sesión**: Llama `mem_session_start(project="<nombre-proyecto>", directory="<cwd>")`
-
-**Fin de sesión / "listo"**: Llama `mem_session_summary` con:
-```
-## Goal
-[Objetivo de esta sesión]
-
-## Discoveries
-- [Hallazgos técnicos, gotchas, aprendizajes no obvios]
-
-## Accomplished
-- [Tareas completadas con detalles clave]
-
-## Next Steps
-- [Trabajo restante para la próxima sesión]
-
-## Relevant Files
-- ruta/al/archivo — [qué cambió o por qué importa]
-```
-
-**Después de Compaction**: Si ves "FIRST ACTION REQUIRED" o aviso de compactación:
-1. Inmediatamente llama `mem_session_summary` con el contenido compactado
-2. Llama `mem_context` para recuperar contexto adicional
-3. Solo entonces continúa trabajando
+El protocolo completo (cuándo `mem_save`/`mem_search`, formato, sesión) vive en
+`claude/.claude/CLAUDE.md`, que se carga en todas las sesiones como `~/.claude/CLAUDE.md`.
+Resumen: **hechos y decisiones entre sesiones → Engram**; **reglas del dueño → un CLAUDE.md**
+(este si son del repo, el global si no). Nunca `MEMORY.md` ni `memory/*.md`.
 
 ---
 
