@@ -133,6 +133,12 @@ if ! cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev
 fi
 [ -n "$cmd" ] || exit 0
 
+# `\` + salto de línea es una continuación: bash borra ambos y une las líneas,
+# así que `~/.s\⏎sh` es `.ssh`. Se unen ANTES de cualquier otra comprobación.
+# Dentro de comillas simples bash no las une; unirlas igual sólo puede añadir
+# detecciones, nunca quitarlas (fail-closed).
+cmd="${cmd//$'\\\n'/}"
+
 if motivo_ofuscado="$(ofuscado "$cmd")"; then
   bloquear "$motivo_ofuscado No se intenta decodificarlo."
 fi
