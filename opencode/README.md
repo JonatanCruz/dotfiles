@@ -7,7 +7,7 @@ OpenCode AI coding agent configuration managed with GNU Stow.
 - **Theme**: Catppuccin Mocha with optimized TUI
 - **Models**: Claude Sonnet 4.5 (main) + Haiku 4.5 (small tasks)
 - **Agents**: Build, Plan, Review with specialized configs
-- **MCP Servers**: Context7, Serena, Playwright
+- **MCP Servers**: Context7, Serena, Playwright, Engram, codebase-memory-mcp
 - **Formatters**: Prettier, Biome, Ruff, rustfmt, gofmt
 - **LSP**: 30+ integrated servers with auto-detection (TypeScript, Python, Rust, Go, etc.)
 - **Permissions**: Granular security with sensitive file protection
