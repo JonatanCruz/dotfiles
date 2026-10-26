@@ -98,6 +98,8 @@ RE_EXT_LLAVE="\\{([^}]*,)?($EXT_LISTA)[,}]"
 RE_EXT_EXACTA="^($EXT_LISTA)\$"
 RE_TIENE_EXT='[^.]\.[A-Za-z0-9]{1,12}$'
 RE_ALGUNA_EXT='\.[A-Za-z0-9]+$'
+RE_GLOB_EXT='^\*\.([A-Za-z0-9]+)$'
+RE_GREPS='^(e|f|u)?grep$'
 RAIZ="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || true)"
 DIRS_CODIGO=()
 if command -v config_directorios >/dev/null 2>&1; then
@@ -130,25 +132,37 @@ ruta_abs() { # <ruta> → absoluta y normalizada respecto de $cwd, sin tocar dis
 }
 
 MEDIDA_RUTA=""
-medir_dir() { # <ruta> → 0 contiene código · 1 no · 2 no se pudo medir
-  local ruta="$1" abs lista rc d rel
+# medir_dir <ruta> → 0 contiene código · 1 no · 2 no se pudo medir.
+# git es la medida rápida, pero sólo cuenta lo que git ve: un symlink, un
+# directorio ignorado o un submódulo salen "vacíos". Por eso la ruta se resuelve
+# antes de medir y, si git no encuentra código, se CONFIRMA con find (que ve los
+# ignorados). Lo que no se puede medir no abre.
+medir_dir() {
+  local ruta="$1" abs real lista rc d rel
   MEDIDA_RUTA="$ruta"
   case "$ruta" in *'$'* | *'`'*) return 2 ;; esac
-  abs="$(ruta_abs "$ruta")"
+  abs="$(ruta_abs "$ruta")"; real="$abs"
+  if [ -e "$abs" ] || [ -L "$abs" ]; then
+    real="$(realpath -- "$abs" 2>/dev/null || readlink -f -- "$abs" 2>/dev/null)"
+    [ -n "$real" ] || return 2
+  fi
   for d in ${DIRS_CODIGO[@]+"${DIRS_CODIGO[@]}"}; do
-    if [ "$abs" = "$RAIZ/$d" ] || [[ "$abs" == "$RAIZ/$d/"* ]] || [[ "$RAIZ/$d" == "$abs/"* ]]; then return 0; fi
+    for rel in "$abs" "$real"; do
+      if [ "$rel" = "$RAIZ/$d" ] || [[ "$rel" == "$RAIZ/$d/"* ]] || [[ "$RAIZ/$d" == "$rel/"* ]]; then return 0; fi
+    done
   done
-  if [ -n "$RAIZ" ] && { [ "$abs" = "$RAIZ" ] || [[ "$abs" == "$RAIZ/"* ]]; }; then
-    rel="${abs#"$RAIZ"}"; rel="${rel#/}"
+  if [ -n "$RAIZ" ] && { [ "$real" = "$RAIZ" ] || [[ "$real" == "$RAIZ/"* ]]; }; then
+    rel="${real#"$RAIZ"}"; rel="${rel#/}"
     lista="$(config_timeout 2 git -C "$RAIZ" ls-files -co --exclude-standard -- "${rel:-.}" 2>/dev/null | head -200; exit "${PIPESTATUS[0]}")"
     rc=$?
     # 141: `head` ya tenía sus 200 líneas. Otro error (124 = timeout): no se midió.
     [ "$rc" = 0 ] || [ "$rc" = 141 ] || return 2
-  else
-    [ -e "$abs" ] || return 1
-    lista="$(config_timeout 2 find "$abs" -maxdepth 3 -type f 2>/dev/null | head -200; exit "${PIPESTATUS[0]}")"
-    [ "$?" = 124 ] && return 2
+    printf '%s\n' "$lista" | grep -qiE "\\.($EXT_LISTA)\$" && return 0
   fi
+  [ -e "$real" ] || return 1
+  lista="$(config_timeout 2 find "$real" -maxdepth 3 -name .git -prune -o -type f -print 2>/dev/null | head -200; exit "${PIPESTATUS[0]}")"
+  # find sale 1 si algún subdirectorio no se pudo leer: la lista parcial vale.
+  [ "$?" = 124 ] && return 2
   printf '%s\n' "$lista" | grep -qiE "\\.($EXT_LISTA)\$"
 }
 
@@ -225,6 +239,21 @@ valor_otros=' -e -f -m -A -B -C -g -G -t -T -j -M --regexp --file --max-count --
 valor_git=' -e -f -m -A -B -C -O --max-depth --threads --open-files-in-pager '
 valor_sed=' -e -f -l --expression --file --line-length '
 valor_awk=' -f -v -F --file --assign --field-separator '
+# Un filtro (--include, -g, -t) sólo exime si TODOS los positivos son de esto:
+# una extensión conocida de no-código, sin comodines en la extensión.
+EXT_NOCODIGO=' md markdown mdx txt rst adoc log json jsonl yaml yml toml ini conf cfg csv tsv xml html htm css scss sass less svg lock env properties '
+LARGAS_GREP=' --extended-regexp --fixed-strings --basic-regexp --perl-regexp --regexp --file --ignore-case --no-ignore-case --word-regexp --line-regexp --null-data --no-messages --invert-match --version --help --max-count --byte-offset --line-number --no-line-number --line-buffered --with-filename --no-filename --label --only-matching --quiet --silent --binary-files --text --directories --devices --recursive --dereference-recursive --include --exclude --exclude-from --exclude-dir --files-without-match --files-with-matches --count --initial-tab --null --before-context --after-context --context --group-separator --no-group-separator --color --colour --binary '
+# larga_grep <--nombre> → la opción completa. GNU grep acepta cualquier prefijo
+# único (`--rec` = --recursive); uno ambiguo o desconocido no se puede saber qué
+# hace, y se trata como recursivo (falla cerrado).
+larga_grep() {
+  local o c=0 completa=""
+  case "$LARGAS_GREP" in *" $1 "*) printf '%s' "$1"; return 0 ;; esac
+  for o in $LARGAS_GREP; do
+    case "$o" in "$1"*) c=$((c+1)); completa="$o" ;; esac
+  done
+  [ "$c" = 1 ] && printf '%s' "$completa"
+}
 TIPOS_CODIGO=' rust python ruby kotlin csharp cpp typescript javascript java swift scala elixir haskell ocaml erlang clojure dart lua php perl sql terraform protobuf go golang c objc '
 
 opcion_con_valor() { # <herramienta> <opción> <valor>: aplica su efecto
@@ -233,7 +262,9 @@ opcion_con_valor() { # <herramienta> <opción> <valor>: aplica su efecto
     --include | --glob | --iglob) incluye+=("$3"); recursivo=1 ;;
     -g) [[ "$1" == rg || "$1" == ripgrep ]] && incluye+=("$3") ;;
     -t | --type) [[ "$1" != sed && "$1" != awk ]] && incluye+=("tipo:$3") ;;
-    -d | --directories) [ "$3" = recurse ] && recursivo=1 ;;
+    -d | --directories) [[ "$3" == rec* ]] && recursivo=1 ;;
+    # Redefinen qué archivos o cómo se leen: un filtro ya no dice nada.
+    --type-add | --pre | --pre-glob) filtro_dudoso=1 ;;
   esac
 }
 
@@ -242,7 +273,8 @@ analizar_busqueda() {
   local h="$1"; shift
   local valores a v i k letra resto t rc g es_git=0 git_c="" visto=0 fin=0
   local inc_codigo=0 inc_nocodigo=0
-  patron_dado=0; recursivo=0; incluye=()
+  patron_dado=0; recursivo=0; incluye=(); filtro_dudoso=0
+  local nombre
   local -a objetivos=() args=("$@")
   case "$h" in
     git-grep) valores="$valor_git"; recursivo=1; es_git=1; git_c="${GIT_C:-}" ;;
@@ -257,10 +289,15 @@ analizar_busqueda() {
     a="${args[i]}"
     if [ "$fin" = 0 ] && [[ "$a" == -?* ]]; then
       if [ "$a" = "--" ]; then fin=1
-      elif [[ "$a" == --*=* ]]; then opcion_con_valor "$h" "${a%%=*}" "${a#*=}"
       elif [[ "$a" == --* ]]; then
-        case "$a" in --recursive | --dereference-recursive) recursivo=1 ;; esac
-        if [[ "$valores" == *" $a "* ]]; then i=$((i+1)); opcion_con_valor "$h" "$a" "${args[i]:-}"; fi
+        nombre="${a%%=*}"
+        if [[ "$h" =~ $RE_GREPS ]]; then
+          nombre="$(larga_grep "$nombre")"
+          [ -n "$nombre" ] || { recursivo=1; filtro_dudoso=1; continue; }
+        fi
+        case "$nombre" in --recursive | --dereference-recursive) recursivo=1 ;; esac
+        if [[ "$a" == *=* ]]; then opcion_con_valor "$h" "$nombre" "${a#*=}"
+        elif [[ "$valores" == *" $nombre "* ]]; then i=$((i+1)); opcion_con_valor "$h" "$nombre" "${args[i]:-}"; fi
       else
         for ((k = 1; k < ${#a}; k++)); do
           letra="${a:k:1}"; resto="${a:k+1}"
@@ -295,11 +332,16 @@ analizar_busqueda() {
     case "$g" in '!'*) continue ;; esac
     if [[ "$g" == tipo:* ]]; then
       g="$(minus "${g#tipo:}")"
-      if [[ "$TIPOS_CODIGO" == *" $g "* ]] || [[ "$g" =~ $RE_EXT_EXACTA ]]; then inc_codigo=1; else inc_nocodigo=1; fi
+      if [[ "$TIPOS_CODIGO" == *" $g "* ]] || [[ "$g" =~ $RE_EXT_EXACTA ]]; then inc_codigo=1
+      elif [[ "$EXT_NOCODIGO" == *" $g "* ]]; then inc_nocodigo=1
+      else filtro_dudoso=1
+      fi
     elif glob_de_codigo "$g"; then inc_codigo=1
-    elif [[ "$g" =~ $RE_ALGUNA_EXT ]]; then inc_nocodigo=1
+    elif [[ "${g##*/}" =~ $RE_GLOB_EXT ]] && [[ "$EXT_NOCODIGO" == *" $(minus "${BASH_REMATCH[1]}") "* ]]; then inc_nocodigo=1
+    else filtro_dudoso=1
     fi
   done
+  [ "$filtro_dudoso" = 0 ] || inc_nocodigo=0
   for t in ${objetivos[@]+"${objetivos[@]}"}; do
     [ -n "$t" ] || continue
     if [[ "$t" == *[*?[]* ]]; then clasificar "$t" 0; rc=$?

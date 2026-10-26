@@ -182,6 +182,21 @@ chmod +x "$LENTO/git"
 inicio=$SECONDS
 busca 2 "git ls-files lento: no se pudo medir → bloquea" "$TS" 'grep -rn handler docs/' PATH="$LENTO:$PATH"
 [ $((SECONDS - inicio)) -le 4 ] && bien "el timeout corta la medición (≤4 s)" || mal "la medición no respetó el timeout"
+# Lo que git no ve no es "sin código": un symlink, un directorio ignorado o un
+# submódulo salen vacíos en git ls-files y se confirman con find.
+ln -s src "$TS/enlace"; ln -s "$PY/app" "$TS/enlace-fuera"
+printf 'generado/\n' > "$TS/.gitignore"; mkdir -p "$TS/generado"
+printf 'export const g = 1;\n' > "$TS/generado/api.ts"
+git -C "$TS" -c protocol.file.allow=always submodule add -q "$GO" modulo >/dev/null 2>&1
+git -C "$TS" -c user.name=t -c user.email=t@t commit -qam sub >/dev/null 2>&1
+busca 2 "symlink a un directorio con código" "$TS" 'grep -rn handler enlace/'
+busca 2 "symlink a código fuera del repo" "$TS" 'grep -rn handler enlace-fuera/'
+busca 2 "directorio ignorado con código" "$TS" 'grep -rn g generado/'
+if [ -f "$TS/modulo/go.mod" ]; then
+  busca 2 "submódulo con código" "$TS" 'grep -rn Handler modulo/'
+else
+  mal "no se pudo armar el submódulo de prueba"
+fi
 # Fuera de git: se mide con find.
 mkdir -p "$T/fuera/codigo" "$T/fuera/notas"
 printf 'x = 1\n' > "$T/fuera/codigo/a.py"; printf '# n\n' > "$T/fuera/notas/a.md"

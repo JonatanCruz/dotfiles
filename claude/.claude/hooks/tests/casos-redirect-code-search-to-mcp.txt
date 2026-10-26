@@ -69,6 +69,24 @@
 0	grep -r acotado a markdown	grep -rn handler --include="*.md" .
 2	rg acotado a código por tipo	rg -n handler -t ts
 
+# ── OPCIONES LARGAS ABREVIADAS: GNU grep acepta cualquier prefijo único ───
+# (`--rec` es --recursive). Una opción larga que no se reconoce se trata como
+# recursiva: no se sabe qué hace, y el gate no abre.
+2	--rec es --recursive	grep --rec handler pkg/
+2	--derefer es --dereference-recursive	grep --derefer handler pkg/
+2	--dir=recurse es --directories=recurse	grep --dir=recurse handler pkg/
+2	--dir recurse, con el valor aparte	grep --dir recurse handler pkg/
+2	--incl es --include	grep -n --incl=*.ts handler .
+2	opción larga desconocida	grep --algo-raro handler pkg/
+0	opción larga reconocida que no recurre	grep --line-number handler pkg/a/src/index.ts
+
+# ── FILTROS: sólo eximen si TODOS los positivos son no-código ─────────────
+2	un include md y otro no clasificable	grep -rn handler --include=*.md --include=*.foo pkg/
+2	un glob md y otro sin extensión	rg -n handler -g "*.md" -g "*" pkg/
+2	--type-add redefine los tipos	rg -n handler --type-add "x:*.ts" -t md pkg/
+2	--pre transforma lo que se lee	rg -n handler --pre ./filtro.sh -g "*.md" pkg/
+0	sólo markdown, sin nada más	rg -n handler -g "*.md" -g "*.txt" pkg/
+
 # ── NO SE PUEDE MEDIR: no abre ─────────────────────────────────────────────
 2	directorio en una variable	grep -rn x "$DIR"
 0	directorio que no existe (no hay código que leer)	grep -rn x nada/
