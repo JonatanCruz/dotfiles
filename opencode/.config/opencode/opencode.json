@@ -135,10 +135,10 @@
       // nativas grep y glob de OpenCode.
       "wc *": "allow",
       "which *": "allow",
-      "npm test*": "allow",
-      "npm run test*": "allow",
-      "npm run lint*": "allow",
-      "npm run typecheck*": "allow",
+      // npm test/lint/typecheck NO van en la allowlist: ejecutan código del
+      // proyecto, y con edit/write en allow el agente puede escribir ese código
+      // (un test, o el script "test" de package.json) y luego lanzarlo sin
+      // preguntar. Quedan en el "ask" por defecto.
       "docker ps*": "allow",
       "docker logs*": "allow",
       // Opciones que convierten un comando "de lectura" en ejecución o
