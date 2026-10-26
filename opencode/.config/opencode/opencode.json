@@ -116,8 +116,9 @@
       "ls": "allow",
       "ls *": "allow",
       "pwd": "allow",
-      "rg *": "allow",
-      "fd *": "allow",
+      // rg y fd NO van en la allowlist: `rg --pre=CMD` y `fd -x/--exec`
+      // ejecutan comandos arbitrarios. Para buscar están las herramientas
+      // nativas grep y glob de OpenCode.
       "wc *": "allow",
       "which *": "allow",
       "npm test*": "allow",
@@ -126,6 +127,15 @@
       "npm run typecheck*": "allow",
       "docker ps*": "allow",
       "docker logs*": "allow",
+      // Opciones que convierten un comando "de lectura" en ejecución o
+      // escritura arbitraria (git diff --ext-diff, git log --output=,
+      // git fetch --upload-pack=, git -c core.pager=…). Van DESPUÉS de la
+      // allowlist para ganarle: en OpenCode gana la última regla que matchea.
+      "*--ext-diff*": "ask",
+      "*--textconv*": "ask",
+      "*--output*": "ask",
+      "*--upload-pack*": "ask",
+      "* -c *": "ask",
       // Comandos destructivos de archivos - REQUIEREN CONFIRMACIÓN
       "rm *": "ask",
       "rm -f *": "ask",
