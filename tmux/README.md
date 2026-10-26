@@ -8,7 +8,7 @@
 - **Documentation**: [docs/services/tmux.md](../docs/services/tmux.md)
 - **Prefix Key**: `Ctrl+s` (not `Ctrl+b`)
 - **Key Features**: SessionX manager, Resurrect/Continuum persistence, Vim-tmux-navigator
-- **Plugins**: TPM, Thumbs, FZF, Catppuccin theme
+- **Plugins**: TPM, Thumbs, FZF, SessionX (no theme plugin: Catppuccin colors are generated from `theme/palette.sh` into `.tmux-colors.conf`)
 
 ## Quick Start
 

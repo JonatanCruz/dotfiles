@@ -264,8 +264,8 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 ### Tmux (Prefix: Ctrl+s)
 
-- Split horizontal (arriba/abajo): `Prefix + v`
-- Split vertical (izquierda/derecha): `Prefix + h`
+- Split horizontal (arriba/abajo): `Prefix + -`
+- Split vertical (izquierda/derecha): `Prefix + |`
 - Navigate panes: `Ctrl+h/j/k/l` (sin prefix, via vim-tmux-navigator)
 - Resize panes: `Alt+h/j/k/l` (vim-aware, sin prefix)
 - Zoom pane: `Prefix + m`

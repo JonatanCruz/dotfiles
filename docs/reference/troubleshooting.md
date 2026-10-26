@@ -1104,7 +1104,7 @@ nvim
 :vsplit
 
 # Split horizontal en Tmux
-# Prefix + v
+# Prefix + -
 
 # Probar navegación con Ctrl+h/j/k/l
 # Debería moverse entre splits de Neovim y panes de Tmux sin problema

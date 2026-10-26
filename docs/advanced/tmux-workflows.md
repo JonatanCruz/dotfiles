@@ -163,13 +163,13 @@ Prefix + Space
 tmux
 
 # 2. Split vertical
-Prefix + v
+Prefix + |
 
 # 3. Navegar a derecha
 Ctrl + l
 
 # 4. Split horizontal en pane derecho
-Prefix + h
+Prefix + -
 
 # 5. Navegar a pane inferior izquierdo
 Ctrl + j
@@ -187,9 +187,9 @@ Alt + l  # Más ancho
 Alt + j  # Más alto
 Alt + k  # Más bajo
 
-# O con Prefix
-Prefix + H  # Resize izquierda (hold)
-Prefix + L  # Resize derecha
+# O con Prefix (atajos por defecto de tmux, repetibles)
+Prefix + Alt+flechas   # Resize de 5 en 5
+Prefix + Ctrl+flechas  # Resize de 1 en 1
 ```
 
 ### Layout: Backend + Database
@@ -215,21 +215,21 @@ Prefix + L  # Resize derecha
 nvim
 
 # 2. Split vertical → Database
-Prefix + v
+Prefix + |
 psql -U usuario database
 
 # 3. Ir a Neovim
 Ctrl + h
 
 # 4. Split horizontal → Server
-Prefix + h
+Prefix + -
 npm start
 
 # 5. Ir a Database
 Ctrl + l
 
 # 6. Split horizontal → Tests
-Prefix + h
+Prefix + -
 npm test
 
 # Layout completo

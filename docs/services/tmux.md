@@ -54,8 +54,8 @@ La tecla prefix se reenvia a la aplicacion con `Ctrl+s Ctrl+s`.
 
 | Keybinding | Accion | Resultado |
 |-----------|--------|-----------|
-| `Prefix + v` | Split vertical | Divide el pane en dos filas (arriba/abajo) |
-| `Prefix + h` | Split horizontal | Divide el pane en dos columnas (izquierda/derecha) |
+| `Prefix + -` | Split horizontal | Divide el pane en dos filas (arriba/abajo) |
+| `Prefix + \|` | Split vertical | Divide el pane en dos columnas (izquierda/derecha) |
 
 Ambos splits se abren en el directorio actual del pane.
 
@@ -164,7 +164,7 @@ Habilita colores 24-bit (True Color), undercurl y colores de subrayado para Neov
 
 ### Status Bar
 
-El status bar es minimalista y usa colores Catppuccin Mocha directamente, sin depender del plugin `catppuccin/tmux`:
+El status bar es minimalista y usa colores Catppuccin Mocha sin depender del plugin `catppuccin/tmux`. Viven en `~/.tmux-colors.conf`, que se GENERA desde `theme/palette.sh` con `theme/apply.sh` (no lo edites a mano):
 
 - **Fondo**: transparente (`bg=default`)
 - **Izquierda**: vacia
@@ -172,7 +172,7 @@ El status bar es minimalista y usa colores Catppuccin Mocha directamente, sin de
 - **Ventanas**: texto en gris (`#6c7086`), ventana activa en azul bold (`#89b4fa`)
 - **Posicion**: parte superior de la terminal
 
-El status bar se puede ocultar con `Prefix + \` para ganar espacio vertical. Se oculta automaticamente si solo hay una ventana abierta.
+El status bar se puede ocultar con `Prefix + \` para ganar espacio vertical.
 
 ### Configuracion de Plugins
 
@@ -201,8 +201,8 @@ Prefix + s
 # Enter para abrir/crear
 
 # 2. Organizar el workspace
-Prefix + v    # Split arriba/abajo (editor arriba, terminal abajo)
-Prefix + h    # Split izquierda/derecha (editor + servidor)
+Prefix + -    # Split arriba/abajo (editor arriba, terminal abajo)
+Prefix + |    # Split izquierda/derecha (editor + servidor)
 
 # Layout resultante tipico:
 # ┌────────────────┬────────────────┐
