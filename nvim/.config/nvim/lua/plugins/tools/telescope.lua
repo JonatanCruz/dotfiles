@@ -1,7 +1,7 @@
 return {
   {
     'nvim-telescope/telescope.nvim',
-    tag = '0.1.5',
+    branch = '0.1.x',  -- rama estable: recibe los fixes de la serie 0.1 (0.1.5 es de 2023-11)
     dependencies = { 'nvim-lua/plenary.nvim' },
     cmd = { 'Telescope' },  -- Cargar cuando se ejecute el comando :Telescope
     keys = {
