@@ -332,6 +332,11 @@ jobs:
           chmod +x scripts/check-hooks-versioned.sh
           ./scripts/check-hooks-versioned.sh
 
+      # Cada bypass hallado por una revisión de seguridad es un caso aquí: un
+      # cambio del hook que reabra uno falla en CI en vez de pasar inadvertido.
+      - name: Regression tests for the secrets hook
+        run: bash scripts/tests/hook-secretos.sh
+
       # Las listas de paquetes de los instaladores se mantienen a mano, así que
       # un paquete nuevo se añade al repo y nunca se enlaza. Pasó con `mise`.
       #
