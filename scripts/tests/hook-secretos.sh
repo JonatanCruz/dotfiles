@@ -10,6 +10,8 @@ set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HOOK="$RAIZ/claude/.claude/hooks/no-leer-secretos-por-bash.sh"
+# Hermética: el .claude/hooks.json del proyecto desde el que se corre no cuenta.
+export CLAUDE_HOOKS_CONFIG="$RAIZ/.no-existe-hooks.json"
 ok=0
 mal=0
 
@@ -130,6 +132,28 @@ probar 0 'grep -n password logs/app.log'
 probar 0 'wc -l .env'
 probar 0 'ls *.sh'
 probar 0 'grep -n x claude/.claude/hooks/tests/casos-no-leer-secretos-por-bash.txt'
+
+# ── CLIs que devuelven el valor de un secreto, en un comando de varias líneas ─
+probar 2 $'ls\naws secretsmanager get-secret-value --secret-id x'
+probar 2 $'kubectl get secrets\nkubectl get secret x -o yaml'
+probar 0 $'kubectl get secrets\naws secretsmanager list-secrets'
+
+# Sin jq la tabla sigue aplicando (sobre el payload crudo).
+SINJQ="$(mktemp -d)"
+for b in bash cat grep sed tr awk head dirname git; do
+  ln -sf "$(command -v "$b")" "$SINJQ/$b" 2>/dev/null || true
+done
+sinjq() {
+  local esperado="$1" payload="$2" rc
+  printf '%s' "$payload" | PATH="$SINJQ" bash "$HOOK" >/dev/null 2>&1
+  rc=$?
+  if [ "$rc" = "$esperado" ]; then ok=$((ok + 1)); else
+    mal=$((mal + 1)); printf '✗ sin jq: esperado=%s obtenido=%s :: %s\n' "$esperado" "$rc" "$payload"; fi
+}
+sinjq 2 '{"tool_input":{"command":"vault kv get secret/x"}}'
+sinjq 2 '{"tool_input":{"command":"gcloud secrets versions access latest --secret=X"}}'
+sinjq 0 '{"tool_input":{"command":"vault kv list secret/"}}'
+rm -rf "$SINJQ"
 
 echo "hook-secretos: ok=$ok mal=$mal"
 [ "$mal" -eq 0 ]

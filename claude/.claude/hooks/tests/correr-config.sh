@@ -188,6 +188,28 @@ printf 'x = 1\n' > "$T/fuera/codigo/a.py"; printf '# n\n' > "$T/fuera/notas/a.md
 busca 2 "fuera de git: directorio con .py" "$T/fuera" 'grep -rn x codigo/'
 busca 0 "fuera de git: directorio sólo con .md" "$T/fuera" 'grep -rn x notas/'
 
+echo "── secretos: la tabla por defecto aplica en todos; el proyecto sólo suma ──"
+secreto() { # secreto <esperado> <desc> <repo> <comando> [VAR=valor…]
+  local esp="$1" desc="$2" d="$3" c="$4"; shift 4
+  jq -nc --arg c "$c" --arg d "$d" '{tool_input:{command:$c},cwd:$d}' \
+    | env "$@" CLAUDE_PROJECT_DIR="$d" bash "$HOOKS/no-leer-secretos-por-bash.sh" >/dev/null 2>&1
+  igual "$desc" "$esp" "$?"
+}
+for d in "$TS" "$PY" "$GO"; do
+  secreto 2 "${d##*/}: aws get-secret-value bloquea" "$d" 'aws secretsmanager get-secret-value --secret-id x'
+done
+secreto 2 "ampliado: su CLI propio bloquea" "$AMP" 'mycli secret reveal db'
+secreto 2 "ampliado: su CLI en forma de array bloquea" "$AMP" 'pass show correo/personal'
+secreto 0 "ampliado: el mismo CLI sin el subcomando pasa" "$AMP" 'mycli secret list'
+secreto 2 "ampliado: la tabla por defecto sigue" "$AMP" 'vault kv get secret/x'
+secreto 0 "sin hooks.json, el CLI del otro repo no aplica" "$TS" 'mycli secret reveal db'
+secreto 2 "hostil: no puede quitar aws get-secret-value" "$HOS" 'aws secretsmanager get-secret-value --secret-id x'
+secreto 2 "hostil: no puede permitir vault kv get" "$HOS" 'vault kv get secret/x'
+secreto 2 "hostil: no puede eximir gcloud versions access" "$HOS" 'gcloud secrets versions access latest --secret=x'
+secreto 0 "hostil: una palabra suelta (gcloud) no bloquea todo gcloud" "$HOS" 'gcloud config list'
+secreto 2 "JSON roto: la tabla por defecto" "$HOS" 'op read op://v/i/f' CLAUDE_HOOKS_CONFIG="$HOS/roto.json"
+secreto 2 "sin jq: la tabla por defecto" "$AMP" 'kubectl get secret x -o yaml' PATH="$SINJQ_H"
+
 echo
 echo "pasan: $ok · fallan: $fail"
 [ "$fail" = 0 ]

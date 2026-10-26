@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # PreToolUse (matcher: Bash). BLOQUEA (exit 2) los comandos que nombran un
 # secreto conocido de esta máquina: llaves privadas de ~/.ssh, ~/.aws/credentials,
-# ~/.gnupg, secrets.zsh, .credentials.json de Claude Code y archivos .env.
+# ~/.gnupg, secrets.zsh, .credentials.json de Claude Code y archivos .env; y los
+# CLIs que devuelven el VALOR de un secreto (tabla SECRETOS_CLIS, ampliable por
+# proyecto en .claude/hooks.json).
 #
 # ES UNA CAPA DE DEFENSA EN PROFUNDIDAD, NO LA DEFENSA. No es completa ni puede
 # serlo: un filtro de texto no reimplementa el parser de bash (variables opacas,
@@ -169,12 +171,76 @@ ofuscado() {
   return 1
 }
 
+# CLIs que DEVUELVEN el valor de un secreto. Su argumento es un nombre, no una
+# ruta: ninguna detección de rutas los ve. Veto directo cuando el CLI es el
+# ejecutable de un tramo (tras envoltorios como sudo/env/timeout o `VAR=x`); los
+# subcomandos de metadatos (list, describe, names…) siguen permitidos.
+# Una entrada: ejecutable, subcomandos en orden (con opciones en medio) y, si
+# empieza con `--`, una opción que tiene que estar. kubectl va aparte: sólo
+# revela con -o yaml/json/jsonpath/plantillas.
+# Cada proyecto puede AÑADIR entradas (secretos.clis en .claude/hooks.json),
+# nunca quitarlas: la tabla de abajo siempre aplica.
+SECRETOS_CLIS='gcloud secrets versions access
+aws secretsmanager get-secret-value
+aws secretsmanager batch-get-secret-value
+aws ssm get-parameter --with-decryption
+aws ssm get-parameters --with-decryption
+aws ssm get-parameters-by-path --with-decryption
+az keyvault secret show
+az keyvault secret download
+vault kv get
+vault read
+op read
+op item get
+op document get
+doppler secrets get
+doppler secrets download'
+_cfg="$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+# shellcheck source=lib/config.sh
+if [ -r "$_cfg" ] && . "$_cfg" 2>/dev/null && command -v config_secretos_clis >/dev/null 2>&1; then
+  _dir_cfg="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
+  [ -d "$_dir_cfg" ] || _dir_cfg="${CLAUDE_PROJECT_DIR:-$PWD}"
+  _extra="$(config_secretos_clis "$_dir_cfg")"
+  [ -z "$_extra" ] || SECRETOS_CLIS="$SECRETOS_CLIS"$'\n'"$_extra"
+fi
+# Un tramo empieza al inicio, tras ; & | ( $( o un salto de línea (\036 es el
+# separador que deja la normalización dentro de un texto citado).
+SEP=$'\036'; NL=$'\n'
+CORTE=";&|${SEP}${NL}"
+INICIO_TRAMO="(^|[(${CORTE}]|\\\$\\()[[:space:]]*((sudo|doas|env|command|exec|nohup|time|nice|xargs|timeout|-[^[:space:]]+|[0-9.]+[smhd]?|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)[[:space:]]+)*([^[:space:]${CORTE}]*/)?"
+ENTRE="[[:space:]]([^${CORTE}]*[[:space:]])?"
+KUBECTL_SECRETO="${INICIO_TRAMO}kubectl${ENTRE}get${ENTRE}secrets?([/,][^[:space:]]*)?([[:space:]][^${CORTE}]*)?[[:space:]](-o|--output)([[:space:]]+|=)?(yaml|json|jsonpath|go-template|template|custom-columns)"
+# vetar_clis <texto>: bloquea si un tramo ejecuta un CLI de la tabla.
+vetar_clis() {
+  local _entrada _re _primera _w
+  while IFS= read -r _entrada; do
+    [ -n "$_entrada" ] || continue
+    _re="$INICIO_TRAMO"; _primera=1
+    for _w in $_entrada; do
+      _w="${_w//./\\.}"
+      if [[ "$_w" == --* ]]; then _re="${_re}[^${CORTE}]*[[:space:]]$_w"
+      elif [ "$_primera" = 1 ]; then _re="$_re$_w"; _primera=0
+      else _re="$_re$ENTRE$_w"
+      fi
+    done
+    _re="$_re([[:space:]=]|\$)"
+    if [[ "$1" =~ $_re ]]; then
+      bloquear "\`$_entrada\` devuelve el valor de un secreto. Para metadatos usá el subcomando de listar o describir."
+    fi
+  done <<<"$SECRETOS_CLIS"
+  if [[ "$1" =~ $KUBECTL_SECRETO ]]; then
+    bloquear "\`kubectl get secret -o yaml|json|jsonpath\` devuelve los valores del secreto. Para metadatos: kubectl get secrets / describe secret."
+  fi
+}
+
 if ! command -v jq >/dev/null 2>&1; then
   [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (jq no está instalado: se evaluó el payload crudo)."
+  vetar_clis "$(printf '%s' "$payload" | tr '"' ';')"
   exit 0
 fi
 if ! cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null)"; then
   [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (JSON ilegible: se evaluó el payload crudo)."
+  vetar_clis "$(printf '%s' "$payload" | tr '"' ';')"
   exit 0
 fi
 [ -n "$cmd" ] || exit 0
@@ -264,16 +330,7 @@ if ! { [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$)
   normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
-# `gcloud secrets versions access` devuelve el VALOR del secreto, y su argumento
-# es un nombre, no una ruta: ninguna detección de rutas lo ve. Veto directo
-# cuando gcloud es el ejecutable de un tramo; `gcloud secrets list`/`describe`
-# devuelven metadatos y siguen permitidos. Sobre `normal` antes de espaciar: un
-# `echo "gcloud secrets versions access"` lleva \037 y no coincide.
-SEP=$'\036'
-GCLOUD_ACCESS="(^|[;&|(${SEP}]|\\\$\\()[[:space:]]*gcloud[[:space:]]([^;&|${SEP}]*[[:space:]])?secrets[[:space:]]+versions[[:space:]]+access([[:space:]]|\$)"
-if [[ "$normal" =~ $GCLOUD_ACCESS ]]; then
-  bloquear "\`gcloud secrets versions access\` devuelve el valor del secreto. Para metadatos: gcloud secrets list / versions list / describe."
-fi
+vetar_clis "$normal"
 
 hallados="$(secretos_en "$normal"; globs_sospechosos "$cmd")"
 [ -n "${hallados//[[:space:]]/}" ] || exit 0
