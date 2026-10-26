@@ -19,10 +19,17 @@
 # intérprete (sh, bash, eval, source, xargs, python…) que pudiera ejecutarlo.
 # Las llaves públicas (.pub) y las plantillas (.env.example) no son secretos.
 #
-# Ofuscación: si el comando trae `\`, `$'`, `$"` o comillas vacías y además un
-# fragmento sensible en cualquier forma (ssh, aws, gnupg, env, credential,
-# secret), se bloquea sin intentar decodificarlo. Esto da falsos positivos
-# (p.ej. `grep "process\.env"`): es el precio de no reimplementar bash.
+# Ofuscación, sin intentar decodificar nada:
+#   - `$'…'` o `$"…"` en cualquier parte → bloquea siempre. `$'\x2e\x73\x73\x68'`
+#     es `.ssh` sin ninguna letra en claro. Cuesta usos legítimos raros
+#     (`IFS=$'\n'`, `printf $'\t'`): se reescriben con printf '%b' o comillas.
+#   - `\` o comillas vacías junto a un fragmento sensible (ssh, aws, gnupg, env,
+#     credential, secret) → bloquea. Da falsos positivos (`grep "process\.env"`).
+#   - Expansión de llaves sin comillas (`{a,b}`, `{a..b}`) junto a una ruta
+#     (`/`, `~`, `$HOME`) o un fragmento parcial (ss, sh, aws, gnupg, env, cred,
+#     secret) → bloquea: `~/.s{s,}h/id_rsa` arma `.ssh` sin escribirlo. Cuesta
+#     `mkdir -p src/{a,b}`, que se escribe como dos rutas.
+# Son falsos positivos asumidos: el precio de no reimplementar bash.
 #
 # Sin jq o con JSON ilegible se evalúa el payload crudo con las mismas rutas
 # (bloquea si nombra un secreto) en vez de bloquear todo Bash.
@@ -69,14 +76,45 @@ EOF
   exit 2
 }
 
+PARCIAL='ss|sh|aws|gnupg|env|cred|secret'
+LLAVES='\{[^{}]*(,|\.\.)[^{}]*\}'
+
+# Devuelve 0 (y el motivo por stdout) si el comando está ofuscado.
 ofuscado() {
-  case "$1" in
-    *\\* | *"\$'"* | *"\$\""* | *"''"* | *'""'*) ;;
-    *) return 1 ;;
+  local texto="$1" bajo fuera
+  case "$texto" in
+    *"\$'"* | *"\$\""*)
+      echo "el comando usa \$'…' o \$\"…\", que pueden codificar cualquier ruta."
+      return 0 ;;
   esac
-  local bajo
-  bajo="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
-  [[ "$bajo" =~ $SUELTO ]]
+  bajo="$(printf '%s' "$texto" | tr '[:upper:]' '[:lower:]')"
+  case "$texto" in
+    *\\* | *"''"* | *'""'*)
+      if [[ "$bajo" =~ $SUELTO ]]; then
+        echo "el comando combina escapes o comillas vacías con un nombre sensible."
+        return 0
+      fi ;;
+  esac
+  # Llaves FUERA de comillas: lo entrecomillado se descarta antes de mirar.
+  fuera="$(printf '%s' "$texto" | awk 'BEGIN { RS = "\001" } {
+    s = $0; out = ""; q = ""; n = length(s)
+    for (i = 1; i <= n; i++) {
+      c = substr(s, i, 1)
+      if (q == "") {
+        if (c == "\\" && i < n) { out = out substr(s, i + 1, 1); i++; continue }
+        if (c == "\047" || c == "\"") { q = c; continue }
+        out = out c
+      } else if (c == q) { q = "" }
+    }
+    printf "%s", out
+  }')"
+  # Un fragmento parcial no basta: `.s{s,}h` parte `ss` y `sh`. Por eso cuenta
+  # también cualquier ruta (`/`, `~`, `$HOME`) en el comando.
+  if [[ "$fuera" =~ $LLAVES ]] && { [[ "$bajo" =~ $PARCIAL ]] || [[ "$texto" == *[/~]* ]] || [[ "$texto" == *'$HOME'* ]]; }; then
+    echo "expansión de llaves junto a una ruta o un fragmento de ruta sensible."
+    return 0
+  fi
+  return 1
 }
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -89,8 +127,8 @@ if ! cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev
 fi
 [ -n "$cmd" ] || exit 0
 
-if ofuscado "$cmd"; then
-  bloquear "el comando combina escapes o comillas vacías con un nombre sensible; no se intenta decodificarlo."
+if motivo_ofuscado="$(ofuscado "$cmd")"; then
+  bloquear "$motivo_ofuscado No se intenta decodificarlo."
 fi
 
 # Normalización básica como la de bash: fuera de comillas, `\x` → `x`; las
