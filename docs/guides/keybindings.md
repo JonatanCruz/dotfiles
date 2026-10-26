@@ -26,9 +26,9 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `tmux attach -t nombre` | Adjuntar a sesión |
 | `Prefix + d` | Detach de sesión actual |
 | `Prefix + s` | SessionX: fuzzy finder de sesiones |
-| `Prefix + Ctrl+x` | Matar sesión actual |
-| `Prefix + Ctrl+s` | Guardar sesión (Resurrect) |
-| `Prefix + Ctrl+r` | Restaurar sesión (Resurrect) |
+| `Prefix + S` | Guardar sesión (Resurrect) |
+| `Prefix + R` | Restaurar sesión (Resurrect) |
+| `Prefix + Ctrl+s` | Enviar `Ctrl+s` a la aplicación (send-prefix) |
 
 ### Gestión de Ventanas (Tabs)
 
@@ -85,15 +85,7 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `Prefix + r` | Recargar configuración |
 | `Prefix + :` | Prompt de comando Tmux |
 | `Prefix + t` | Mostrar reloj |
-| `Prefix + ?` | Listar keybindings |
-| `Prefix + Ctrl+c` | Crear nueva sesión desde prompt |
-
-### Thumbs (Quick Select)
-
-| Keybinding | Acción |
-|------------|--------|
-| `Prefix + Space` | Activar Thumbs (selección rápida de paths, URLs) |
-| `a-z` (en Thumbs) | Copiar elemento marcado con letra |
+| `Prefix + ?` | Listar keybindings (popup con `list-keys -N`) |
 
 ---
 

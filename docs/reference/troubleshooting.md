@@ -505,10 +505,10 @@ grep "resurrect\|continuum" ~/.tmux.conf
 # set -g @continuum-restore 'on'
 
 # Guardar sesión manualmente
-# Prefix + Ctrl+s
+# Prefix + S
 
 # Restaurar sesión manualmente
-# Prefix + Ctrl+r
+# Prefix + R
 
 # Verificar auto-guardado
 tmux show-options -g | grep continuum

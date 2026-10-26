@@ -10,8 +10,6 @@ Configuración moderna de Tmux con TPM, SessionX, Resurrect, Continuum, navegaci
 - **SessionX**: Gestion avanzada de sesiones con FZF y Zoxide
 - **Resurrect + Continuum**: Persistencia y restauracion automatica de sesiones
 - **vim-tmux-navigator**: Navegacion seamless entre panes de Tmux y splits de Neovim
-- **aserowy/tmux.nvim**: Integracion profunda con Neovim para resize vim-aware
-- **Thumbs**: Copia rapida de texto y URLs sin mouse
 - **Status bar minimalista**: Solo tabs y nombre de sesion, posicionado en la parte superior
 
 ## Prefix Key
@@ -30,12 +28,9 @@ La tecla prefix se reenvia a la aplicacion con `Ctrl+s Ctrl+s`.
 | `tmux-plugins/tmux-resurrect` | Guardar y restaurar sesiones manualmente |
 | `tmux-plugins/tmux-continuum` | Auto-save de sesiones cada 15 minutos |
 | `christoomey/vim-tmux-navigator` | Navegacion Vim/Tmux con Ctrl+hjkl |
-| `aserowy/tmux.nvim` | Integracion profunda con Neovim (resize vim-aware) |
-| `fcsonline/tmux-thumbs` | Copia rapida de texto visible en pantalla |
 | `sainnhe/tmux-fzf` | FZF dentro de Tmux (sesiones, windows, panes) |
 | `wfxr/tmux-fzf-url` | Seleccionar y abrir URLs del buffer con FZF |
 | `omerxx/tmux-sessionx` | Gestion avanzada de sesiones con FZF + Zoxide |
-| `alexwforsythe/tmux-which-key` | Muestra keybindings disponibles (estilo which-key de Vim) |
 
 ## Keybindings
 
@@ -79,7 +74,7 @@ La navegacion con `Ctrl+hjkl` funciona sin prefix y es transparente entre Neovim
 | `Alt + k` | Expandir pane hacia arriba |
 | `Alt + l` | Expandir pane hacia la derecha |
 
-El resize con `Alt+hjkl` es vim-aware: si el foco esta en Neovim, envia el atajo a Neovim en lugar de redimensionar el pane de Tmux.
+El resize con `Alt+hjkl` es vim-aware: si el foco esta en Neovim, tmux le reenvia el atajo en lugar de redimensionar. Neovim no mapea `Alt+hjkl` hoy, asi que dentro de Neovim no redimensiona nada.
 
 #### Otros
 
@@ -115,22 +110,15 @@ El modo de copia usa keybindings de Vi (`mode-keys vi`).
 | `y` | Copiar al clipboard del sistema |
 | `q` | Salir de copy mode |
 
-### Thumbs (Copia Rapida)
-
-| Keybinding | Accion |
-|-----------|--------|
-| `Prefix + Space` | Activar Thumbs |
-| `[letra]` | Copiar el elemento marcado |
-
-Thumbs resalta texto, rutas, hashes y URLs visibles en pantalla y permite copiarlos sin usar el mouse.
-
 ### Utilidades
 
 | Keybinding | Accion |
 |-----------|--------|
 | `Prefix + r` | Recargar configuracion |
 | `Prefix + \` | Toggle status bar |
-| `Prefix + Ctrl+s` | Guardar sesion manualmente (Resurrect) |
+| `Prefix + S` | Guardar sesion manualmente (Resurrect) |
+| `Prefix + R` | Restaurar la ultima sesion guardada (Resurrect) |
+| `Prefix + ?` | Popup con los atajos que tienen descripcion (`list-keys -N`) |
 | `Prefix + I` | Instalar plugins (TPM) |
 | `Prefix + U` | Actualizar plugins (TPM) |
 
@@ -232,7 +220,10 @@ Ctrl + l    # Ir a la derecha
 # No se requiere accion
 
 # Guardar manualmente antes de apagar:
-Prefix + Ctrl+s
+Prefix + S
+
+# Restaurar a mano (si continuum no lo hizo):
+Prefix + R
 
 # La proxima vez que abras Tmux, las sesiones se restauran
 # con el mismo layout, directorios y sesion de Neovim
@@ -303,7 +294,7 @@ zoxide query -ls
 
 ```bash
 # Verificar que vim-tmux-navigator esta configurado en Neovim
-# El plugin christoomey/vim-tmux-navigator debe estar en lua/plugins/
+# Lo carga nvim/.config/nvim/lua/plugins/tools/tmux-navigator.lua (:Lazy para verlo)
 
 # Recargar Tmux:
 Prefix + r
@@ -334,11 +325,10 @@ tmux kill-server && tmux
 
 1. Usa SessionX siempre para cambiar de proyecto, es mas rapido que `tmux attach`.
 2. Nombra tus sesiones descriptivamente para encontrarlas con FZF.
-3. Usa Thumbs (`Prefix + Space`) para copiar rutas, hashes o URLs sin el mouse.
-4. El zoom con `Prefix + m` es util para foco total en un pane sin cerrar los demas.
-5. Deja que Continuum guarde automaticamente; solo usa `Prefix + Ctrl+s` antes de apagar.
-6. Usa Copy Mode (`Prefix + [`) para buscar en el output del terminal con `/`.
-7. El status bar se puede ocultar con `Prefix + \` cuando necesitas mas espacio vertical.
+3. El zoom con `Prefix + m` es util para foco total en un pane sin cerrar los demas.
+4. Deja que Continuum guarde automaticamente; solo usa `Prefix + S` antes de apagar.
+5. Usa Copy Mode (`Prefix + [`) para buscar en el output del terminal con `/`.
+6. El status bar se puede ocultar con `Prefix + \` cuando necesitas mas espacio vertical.
 
 ## Recursos Adicionales
 
@@ -352,7 +342,5 @@ tmux kill-server && tmux
 - [TPM - Tmux Plugin Manager](https://github.com/tmux-plugins/tpm)
 - [SessionX](https://github.com/omerxx/tmux-sessionx)
 - [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator)
-- [aserowy/tmux.nvim](https://github.com/aserowy/tmux.nvim)
 - [tmux-fzf](https://github.com/sainnhe/tmux-fzf)
 - [tmux-fzf-url](https://github.com/wfxr/tmux-fzf-url)
-- [tmux-which-key](https://github.com/alexwforsythe/tmux-which-key)
