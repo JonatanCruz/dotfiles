@@ -51,8 +51,7 @@ Esta guía documenta todos los keybindings para navegar entre archivos, funcione
 
 | Comando | Acción | Descripción |
 |---------|--------|-------------|
-| `<leader>d` | **Ver diagnóstico** | Ventana flotante con detalles del error |
-| `<leader>q` | **Lista de diagnósticos** | Abre location list con todos los problemas |
+| `<leader>cd` / `gl` | **Ver diagnóstico** | Ventana flotante con detalles del error |
 | `<leader>xx` | **Toggle Trouble** | Abre/cierra ventana Trouble |
 | `<leader>xd` | **Document diagnostics** | Problemas del archivo actual |
 | `<leader>xw` | **Workspace diagnostics** | Problemas de todo el proyecto |
@@ -91,7 +90,7 @@ Esta guía documenta todos los keybindings para navegar entre archivos, funcione
 
 ```
 1. ]d         → Ir al siguiente problema
-2. <leader>d  → Ver detalles del error
+2. <leader>cd → Ver detalles del error
 3. <leader>ca → Ver fixes automáticos disponibles
 4. <leader>xd → Ver todos los errores del archivo
 ```

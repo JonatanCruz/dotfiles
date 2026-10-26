@@ -131,8 +131,8 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 |------------|--------|
 | `Shift+h` | Buffer anterior |
 | `Shift+l` | Buffer siguiente |
-| `<leader>bd` | Cerrar buffer actual |
-| `<leader>ba` | Cerrar todos los buffers excepto actual |
+| `<leader>bc` | Cerrar buffer actual |
+| `<leader>bo` | Cerrar todos los buffers excepto actual |
 
 ### Gestión de Splits
 
@@ -179,6 +179,7 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `==` | Auto-indentar línea |
 | `gcc` | Toggle comentario de línea |
 | `gc` (visual) | Comentar selección |
+| `<leader>/` | Comentar línea o selección |
 
 ### LSP (Language Server Protocol)
 

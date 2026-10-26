@@ -8,7 +8,6 @@
 - **Documentation**: [docs/services/nvim.md](../docs/services/nvim.md)
 - **Key Features**: Lazy.nvim plugin manager, Mason LSP, Telescope, LazyGit, nvim-cmp
 - **Theme**: Catppuccin Mocha with transparency
-- **AI**: Supermaven autocompletion (1M token context, free)
 
 ## Quick Start
 

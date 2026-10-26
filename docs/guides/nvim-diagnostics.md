@@ -146,7 +146,7 @@ Los errores aparecen:
 
 | Comando | Acción | Uso |
 |---------|--------|-----|
-| `<leader>ul` | Toggle LSP Lines | Alternar vista de diagnósticos como líneas |
+| `<leader>uL` | Toggle líneas virtuales | `virtual_lines` nativo de nvim (apagado por defecto) |
 
 ### Trouble.nvim (UI Mejorada)
 
