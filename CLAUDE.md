@@ -87,8 +87,9 @@ stow -n -v nvim
 Stow only links what existed when the package was stowed: when a whole directory is
 linked (folded) new files show up on their own, but inside a directory that Stow had
 to create (unfolded, e.g. `~/.config` shared by several packages) a new file stays
-unlinked until you restow. PR #40 (pending merge) adds a "Stow Link Completeness"
-section to `scripts/health-check.sh` that detects this.
+unlinked until you restow. `scripts/health-check.sh` detects this in its "Stow Link
+Completeness" section. To check by hand, `stow -n -v <pkg> | grep ^LINK` — without
+`-v`, `stow -n` prints nothing even when links are missing.
 
 ### Neovim Development
 
