@@ -23,8 +23,8 @@ entirely** — Engram supersedes it. That directory must stay empty.
 
 **This is enforced structurally, not by prose** (Meadows: put the control in the
 structure, not in the next agent's memory): the global hook
-`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit|MultiEdit`,
-registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
+`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit`; the matcher
+also lists the retired `MultiEdit` tool, harmless; registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
 `.../memory/MEMORY.md` or `.../memory/*.md`. The harness's instruction is therefore
 structurally impossible to follow. Override only for manual migration/cleanup of
 those files: `export ENGRAM_MIGRATION=1` (a deliberate, audited decision — never a
