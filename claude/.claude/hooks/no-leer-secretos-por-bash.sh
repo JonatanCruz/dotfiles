@@ -1,90 +1,108 @@
 #!/usr/bin/env bash
-# PreToolUse (matcher: Bash). BLOQUEA (exit 2) los comandos que LEEN un secreto
-# conocido de esta máquina: llaves privadas de ~/.ssh, ~/.aws/credentials,
-# secrets.zsh, .credentials.json de Claude Code y archivos .env.
+# PreToolUse (matcher: Bash). BLOQUEA (exit 2) los comandos que nombran un
+# secreto conocido de esta máquina: llaves privadas de ~/.ssh, ~/.aws/credentials,
+# ~/.gnupg, secrets.zsh, .credentials.json de Claude Code y archivos .env.
 #
-# POR QUÉ: las reglas `deny` de settings.json cubren la herramienta Read y los
-# comandos de archivo que Claude Code reconoce en Bash (cat, head, sed…), pero no
-# un subproceso cualquiera (`base64`, `python3 -c`, `cp` a otro sitio). Este hook
-# cierra parte de ese hueco. NO es la defensa principal: un filtro por regex nunca
-# es completo (`bash -c '…'`, variables opacas, comodines, intérpretes que abren
-# el archivo por su cuenta). La defensa real son el deny y los permisos 600.
+# ES UNA CAPA DE DEFENSA EN PROFUNDIDAD, NO LA DEFENSA. No es completa ni puede
+# serlo: un filtro de texto no reimplementa el parser de bash (variables opacas,
+# comodines, intérpretes que abren el archivo por su cuenta). La defensa real son
+# las reglas `deny` de settings.json y los permisos 600 de los archivos.
 #
-# DISEÑO (lección de una versión anterior que bloqueó 157 comandos legítimos en una
-# sesión por evaluar el TEXTO en vez de lo que se ejecuta):
-#   - Un string entre comillas de VARIAS palabras es texto (`git commit -m "no leer
-#     .env"`), no una ruta: no cuenta. Uno de UNA sola palabra sí cuenta, porque
-#     `cat "$HOME/.ssh/id_rsa"` es la misma lectura que sin comillas.
-#   - Se decide por TRAMO (separado por ; && || | y saltos de línea), y algunos
-#     ejecutables que no exponen contenido quedan exentos en su tramo: ls, stat,
-#     test, chmod, rm, echo, ssh… salvo que el tramo tenga $( ) o backticks.
-#   - Las llaves públicas (.pub) y las plantillas (.env.example) no son secretos.
+# DISEÑO FAIL-CLOSED: si un fragmento protegido aparece en el comando, se
+# BLOQUEA. Sólo se exime un caso estrecho: un único comando simple de una lista
+# corta que no expone contenido (ls, stat, test, [, chmod, chown, touch,
+# ssh-add, y ssh con la ruta SÓLO como valor de -i), sin redirecciones,
+# sustituciones, pipes, `;`, `&`, backslashes ni `$'`.
 #
-# FALLA CERRADO SÓLO DONDE IMPORTA: sin jq o con JSON ilegible no se puede aislar
-# el comando, así que se busca sobre el payload crudo y se bloquea si nombra un
-# secreto. Bloquear TODO Bash por falta de jq dejaría sin la herramienta con la
-# que se arregla.
+# Lo único que se tolera como texto es un string entrecomillado de VARIAS
+# palabras (`git commit -m "no leer .env"`), y sólo si el comando no invoca un
+# intérprete (sh, bash, eval, source, xargs, python…) que pudiera ejecutarlo.
+# Las llaves públicas (.pub) y las plantillas (.env.example) no son secretos.
+#
+# Ofuscación: si el comando trae `\`, `$'`, `$"` o comillas vacías y además un
+# fragmento sensible en cualquier forma (ssh, aws, gnupg, env, credential,
+# secret), se bloquea sin intentar decodificarlo. Esto da falsos positivos
+# (p.ej. `grep "process\.env"`): es el precio de no reimplementar bash.
+#
+# Sin jq o con JSON ilegible se evalúa el payload crudo con las mismas rutas
+# (bloquea si nombra un secreto) en vez de bloquear todo Bash.
 #
 #   stdin: JSON { tool_input: { command } }  ·  exit 0 = permitir · 2 = bloquear
 
 set -uo pipefail
-# Sin globbing: los tramos se parten en palabras y un `*` no debe tocar disco.
+# Sin globbing: el comando se parte en palabras y un `*` no debe tocar disco.
 set -f
 
 payload="$(cat 2>/dev/null || true)"
 [ -n "${payload//[[:space:]]/}" ] || exit 0
 
-# Rutas protegidas, sobre texto ya normalizado. `~`, `$HOME` y `${HOME}` no hace
-# falta resolverlos: se busca el sufijo, que es lo que identifica al secreto.
-# Cada patrón exige empezar en un borde de token y no cruzar un \037 (el espacio
-# de un string entrecomillado de varias palabras: eso es texto, no una ruta).
 M=$'\037'
 INI="(^|[[:space:]=<>:(])"
-SECRETO="${INI}[^[:space:]=<>:(${M}]*(\.ssh/id_[A-Za-z0-9_.-]*|\.aws/credentials|secrets\.zsh|\.credentials\.json)|${INI}([^[:space:]=<>:(${M}]*/)?\.env(\.[A-Za-z0-9_-]+)*(\$|[^A-Za-z0-9_.-])"
+# Rutas protegidas sobre texto normalizado. `~`, `$HOME` y `${HOME}` no hace
+# falta resolverlos: se busca el sufijo que identifica al secreto. Ningún patrón
+# cruza un \037 (el espacio de un string de varias palabras).
+SECRETO="${INI}[^[:space:]=<>:(${M}]*(\.ssh/id_[A-Za-z0-9_.-]*|\.aws/credentials|\.gnupg/[^[:space:]${M}]*|secrets\.zsh|\.credentials\.json)|${INI}([^[:space:]=<>:(${M}]*/)?\.env(\.[A-Za-z0-9_-]+)*(\$|[^A-Za-z0-9_.-])"
 NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$'
+SUELTO='ssh|aws|gnupg|env|credential|secret'
+INTERPRETE="(^|[[:space:];&|(\`])(sh|bash|zsh|dash|ksh|fish|eval|source|\.|exec|xargs|env|python[0-9.]*|node|perl|ruby|php|awk|gawk|osascript)([[:space:]]|\$)"
 
-nombra_secreto() {
+# Imprime las rutas protegidas halladas que NO son públicas/plantilla.
+# Sin `grep -q` en tuberías: con pipefail, su salida temprana puede matar por
+# SIGPIPE al que escribe y la tubería daría el resultado contrario.
+secretos_en() {
   local hallado
   hallado="$(printf '%s' "$1" | grep -oE "$SECRETO" 2>/dev/null || true)"
-  [ -n "$hallado" ] || return 1
-  # Basta con UNA coincidencia que no sea pública/plantilla. Sin `grep -q`: con
-  # pipefail, su salida temprana puede matar por SIGPIPE al que escribe y la
-  # tubería daría "no es secreto" por accidente.
-  hallado="$(printf '%s\n' "$hallado" | sed -E 's/[^A-Za-z0-9_.-]$//')"
-  printf '%s\n' "$hallado" | grep -vE "$NO_SECRETO" >/dev/null
+  [ -n "$hallado" ] || return 0
+  hallado="$(printf '%s\n' "$hallado" | sed -E 's/^[[:space:]=<>:(]//; s/[^A-Za-z0-9_.-]$//')"
+  printf '%s\n' "$hallado" | grep -vE "$NO_SECRETO" 2>/dev/null || true
 }
 
 bloquear() {
   cat >&2 <<EOF
-BLOQUEADO (no-leer-secretos-por-bash): el comando lee un archivo secreto
-($1). Los secretos no se vuelcan al contexto del modelo.
+BLOQUEADO (no-leer-secretos-por-bash): $1
+Los secretos no se vuelcan al contexto del modelo.
 
-Si necesitás saber si existe o sus permisos: ls -l / stat.
-Si necesitás un valor concreto, pedíselo al dueño; no lo leas.
+Si necesitás saber si existe o sus permisos: un único \`ls -l <ruta>\` o
+\`stat <ruta>\`, sin pipes ni redirecciones. Si necesitás un valor concreto,
+pedíselo al dueño; no lo leas.
 EOF
   exit 2
 }
 
+ofuscado() {
+  case "$1" in
+    *\\* | *"\$'"* | *"\$\""* | *"''"* | *'""'*) ;;
+    *) return 1 ;;
+  esac
+  local bajo
+  bajo="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  [[ "$bajo" =~ $SUELTO ]]
+}
+
 if ! command -v jq >/dev/null 2>&1; then
-  nombra_secreto "$payload" && bloquear "jq no está instalado: se evaluó el payload crudo"
+  [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (jq no está instalado: se evaluó el payload crudo)."
   exit 0
 fi
-
 if ! cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null)"; then
-  nombra_secreto "$payload" && bloquear "JSON ilegible: se evaluó el payload crudo"
+  [ -n "$(secretos_en "$payload")" ] && bloquear "nombra un secreto (JSON ilegible: se evaluó el payload crudo)."
   exit 0
 fi
 [ -n "$cmd" ] || exit 0
 
-# Comillas: el contenido se conserva, pero los espacios y separadores de dentro se
-# vuelven marcadores (\037 y \036). Así un string de varias palabras no forma
-# tokens sueltos ni corta tramos, y uno de una sola palabra queda como ruta.
+if ofuscado "$cmd"; then
+  bloquear "el comando combina escapes o comillas vacías con un nombre sensible; no se intenta decodificarlo."
+fi
+
+# Normalización básica como la de bash: fuera de comillas, `\x` → `x`; las
+# comillas se quitan y su contenido se conserva, con sus espacios y separadores
+# marcados (\037/\036) para que un texto de varias palabras no forme tokens
+# sueltos ni corte el comando.
 normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
   s = $0; out = ""; q = ""; n = length(s)
   for (i = 1; i <= n; i++) {
     c = substr(s, i, 1)
     if (q == "") {
-      if (c == "\\" && i < n) { out = out c substr(s, i + 1, 1); i++; continue }
+      if (c == "\\" && i < n) { out = out substr(s, i + 1, 1); i++; continue }
       if (c == "\047" || c == "\"") { q = c; continue }
       out = out c
     } else if (c == q) {
@@ -99,25 +117,35 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
   printf "%s", out
 }')"
 
-EXENTOS='^(ls|stat|test|\[|file|chmod|chown|touch|rm|echo|printf|ssh|ssh-add)$'
+# Con un intérprete en el comando, el texto entrecomillado puede ejecutarse:
+# deja de ser texto y sus espacios cuentan como bordes de token.
+espaciado="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
+if [[ "$espaciado" =~ $INTERPRETE ]]; then
+  normal="$espaciado"
+fi
 
-while IFS= read -r tramo; do
-  [ -n "${tramo//[[:space:]]/}" ] || continue
-  nombra_secreto "$tramo" || continue
-  # Primer ejecutable del tramo, saltando asignaciones VAR=valor.
-  ejecutable=""
-  for palabra in $tramo; do
-    case "$palabra" in
-      *=*) [ -z "$ejecutable" ] && continue ;;
-    esac
-    ejecutable="$palabra"
-    break
-  done
-  case "$tramo" in
-    *'$('* | *'`'*) ;;
-    *) [[ "${ejecutable##*/}" =~ $EXENTOS ]] && continue ;;
-  esac
-  bloquear "$(printf '%s' "$tramo" | tr '\037\036' ' ;' | cut -c1-120)"
-done < <(printf '%s\n' "$normal" | tr ';&|' '\n\n\n')
+hallados="$(secretos_en "$normal")"
+[ -n "$hallados" ] || exit 0
 
-exit 0
+# ── Única exención: un comando simple de la lista corta ────────────────────
+motivo="nombra $(printf '%s\n' "$hallados" | head -1)."
+case "$cmd" in
+  *'<'* | *'>'* | *'|'* | *';'* | *'&'* | *'$('* | *'`'* | *\\* | *"\$'"* | *$'\n'*)
+    bloquear "$motivo Con redirecciones, pipes, sustituciones o varios comandos no hay exención." ;;
+esac
+
+read -r -a palabras <<<"$normal"
+ejecutable="${palabras[0]:-}"
+case "${ejecutable##*/}" in
+  ls | stat | test | '[' | chmod | chown | touch | ssh-add) exit 0 ;;
+  ssh)
+    # Cada ruta protegida tiene que ser exactamente el valor de un `-i`.
+    for ((k = 1; k < ${#palabras[@]}; k++)); do
+      if [ -n "$(secretos_en "${palabras[k]}")" ] && [ "${palabras[k - 1]}" != "-i" ]; then
+        bloquear "$motivo En ssh sólo se admite la llave como valor de -i."
+      fi
+    done
+    exit 0 ;;
+esac
+
+bloquear "$motivo"
