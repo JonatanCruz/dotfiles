@@ -54,6 +54,7 @@ require('lazy').setup({
     { import = 'plugins.git' },
     { import = 'plugins.tools' },
     { import = 'plugins.debug' },
+    { import = 'plugins.test' },
   },
 
   -- ============================================================================
