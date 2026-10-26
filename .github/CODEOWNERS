@@ -1,0 +1,5 @@
+# Un solo mantenedor. Sobre todo los hooks y el CI: un cambio ahí altera lo que
+# se ejecuta en cada máquina que instala estos dotfiles.
+*                       @JonatanCruz
+/claude/.claude/hooks/  @JonatanCruz
+/.github/               @JonatanCruz
