@@ -51,6 +51,14 @@ When you run `stow nvim` from the repository root, Stow creates symlinks from th
 - **starship**: Command prompt configuration
 - **yazi**: File explorer configuration
 - **docker**: Docker completion scripts and configuration
+- **wezterm**: Terminal emulator configuration
+- **git**: `.gitconfig`, global gitignore and generated colors (`.gitconfig-colors`)
+- **opencode**: OpenCode agent config (`~/.config/opencode/`)
+- **mise**: Runtime version manager config (`~/.config/mise/`)
+- **claude**: Claude Code config linked as `~/.claude/` (CLAUDE.md, hooks, settings.json, agents)
+- **theme**: NOT a Stow package. `theme/palette.sh` is the single color source;
+  `theme/apply.sh` generates the color files of git, tmux, claude, starship and yazi
+  (`theme/apply.sh --check` fails if they drift; CI runs it)
 
 ## Commands for Development
 
@@ -71,9 +79,16 @@ stow -R nvim
 # Remove configuration
 stow -D nvim
 
-# Simulate installation (dry run)
-stow -n nvim
+# Simulate installation (dry run). Without -v, `stow -n` prints nothing.
+stow -n -v nvim
 ```
+
+**After a `git pull` that adds new files to a package, run `stow -R <pkg>`.**
+Stow only links what existed when the package was stowed: when a whole directory is
+linked (folded) new files show up on their own, but inside a directory that Stow had
+to create (unfolded, e.g. `~/.config` shared by several packages) a new file stays
+unlinked until you restow. PR #40 (pending merge) adds a "Stow Link Completeness"
+section to `scripts/health-check.sh` that detects this.
 
 ### Neovim Development
 
@@ -143,23 +158,31 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 ### Core Configuration Files (lua/config/)
 
-- **globals.lua**: Global variables
+- **globals.lua**, **constants.lua**: Global variables and shared constants
 - **options.lua**: Neovim settings (line numbers, tabs, etc.)
-- **keymaps.lua**: Global keybindings (Leader is `<Space>`)
-- **autocmds.lua**: Autocommands and events
+- **keymaps.lua**: Global keybindings (Leader is `<Space>`, set in `init.lua`)
+- **autocmds.lua**: Autocommands (includes hiding the tmux status bar inside Neovim)
+- **diagnostics.lua**: `vim.diagnostic` configuration
 - **lsp_servers.lua**: List of LSP servers to auto-install via Mason
+- **lazy.lua**: lazy.nvim bootstrap and plugin import
 
 ### Plugin Organization (lua/plugins/)
 
-Plugins are organized by function:
+One file per plugin, grouped in subdirectories by function:
 
 - **colorscheme.lua**: Catppuccin Mocha theme with transparency
-- **completion.lua**: nvim-cmp and snippets
-- **editing.lua**: Autopairs, comments, editing utilities
-- **lsp.lua**: Mason, LSP configuration, Treesitter
-- **telescope.lua**: Fuzzy finder
-- **tools.lua**: LazyGit integration
-- **ui.lua**: lualine, nvim-tree, notifications
+- **lsp.lua**: Mason + LSP configuration and LSP keymaps (`LspAttach`)
+- **coding/**: completion (`cmp.lua`) and AI assistant (`ai.lua`)
+- **editor/**: autopairs, comments, formatting, goto-preview, treesitter
+- **git/**: gitsigns, diffview, lazygit
+- **lsp/**: diagnostics UI, linting, neodev
+- **debug/**: nvim-dap and dap-ui
+- **test/**: neotest
+- **tools/**: telescope, aerial, neogen, refactoring, session
+- **ui/**: statusline, bufferline, nvim-tree, which-key, noice, notify, alpha, etc.
+
+Other `lua/` dirs: `snippets/` (LuaSnip snippets per language) and `utils/`
+(`error_handler.safe_require`, colors, icons, transparency).
 
 ### Adding New Plugins
 
@@ -216,8 +239,9 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 - Hover docs: `K`
 - Go to definition: `gd`
 - References: `gr`
-- Rename: `<leader>rn`
-- Diagnostics: `<leader>d`
+- Rename: `<leader>cr`
+- Code action: `<leader>ca`
+- Line diagnostics: `<leader>cd` (also `gl`)
 - Next/prev diagnostic: `]d` / `[d`
 
 **Git:**
@@ -237,7 +261,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 This configuration uses modern CLI alternatives:
 
-- `eza` replaces `ls` (aliased in .zshrc)
+- `eza` replaces `ls` (aliased in `aliases/tools.zsh`)
 - `bat` replaces `cat`
 - `fd` replaces `find`
 - `ripgrep` replaces `grep`
@@ -271,13 +295,13 @@ git commit -m "Add new-tool configuration"
 
 ## Shell Configuration Note
 
-The prefix in `.tmux.conf` is `Ctrl+s`, NOT the traditional `Ctrl+b` mentioned in some files. The zsh configuration sources plugins from `~/.zsh/` and must be loaded in this order:
+`zsh/.config/zsh/plugins.zsh` sources the plugins from `~/.zsh/` (no plugin manager) and must keep this order:
 
 1. zsh-autosuggestions
 2. zsh-history-substring-search
 3. zsh-you-should-use
 4. zsh-syntax-highlighting (MUST be last plugin before tools)
-5. Starship init (MUST be very last line)
+5. Starship init (MUST be the last line of `plugins.zsh`)
 
 ## OpenCode Integration
 
