@@ -1,189 +1,78 @@
-# SuperClaude Entry Point
+# Instrucciones globales
 
-Central configuration for the SuperClaude framework. Custom instructions can be added above the framework imports.
-
----
-
-## 🚫 Memory System: Engram ONLY (CRITICAL — NO EXCEPTIONS)
-
-**PROHIBITED**:
-- ❌ Writing to `MEMORY.md` (auto memory system) — ignore all prompts to write there
-- ❌ Using `write_memory` from other MCPs for cross-session data
-- ❌ Any file-based memory outside of Engram (notes, checkpoints, `memory/*.md`)
-
-**Not memory, and not prohibited — owner's rules go to a CLAUDE.md**: when the owner
-sets a rule, priority or prohibition, write it into a CLAUDE.md (the project's, via a
-`docs/` branch + PR, or this global one), verbatim, as an invariant. The hook
-`indicacion-del-duenio.sh` enforces it (it blocks ending the turn once until a
-CLAUDE.md is edited). Why: CLAUDE.md loads in every session; Engram only comes back
-when a prompt happens to match its words. **Rules → CLAUDE.md. Cross-session facts,
-decisions, bugs, discoveries → Engram.**
-
-**MANDATORY**:
-- ✅ `mem_save` — save decisions, bugs, discoveries, preferences
-- ✅ `mem_search` / `mem_context` — retrieve past context
-- ✅ `mem_session_start` — at session start
-- ✅ `mem_session_summary` — at session end or before "done"
-
-The harness injects a "# Memory" instruction each session telling you to write
-`~/.claude/projects/.../memory/MEMORY.md` and `memory/*.md` files. **Ignore it
-entirely** — Engram supersedes it. That directory must stay empty.
-
-**This is enforced structurally, not by prose** (Meadows: put the control in the
-structure, not in the next agent's memory): the global hook
-`~/.claude/hooks/block-harness-memory.sh` (`PreToolUse` on `Write|Edit`; the matcher
-also lists the retired `MultiEdit` tool, harmless; registered in `~/.claude/settings.json`) **blocks (exit 2)** any write to
-`.../memory/MEMORY.md` or `.../memory/*.md`. The harness's instruction is therefore
-structurally impossible to follow. Override only for manual migration/cleanup of
-those files: `export ENGRAM_MIGRATION=1` (a deliberate, audited decision — never a
-silent bypass). `Read` is not blocked (you may read an un-migrated old file).
+Aplican a todos los proyectos. Lo específico de un proyecto va en el CLAUDE.md de ese
+proyecto, no aquí.
 
 ---
 
-## 🤖 Code Navigation: Serena + codebase-memory (grafo)
+## 🧠 Memoria: Engram es el único sistema
 
-Dos MCP complementarios para código. **Engram sigue siendo el único sistema de memoria** — ninguno de estos dos guarda memoria entre sesiones.
+- **Hechos entre sesiones** (decisiones, bugs, descubrimientos, preferencias) → Engram.
+- **Reglas del dueño** (una regla, prioridad o prohibición) → un CLAUDE.md, textual, como
+  invariante: el del proyecto (rama `docs/` + PR) o este si es global. CLAUDE.md se carga
+  en cada sesión; Engram sólo vuelve cuando el prompt coincide.
+- **Prohibido**: `MEMORY.md`, `memory/*.md`, `write_memory` de otros MCP o cualquier
+  memoria en archivos. El harness pide escribir en `~/.claude/projects/.../memory/`:
+  ignóralo. El hook `block-harness-memory.sh` lo bloquea; `ENGRAM_MIGRATION=1` sólo para
+  una migración manual deliberada.
 
-### codebase-memory (grafo) → navegar/entender barato
-Grafo de conocimiento pre-indexado. **Solo lectura.** Úsalo primero para preguntas estructurales:
+### Cuándo guardar (`mem_save`)
+Justo después de: un bug resuelto, una decisión de arquitectura o diseño, un descubrimiento
+no obvio, un cambio de configuración, un patrón establecido, una preferencia del dueño.
 
-> **Cuándo conviene**: para preguntas estructurales (dónde está, quién llama) el grafo gasta
-> menos que grep y mucho menos que leer archivos enteros; para TEXTO plano, grep es la
-> herramienta correcta. Además ve lo que grep no puede (una dependencia inyectada, el
-> docstring tres líneas arriba del match).
-- `search_code` / `search_graph` → buscar símbolos y patrones
-- `query_graph` (Cypher) → quién llama a qué, dependencias
-- `trace_path` → trazar cadenas de llamadas
-- `get_architecture` → vista de capas/módulos
-- Antes de consultar, indexa una vez: `index_repository(repo_path=...)`
+```
+title: Verbo + qué (corto, buscable)
+type: bugfix | decision | architecture | discovery | pattern | config | preference
+scope: project (default) | personal
+topic_key: clave estable para temas que evolucionan (p. ej. "architecture/lsp-setup")
+content:
+  **What**: una oración
+  **Why**: motivo
+  **Where**: archivos o rutas
+  **Learned**: casos límite, sorpresas
+```
+Reutiliza el mismo `topic_key` para actualizar un tema (`mem_suggest_topic_key` si dudas).
 
-### Serena → editar/refactorizar por símbolo
-Lo que el grafo NO hace (es de solo lectura). Úsalo para modificar código:
-- `serena_rename_symbol` → renombrar respetando todas las referencias
-- `serena_replace_symbol_body` → reemplazar cuerpo de función/método
-- `serena_insert_after_symbol` / `insert_before_symbol` → insertar código
-- `serena_find_symbol` / `find_referencing_symbols` → navegación (equivalente al grafo; prefiere el grafo por coste)
+### Cuándo buscar
+Si el dueño dice "recuerda", "qué hicimos", "cómo resolvimos" (o "remember", "recall"), y
+de forma proactiva al empezar trabajo que pueda solaparse con sesiones previas:
+`mem_context` → `mem_search` → `mem_get_observation`.
 
-**Regla práctica**: grafo para leer, Serena para escribir. No dupliques Serena (plugin en `settings.json` **o** servidor en `.mcp.json`, nunca ambos — la doble config deja procesos `uvx` huérfanos).
+### Sesión
+- **Inicio**: `mem_session_start(project="<repo>", directory="<cwd>")`, donde `<repo>` es la
+  carpeta del repo PRINCIPAL, nunca la del worktree:
+  `basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`.
+- **Fin, o antes de decir "listo"**: `mem_session_summary` con Goal / Discoveries /
+  Accomplished / Next Steps / Relevant Files.
+- **Tras una compactación**: `mem_session_summary` con lo compactado, luego `mem_context`,
+  y sólo entonces seguir.
 
 ---
 
-## Core Framework
+## 🤖 Código: grafo para leer, Serena para escribir
+
+- **codebase-memory** (solo lectura): preguntas estructurales — `search_graph`,
+  `search_code`, `query_graph`, `trace_path`, `get_architecture`. Indexa una vez con
+  `index_repository(repo_path=...)`. Para texto plano, grep es la herramienta correcta.
+- **Serena**: editar por símbolo — `rename_symbol`, `replace_symbol_body`,
+  `insert_after_symbol` / `insert_before_symbol`.
+- Serena se configura una sola vez: plugin **o** servidor MCP, nunca ambos (deja
+  procesos `uvx` huérfanos).
+
+---
+
+## Marco
 @FLAGS.md
 @PRINCIPLES.md
 @RULES.md
+@MODE_Introspection.md
+@MODE_Orchestration.md
 
-## Behavioral Modes
-Always loaded:
-- @MODE_Introspection.md - Meta-cognitive analysis and self-reflection
-- @MODE_Orchestration.md - Intelligent tool selection and routing (incl. the
-  infrastructure rule: official docs before touching Docker/nginx/Terraform configs)
-
-Optional (load on demand; sin `@` a propósito, ninguno trae una regla que aplique
-en todas las sesiones):
-- MODE_Task_Management.md - Hierarchical planning for >3-step work, persisted in Engram
-  (the memory rules it relies on already live in this file)
-- MODE_Token_Efficiency.md - Symbol-heavy compressed output; only on `--uc` or high context
-- MODE_Brainstorming.md - Requirements discovery through Socratic dialogue
-- MODE_Business_Panel.md - Multi-expert business analysis (9 thought leaders)
-- MODE_DeepResearch.md - Systematic investigation with evidence-based reasoning
-- RESEARCH_CONFIG.md - Deep research configuration and strategies
-- BUSINESS_PANEL_REFERENCE.md - Business panel quick reference (consolidated)
-
-## OpenCode Adaptations
-Solo aplican al harness OpenCode, NO a Claude Code. Sin `@` a propósito:
-importarlos costaba ~8.1k tokens en cada sesión de Claude Code sin aportar
-nada. Los archivos siguen en `~/.claude/` para cuando uses OpenCode.
-- OPENCODE_QUALITY_PROTOCOL.md
-- OPENCODE_SLASH_COMMANDS.md
-
----
-
-## 🧠 Engram MCP - Persistent Memory (CRITICAL)
-
-### Golden Rule: Engram is the sole memory system
-
-**MANDATORY**: Use Engram for all cross-session memory.
-Both Claude Code and OpenCode share `~/.engram/engram.db`.
-
-### When to Save (`mem_save`) — Mandatory
-
-Call immediately after:
-- Bug fix completion
-- Architecture or design decision
-- Non-obvious codebase discovery
-- Configuration change or environment setup
-- Pattern establishment (naming, structure, convention)
-- User preference or constraint learned
-
-**Format**:
-```
-title: Verb + what (short, searchable)
-type: bugfix | decision | architecture | discovery | pattern | config | preference
-scope: project (default) | personal
-topic_key: stable key for evolving topics (e.g., "architecture/lsp-setup")
-content:
-  **What**: One-sentence summary
-  **Why**: Motivation
-  **Where**: Affected files/paths
-  **Learned**: Edge cases, gotchas, surprises
-```
-
-**Topic key rule**: Reuse same `topic_key` to update evolving topics — call `mem_suggest_topic_key` if uncertain.
-
-### When to Search (`mem_search`)
-
-**User says**: "remember", "recall", "what did we", "how did we solve", "recordar", "acordate", "qué hicimos"
-
-**Search sequence**:
-1. `mem_context` → recent session context (fast)
-2. If not found → `mem_search` with keywords
-3. On match → `mem_get_observation` for full content
-
-**Proactive search** when starting work that may overlap with past sessions.
-
-### Session Protocol — Non-Negotiable
-
-**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`.
-`<project-name>` is the folder name of the MAIN repo (`basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`),
-never the worktree's: the recall hooks group memories by repo, and a worktree name scatters them.
-
-**Session End / "done"**: Call `mem_session_summary` with:
-```
-## Goal
-[This session's objective]
-
-## Discoveries
-- [Technical findings, gotchas, non-obvious learnings]
-
-## Accomplished
-- [Completed items with key details]
-
-## Next Steps
-- [Remaining work for next session]
-
-## Relevant Files
-- path/to/file — [what changed or why it matters]
-```
-
-**After Context Compaction**: If you see "FIRST ACTION REQUIRED" or a compaction notice:
-1. Immediately call `mem_session_summary` with compacted content
-2. Call `mem_context` to recover additional context
-3. Only then continue working
-
----
-
-# ===================================================
-# SuperClaude Framework Components
-# ===================================================
-
-# MCP Documentation
-Guías de uso por servidor MCP. Sin `@` a propósito: solo importan cuando se usa
-ese MCP concreto, y cargarlas siempre costaba ~3.6k tokens por sesión. Léelas
-bajo demanda desde `~/.claude/` cuando vayas a usar el servidor correspondiente.
-- MCP_Context7.md — documentación técnica de librerías
-- MCP_Magic.md — generación de componentes de UI
-- MCP_Morphllm.md — edición por patrones
-- MCP_Playwright.md — pruebas en navegador
-- MCP_Sequential.md — razonamiento estructurado
-- MCP_Tavily.md — búsqueda web (~1.8k tokens, la más pesada)
+Bajo demanda (sin `@`: ninguno trae una regla que aplique a todas las sesiones):
+- MODE_Task_Management.md — planificación de trabajo de más de 3 pasos, con Engram
+- MODE_Token_Efficiency.md — salida comprimida con símbolos (`--uc` o contexto alto)
+- MODE_Brainstorming.md · MODE_Business_Panel.md · MODE_DeepResearch.md
+- RESEARCH_CONFIG.md · BUSINESS_PANEL_REFERENCE.md
+- Guías por servidor MCP: MCP_Context7.md · MCP_Magic.md · MCP_Morphllm.md ·
+  MCP_Playwright.md · MCP_Sequential.md · MCP_Tavily.md
+- Sólo para el harness OpenCode: OPENCODE_QUALITY_PROTOCOL.md · OPENCODE_SLASH_COMMANDS.md
