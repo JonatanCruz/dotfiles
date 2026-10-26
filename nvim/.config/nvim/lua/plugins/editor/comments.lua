@@ -1,42 +1,16 @@
 -- ============================================================================
--- Comment - Comentar código fácilmente
+-- Comentarios - nativo de Neovim (sin plugin)
 -- ============================================================================
--- Comenta/descomenta código con `gcc` (línea) o `gc` (modo visual).
--- Documentación: https://github.com/numToStr/Comment.nvim
+-- Desde nvim 0.10, `gc` (operador), `gcc` (línea) y `gc` en visual vienen de
+-- serie y usan el 'commentstring' del lenguaje bajo el cursor (treesitter), así
+-- que Comment.nvim sobraba. Lo único que se pierde es el comentario de bloque
+-- (gbc/gb): no hay equivalente nativo.
+--
+-- No es un plugin: este archivo solo conserva <leader>/ y devuelve un spec
+-- vacío para lazy.
 -- ============================================================================
 
-return {
-  "numToStr/Comment.nvim",
-  keys = {
-    { "gcc", mode = "n", desc = "Comentar línea" },
-    { "gc", mode = "v", desc = "Comentar selección" },
-    { "gbc", mode = "n", desc = "Comentar bloque" },
-    { "gb", mode = "v", desc = "Comentar bloque selección" },
-    { "<leader>/", mode = "n", desc = "Comentar/descomentar línea" },
-    { "<leader>/", mode = "v", desc = "Comentar/descomentar selección" },
-  },
-  config = function()
-    require("Comment").setup({
-      padding = true,
-      sticky = true,
-      ignore = "^$", -- Ignorar líneas vacías
-      toggler = {
-        line = "gcc",
-        block = "gbc",
-      },
-      opleader = {
-        line = "gc",
-        block = "gb",
-      },
-      mappings = {
-        basic = true,
-        extra = true,
-      },
-    })
+vim.keymap.set("n", "<leader>/", "gcc", { remap = true, desc = "Comentar/descomentar línea" })
+vim.keymap.set("x", "<leader>/", "gc", { remap = true, desc = "Comentar/descomentar selección" })
 
-    -- Keybinding personalizado para <leader>/
-    local api = require("Comment.api")
-    vim.keymap.set("n", "<leader>/", api.toggle.linewise.current, { desc = "Comentar/descomentar línea" })
-    vim.keymap.set("v", "<leader>/", "<ESC><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>", { desc = "Comentar/descomentar selección" })
-  end,
-}
+return {}

@@ -20,7 +20,7 @@ return {
 
   -- Mason: Gestor de LSPs, linters, formatters
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
     keys = {
       { "<leader>pm", "<cmd>Mason<cr>", desc = "Abrir Mason" },
@@ -35,8 +35,8 @@ return {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
+      "mason-org/mason.nvim",
+      "mason-org/mason-lspconfig.nvim",
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
@@ -109,11 +109,13 @@ return {
           keymap("n", "gd", vim.lsp.buf.definition,    vim.tbl_extend("force", opts, { desc = "Ir a definición" }))
           keymap("n", "gD", vim.lsp.buf.declaration,   vim.tbl_extend("force", opts, { desc = "Ir a declaración" }))
           keymap("n", "gi", vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Ir a implementación" }))
-          keymap("n", "gt", vim.lsp.buf.type_definition, vim.tbl_extend("force", opts, { desc = "Ir a definición de tipo" }))
+          keymap("n", "gt", vim.lsp.buf.type_definition,
+            vim.tbl_extend("force", opts, { desc = "Ir a definición de tipo" }))
 
           -- Referencias
           keymap("n", "gr", vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = " Referencias" }))
-          keymap("n", "gR", "<cmd>Trouble lsp_references toggle<cr>", vim.tbl_extend("force", opts, { desc = "󱖫 Referencias (Trouble)" }))
+          keymap("n", "gR", "<cmd>Trouble lsp_references toggle<cr>",
+            vim.tbl_extend("force", opts, { desc = "󱖫 Referencias (Trouble)" }))
 
           -- Documentación
           keymap("n", "K",  vim.lsp.buf.hover,          vim.tbl_extend("force", opts, { desc = " Documentación" }))
@@ -142,7 +144,9 @@ return {
             vim.tbl_extend("force", opts, { desc = "󰒮 Diagnóstico anterior" }))
           keymap("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end,
             vim.tbl_extend("force", opts, { desc = "󰒭 Diagnóstico siguiente" }))
-          keymap("n", "[e", function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end,
+          keymap("n", "[e", function()
+            vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
+          end,
             vim.tbl_extend("force", opts, { desc = "󰒮 Error anterior" }))
           keymap("n", "]e", function() vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR }) end,
             vim.tbl_extend("force", opts, { desc = "󰒭 Error siguiente" }))

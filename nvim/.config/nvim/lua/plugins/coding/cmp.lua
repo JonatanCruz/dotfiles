@@ -63,7 +63,7 @@ return {
         -- Confirmar selección
         ["<CR>"] = cmp.mapping.confirm({ select = true }),
 
-        -- Navegación (Tab reservado para Supermaven AI)
+        -- Navegación con Ctrl-j/k. Tab no se mapea en insert (queda su uso normal)
         ["<C-j>"] = cmp.mapping.select_next_item(),
         ["<C-k>"] = cmp.mapping.select_prev_item(),
       }),
@@ -94,7 +94,7 @@ return {
         end,
       },
       experimental = {
-        ghost_text = false, -- Desactivado porque usamos Supermaven
+        ghost_text = false, -- Sin texto fantasma: el menú ya muestra el candidato
       },
     })
 

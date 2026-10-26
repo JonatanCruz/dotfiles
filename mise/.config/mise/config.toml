@@ -7,17 +7,24 @@
 #
 # Comandos:
 #   mise install          instala todo lo declarado aquí
-#   mise use node@22      fija una versión en el proyecto actual
+#   mise use node@24      fija una versión en el proyecto actual
 #   mise ls               qué hay instalado
 #   mise outdated         qué se puede actualizar
 #
-# Las versiones van sin fijar al parche (ej. "22" y no "22.20.0") a propósito:
+# Las versiones van sin fijar al parche (ej. "24" y no "24.22.1") a propósito:
 # entre servidores importa la major, y fijar el parche obligaría a commitear
 # cada bump. Un proyecto que necesite exactitud lo declara en su propio archivo.
 
 [tools]
-node = "22"      # LTS actual
-python = "3.13"  # estable; el 3.14 aún es reciente para todos los servidores
+# node 24: LTS hasta abril de 2028. El 22 entra en su último medio año (fin de
+# vida en abril de 2027) y el 26 pasa a LTS a finales de octubre de 2026: subir
+# a 26 cuando lleve unos meses como LTS. (Revisado 2026-10 con
+# `mise ls-remote node`: 22.23.3, 24.22.1, 26.12.1.)
+node = "24"
+# python 3.13: con parches de seguridad hasta 2029. El 3.14 ya es estable
+# (3.14.9) y el 3.15 acaba de salir; se queda en 3.13 hasta que los proyectos
+# validen la 3.14, cada uno puede fijarla en su .python-version.
+python = "3.13"
 
 [settings]
 # Instala automáticamente una versión que falte al entrar a un proyecto que la

@@ -36,39 +36,32 @@ return {
     end,
   },
 
-  -- lsp_lines: Muestra diagnósticos como líneas virtuales (alternativa a virtual_text)
-  {
-    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    event = "LspAttach",
-    keys = {
-      {
-        -- uL y no ul: <leader>ul ya es `set list` en config/keymaps.lua
-        "<leader>uL",
-        function()
-          require("lsp_lines").toggle()
-        end,
-        desc = "Toggle LSP Lines",
-      },
-    },
-    config = function()
-      require("lsp_lines").setup()
-
-      -- Desactivar por defecto, usar solo cuando sea necesario
-      -- virtual_text = false: tiny-inline-diagnostic ya maneja el virtual text
-      -- Evita doble renderizado de diagnósticos
-      vim.diagnostic.config({
-        virtual_text = false,
-        virtual_lines = false,
-      })
-    end,
-  },
-
   -- tiny-inline-diagnostic: Diagnósticos inline minimalistas
   {
     "rachartier/tiny-inline-diagnostic.nvim",
     event = "LspAttach",
     priority = 1000,
+    keys = {
+      {
+        -- Líneas virtuales nativas (nvim 0.11+), en lugar del plugin lsp_lines.
+        -- uL y no ul: <leader>ul ya es `set list` en config/keymaps.lua
+        "<leader>uL",
+        function()
+          local on = not vim.diagnostic.config().virtual_lines
+          vim.diagnostic.config({ virtual_lines = on })
+          vim.notify("Líneas virtuales de diagnóstico: " .. (on and "ON" or "OFF"))
+        end,
+        desc = "Toggle LSP Lines",
+      },
+    },
     config = function()
+      -- Apagadas por defecto: tiny-inline-diagnostic ya pinta el virtual text,
+      -- y las líneas virtuales solo se encienden con <leader>uL.
+      vim.diagnostic.config({
+        virtual_text = false,
+        virtual_lines = false,
+      })
+
       require('tiny-inline-diagnostic').setup({
         signs = {
           left = "",
