@@ -10,7 +10,11 @@ CRITICAL - Code Discovery Protocol:
    - query_graph(query) for complex Cypher patterns
    - get_architecture(aspects) for project structure
    - search_code(pattern) for text search (graph-augmented grep)
-2. Use Grep/Glob/Read freely for text, configs, non-code files, and
-   always Read a file before editing it.
+2. Use Grep/Glob/Read for text, configs, non-code files (logs, JSON, YAML,
+   CLI output), and always Read a file before editing it.
+   NOT "freely" over CODE: a hard gate (redirect-code-search-to-mcp.sh)
+   BLOCKS recursive grep/sed over source files via Bash, and there is no
+   override. Verified 2026-09-19: `grep -rn "handler" src/` -> exit 2.
+   For code, step 1 is not a preference — it is the only path.
 3. If a project is not indexed yet, run index_repository FIRST.
 REMINDER

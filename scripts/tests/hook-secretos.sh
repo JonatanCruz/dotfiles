@@ -103,5 +103,33 @@ probar 2 $'git commit -m "a b" \\\\\nbash -c "cat ~/.ssh/id_rsa"'
 probar 2 $'ls ~/.ssh \\\\\ncat ~/.ssh/id_rsa'
 probar 2 $'git commit -m "no leer\n~/.ssh/id_rsa"'
 
+# ── Heredoc que ESCRIBE texto (documentación) vs heredoc que ejecuta ────────
+probar 0 $'cat > /tmp/pr.md <<\'EOF\'\nla ruta .env en una tabla, y ~/.ssh/id_rsa\nEOF'
+probar 0 $'cat > /tmp/pr.md <<EOF\nla ruta .env sin sustituciones\nEOF'
+probar 0 $'git commit -F - <<\'EOF\'\nfix: no leer ~/.ssh/id_rsa\nEOF'
+probar 2 $'cat > /tmp/x <<EOF\n$(cat ~/.ssh/id_rsa)\nEOF'
+probar 2 $'cat > /tmp/x <<EOF\n`cat .env`\nEOF'
+probar 2 $'cat > /tmp/x <<\'EOF\'\ntexto\nEOF\ncat ~/.ssh/id_rsa'
+probar 2 $'bash <<EOF\ncat .env\nEOF'
+probar 2 $'cat > /tmp/x <<EOF ; cat .env\ntexto\nEOF'
+
+# ── Secretos de proyecto (portados de la rama de gates) ─────────────────────
+probar 2 'cat secrets/prod.key'
+probar 2 'cat config/db-password.txt'
+probar 2 'head -5 certs/server.pem'
+probar 2 'cat .gcp-credentials.json'
+probar 2 "python3 -c \"print(open('.env').read())\""
+probar 2 'cat .e*'
+probar 2 'cat .e?'
+probar 2 'gcloud secrets versions access latest --secret=X'
+probar 2 'gcloud --project p secrets versions access --secret=X latest'
+probar 0 'gcloud secrets list'
+probar 0 'echo "gcloud secrets versions access es el comando que lee"'
+probar 0 'cat services/svc-b/src/admin/reset-user-password.usecase.ts'
+probar 0 'grep -n password logs/app.log'
+probar 0 'wc -l .env'
+probar 0 'ls *.sh'
+probar 0 'grep -n x claude/.claude/hooks/tests/casos-no-leer-secretos-por-bash.txt'
+
 echo "hook-secretos: ok=$ok mal=$mal"
 [ "$mal" -eq 0 ]
