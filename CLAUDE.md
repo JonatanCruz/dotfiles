@@ -173,13 +173,13 @@ One file per plugin, grouped in subdirectories by function:
 
 - **colorscheme.lua**: Catppuccin Mocha theme with transparency
 - **lsp.lua**: Mason + LSP configuration and LSP keymaps (`LspAttach`)
-- **coding/**: completion (`cmp.lua`) and AI assistant (`ai.lua`)
+- **coding/**: completion (`cmp.lua`)
 - **editor/**: autopairs, comments, formatting, goto-preview, treesitter
 - **git/**: gitsigns, diffview, lazygit
 - **lsp/**: diagnostics UI, linting, neodev
 - **debug/**: nvim-dap and dap-ui
-- **test/**: neotest (NOT imported in `lua/config/lazy.lua` today, so it does not load)
-- **tools/**: telescope, aerial, neogen, refactoring, session
+- **test/**: neotest
+- **tools/**: telescope, aerial, neogen, refactoring, session, tmux-navigator
 - **ui/**: statusline, bufferline, nvim-tree, which-key, noice, notify, alpha, etc.
 
 Other `lua/` dirs: `snippets/` (LuaSnip snippets per language) and `utils/`
@@ -226,7 +226,7 @@ Edit `lua/config/lsp_servers.lua` and add the server name. Mason will auto-insta
 
 - Save: `<leader>w`
 - Quit: `<leader>q`
-- Close buffer: `<leader>bd`
+- Close buffer: `<leader>bc` (force: `<leader>bC`)
 
 **Navigation:**
 
