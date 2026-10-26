@@ -31,7 +31,7 @@ nvim/.config/nvim/
         ├── lsp.lua                 # Mason + nvim-lspconfig + Trouble
         ├── ui/                     # Interfaz: statusline, bufferline, tree, etc.
         ├── editor/                 # Edición: autopairs, comments, treesitter, formateo
-        ├── coding/                 # Autocompletado: nvim-cmp, Supermaven AI
+        ├── coding/                 # Autocompletado: nvim-cmp + LuaSnip
         ├── lsp/                    # LSP extras: diagnósticos, neodev
         ├── git/                    # Git: lazygit, diffview, gitsigns
         ├── debug/                  # DAP: nvim-dap, dap-ui, virtual text
@@ -94,7 +94,6 @@ Para agregar un servidor, añadir su nombre a `lsp_servers.lua` y reiniciar Neov
 | `folke/noice.nvim` | UI mejorada para mensajes, cmdline y popups |
 | `rcarriga/nvim-notify` | Notificaciones toast |
 | `lukas-reineke/indent-blankline.nvim` | Guias de indentacion |
-| `stevearc/dressing.nvim` | Mejoras de `vim.ui.input` y `vim.ui.select` |
 | `goolord/alpha-nvim` | Dashboard de inicio |
 | `b0o/incline.nvim` | Nombres de archivo flotantes por ventana |
 | `norcalli/nvim-colorizer.lua` | Preview de colores hex/rgb inline |
@@ -112,7 +111,6 @@ Para agregar un servidor, añadir su nombre a `lsp_servers.lua` y reiniciar Neov
 | `folke/trouble.nvim` | UI mejorada para diagnosticos, referencias y quickfix |
 | `kosayoda/nvim-lightbulb` | Indicador de code actions disponibles |
 | `rachartier/tiny-inline-diagnostic.nvim` | Diagnosticos inline minimalistas |
-| `https://git.sr.ht/~whynothugo/lsp_lines.nvim` | Diagnosticos como lineas virtuales (toggle) |
 | `folke/neodev.nvim` | Tipos Lua para la API de Neovim |
 
 ### Edicion
@@ -120,7 +118,7 @@ Para agregar un servidor, añadir su nombre a `lsp_servers.lua` y reiniciar Neov
 | Plugin | Descripcion |
 |---|---|
 | `windwp/nvim-autopairs` | Cierre automatico de pares (`()`, `{}`, `[]`) |
-| `numToStr/Comment.nvim` | Comentar/descomentar con `gcc` y `gc` |
+| (nativo, sin plugin) | Comentarios con `gcc` / `gc` (nvim 0.10+) y `<leader>/`; no hay comentario de bloque (`gb`/`gbc`) |
 | `nvim-treesitter/nvim-treesitter` | Parsing, resaltado sintactico y textobjects |
 | `stevearc/conform.nvim` | Formateo automatico al guardar |
 | `mfussenegger/nvim-lint` | Linting asincrono |
@@ -136,7 +134,6 @@ Para agregar un servidor, añadir su nombre a `lsp_servers.lua` y reiniciar Neov
 | `hrsh7th/cmp-nvim-lsp` | Fuente LSP para nvim-cmp |
 | `hrsh7th/cmp-buffer` | Fuente de texto del buffer |
 | `hrsh7th/cmp-path` | Fuente de rutas del sistema de archivos |
-| `supermaven-inc/supermaven-nvim` | Autocompletado con IA (1M context, gratuito) |
 
 ### Git
 
@@ -188,7 +185,7 @@ Los prefijos siguen la convencion LazyVim/comunidad para consistencia:
 |---|---|
 | `<leader>b` | Buffers |
 | `<leader>c` | Codigo / LSP actions |
-| `<leader>d` | Debug (DAP) |
+| `<leader>d` | Debug (DAP); `<leader>D` = borrar sin registro (`"_d`) |
 | `<leader>e` | Explorer (arbol de archivos) |
 | `<leader>f` | Find / Telescope |
 | `<leader>g` | Git |
@@ -224,10 +221,10 @@ Los prefijos siguen la convencion LazyVim/comunidad para consistencia:
 | Keymap | Accion |
 |---|---|
 | `<S-h>` / `<S-l>` | Buffer anterior / siguiente |
-| `<leader>bd` | Cerrar buffer |
-| `<leader>bD` | Forzar cierre de buffer |
+| `<leader>bc` | Cerrar buffer |
+| `<leader>bC` | Forzar cierre de buffer |
 | `<leader>bo` | Cerrar todos excepto el actual |
-| `<leader>1`-`9` | Ir al buffer por numero |
+| `<leader>b1`-`b9` | Ir al buffer por numero |
 
 ### Ventanas (`<leader>w`)
 
@@ -377,17 +374,6 @@ Frameworks soportados: Jest y Vitest con auto-deteccion.
 | `<leader>rd` | Normal/Visual | Debug: imprimir variable |
 | `<leader>rc` | Normal | Debug: limpiar prints |
 
-### Supermaven AI
-
-| Keymap | Accion |
-|---|---|
-| `<C-y>` (Insert) | Aceptar sugerencia completa |
-| `<C-e>` (Insert) | Rechazar sugerencia |
-| `<M-l>` (Insert) | Aceptar proxima palabra |
-| `<leader>ai` | Toggle Supermaven |
-| `<leader>as` | Estado de Supermaven |
-| `<leader>al` | Ver logs de Supermaven |
-
 ### Outline - Aerial (`<leader>o`)
 
 | Keymap | Accion |
@@ -396,11 +382,12 @@ Frameworks soportados: Jest y Vitest con auto-deteccion.
 | `<leader>ot` | Toggle outline (Treesitter) |
 | `<leader>on` / `<leader>op` | Siguiente / anterior simbolo |
 
-### LSP Lines (`<leader>u`)
+### UI Toggles (`<leader>u`)
 
 | Keymap | Accion |
 |---|---|
-| `<leader>ul` | Toggle LSP Lines (diagnosticos como lineas virtuales) |
+| `<leader>uL` | Toggle de diagnosticos como lineas virtuales (`virtual_lines` nativo) |
+| `<leader>ul` | Toggle caracteres ocultos (`set list`) |
 | `<leader>uw` | Toggle word wrap |
 | `<leader>us` | Toggle spell check |
 | `<leader>un` | Toggle numeros de linea |
@@ -445,8 +432,6 @@ Frameworks soportados: Jest y Vitest con auto-deteccion.
 | `:checkhealth` | Diagnostico completo de la instalacion |
 | `:Telescope` | Ver todos los pickers disponibles |
 | `:AerialToggle` | Toggle panel de simbolos |
-| `:SupermavenToggle` | Toggle autocompletado AI |
-| `:SupermavenStatus` | Estado de Supermaven |
 | `:DiffviewOpen` | Abrir vista de diff de Git |
 | `:DiffviewFileHistory` | Historial del repositorio |
 
@@ -522,7 +507,6 @@ La transparencia depende del soporte del terminal. Se requiere 24-bit color (`te
 |---|---|
 | **Tmux** | Navegacion seamless con `<C-h/j/k/l>` via vim-tmux-navigator |
 | **LazyGit** | `<leader>gg` abre LazyGit en un float dentro de Neovim |
-| **Supermaven** | Autocompletado AI activo en modo Insert |
 | **ripgrep** | Usado por Telescope para busqueda de texto |
 
 ---
@@ -550,16 +534,6 @@ nvim  # lazy.nvim y los plugins se reinstalan automaticamente
 - Verificar soporte de 24-bit color: `echo $COLORTERM` debe retornar `truecolor`
 - Si no esta configurado, agregar `export COLORTERM=truecolor` al shell
 - Terminales recomendados: WezTerm, iTerm2, Kitty, Alacritty
-
-### Supermaven no se activa
-
-```vim
-:SupermavenStatus   " Ver el estado actual
-:SupermavenStart    " Iniciar manualmente
-:SupermavenShowLog  " Ver logs para diagnosticar errores
-```
-
-La primera vez se debe ejecutar `:SupermavenUseFree` para configurar el tier gratuito.
 
 ### DAP no encuentra el adapter
 

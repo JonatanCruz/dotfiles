@@ -226,7 +226,7 @@ Tab          → Cambiar archivo sin split
 ```vim
 1. <leader>fp          → Buscar patrón en proyecto
 2. Enter en resultado  → Abrir archivo (nuevo buffer)
-3. <leader>rn          → Renombrar símbolo
+3. <leader>cr          → Renombrar símbolo
 4. :w                  → Guardar cambios
 5. <leader>bc          → Cerrar buffer
 6. Repetir para otros resultados

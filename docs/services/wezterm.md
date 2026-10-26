@@ -157,8 +157,8 @@ Esta configuración **oculta la tab bar de WezTerm** y delega la gestión a **Tm
 **Proceso**:
 1. Abre WezTerm
 2. Inicia Tmux: `tmux`
-3. `Prefix + h`: Split vertical (izq/der)
-4. `Prefix + v`: Split horizontal (arriba/abajo)
+3. `Prefix + |`: Split vertical (izq/der)
+4. `Prefix + -`: Split horizontal (arriba/abajo)
 5. `Ctrl+h/j/k/l`: Navega entre panes (vim-tmux-navigator)
 
 ## Integración con Neovim
@@ -250,8 +250,8 @@ config.window_background_image_hsb = {
 tmux
 
 # 3. Crear layout de desarrollo
-Prefix + h    # Split vertical (izq/der)
-Prefix + v    # Split horizontal (arriba/abajo)
+Prefix + |    # Split vertical (izq/der)
+Prefix + -    # Split horizontal (arriba/abajo)
 
 # Layout típico:
 # ┌──────────────┬──────────────┐
@@ -267,12 +267,12 @@ Prefix + v    # Split horizontal (arriba/abajo)
 ```bash
 # Ventana 1: Frontend
 nvim .                  # Editor
-Prefix + h              # Split vertical
+Prefix + |              # Split vertical
 npm run dev             # Servidor
 
 # Ventana 2: Backend
 nvim api/               # Editor Backend
-Prefix + h
+Prefix + |
 npm run server          # API server
 
 # Ventana 3: Base de datos

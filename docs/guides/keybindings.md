@@ -26,9 +26,9 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `tmux attach -t nombre` | Adjuntar a sesión |
 | `Prefix + d` | Detach de sesión actual |
 | `Prefix + s` | SessionX: fuzzy finder de sesiones |
-| `Prefix + Ctrl+x` | Matar sesión actual |
-| `Prefix + Ctrl+s` | Guardar sesión (Resurrect) |
-| `Prefix + Ctrl+r` | Restaurar sesión (Resurrect) |
+| `Prefix + S` | Guardar sesión (Resurrect) |
+| `Prefix + R` | Restaurar sesión (Resurrect) |
+| `Prefix + Ctrl+s` | Enviar `Ctrl+s` a la aplicación (send-prefix) |
 
 ### Gestión de Ventanas (Tabs)
 
@@ -46,8 +46,8 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 
 | Keybinding | Acción |
 |------------|--------|
-| `Prefix + h` | Split vertical (izq/der) |
-| `Prefix + v` | Split horizontal (arriba/abajo) |
+| `Prefix + \|` | Split vertical (izq/der) |
+| `Prefix + -` | Split horizontal (arriba/abajo) |
 | `Ctrl+h/j/k/l` | Navegar entre paneles (sin prefix, vim-tmux-navigator) |
 | `Alt+h/j/k/l` | Resize paneles (vim-aware, sin prefix) |
 | `Prefix + m` | Zoom pane (toggle) |
@@ -85,15 +85,7 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `Prefix + r` | Recargar configuración |
 | `Prefix + :` | Prompt de comando Tmux |
 | `Prefix + t` | Mostrar reloj |
-| `Prefix + ?` | Listar keybindings |
-| `Prefix + Ctrl+c` | Crear nueva sesión desde prompt |
-
-### Thumbs (Quick Select)
-
-| Keybinding | Acción |
-|------------|--------|
-| `Prefix + Space` | Activar Thumbs (selección rápida de paths, URLs) |
-| `a-z` (en Thumbs) | Copiar elemento marcado con letra |
+| `Prefix + ?` | Listar keybindings (popup con `list-keys -N`) |
 
 ---
 
@@ -139,8 +131,8 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 |------------|--------|
 | `Shift+h` | Buffer anterior |
 | `Shift+l` | Buffer siguiente |
-| `<leader>bd` | Cerrar buffer actual |
-| `<leader>ba` | Cerrar todos los buffers excepto actual |
+| `<leader>bc` | Cerrar buffer actual |
+| `<leader>bo` | Cerrar todos los buffers excepto actual |
 
 ### Gestión de Splits
 
@@ -187,6 +179,7 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `==` | Auto-indentar línea |
 | `gcc` | Toggle comentario de línea |
 | `gc` (visual) | Comentar selección |
+| `<leader>/` | Comentar línea o selección |
 
 ### LSP (Language Server Protocol)
 
@@ -197,9 +190,9 @@ Tabla maestra de todos los atajos de teclado organizados por herramienta.
 | `gD` | Go to declaration |
 | `gr` | Go to references |
 | `gi` | Go to implementation |
-| `<leader>rn` | Rename symbol |
+| `<leader>cr` | Rename symbol |
 | `<leader>ca` | Code actions |
-| `<leader>d` | Ver diagnósticos |
+| `<leader>cd` | Ver diagnósticos de la línea (también `gl`) |
 | `]d` | Siguiente diagnóstico |
 | `[d` | Diagnóstico anterior |
 | `<leader>f` | Format documento |

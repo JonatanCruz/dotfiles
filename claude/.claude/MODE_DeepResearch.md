@@ -18,7 +18,7 @@
 - Activates deep-research-agent automatically
 - Enables Tavily search
 - Triggers Sequential for complex reasoning
-- Uses TodoWrite for task tracking
+- Uses the task list (`TaskCreate`/`TaskUpdate`) when the session provides it
 
 ## Output
 - Structured research reports with confidence levels

@@ -24,19 +24,25 @@ stow git
 ## Git Delta - Diff Viewer
 
 Git Delta reemplaza el pager estándar de Git con syntax highlighting, números de línea y vista en columnas.
+Es **opcional**: si `delta` no está instalado, git usa `less` (y `cat` en `git add -p`),
+así que la config no rompe `git log`/`git diff` en un servidor recién instalado.
 
 ### Configuracion
 
+En `.gitconfig`:
+
 ```toml
 [core]
-    pager = delta
+    pager = "if command -v delta >/dev/null 2>&1; then delta; else less; fi"
 
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = "if command -v delta >/dev/null 2>&1; then delta --color-only; else cat; fi"
+```
 
-[add.interactive]
-    useBuiltin = false
+El bloque `[delta]` vive en `~/.gitconfig-colors`, **generado** desde `theme/palette.sh`
+con `theme/apply.sh` (no lo edites a mano; `.gitconfig` lo incluye con `[include]`):
 
+```toml
 [delta]
     features        = catppuccin-mocha
     navigate        = true
@@ -78,15 +84,15 @@ Git Delta reemplaza el pager estándar de Git con syntax highlighting, números 
 
 ### Paleta Catppuccin Mocha en diffs
 
-El bloque `[delta "catppuccin-mocha"]` define los colores para lineas eliminadas y agregadas:
+El bloque `[delta "catppuccin-mocha"]` define los colores para lineas eliminadas y agregadas. Los fondos se derivan mezclando el color con el fondo base de la paleta (valores actuales de `.gitconfig-colors`):
 
 | Elemento | Color | Hex |
 |----------|-------|-----|
 | Archivos modificados (header) | Peach | `#fab387` |
-| Lineas eliminadas | Fondo rojo oscuro | `#442d30` |
-| Lineas eliminadas (enfasis intra-linea) | Rojo mas intenso | `#6e3f44` |
-| Lineas agregadas | Fondo verde oscuro | `#2e3d32` |
-| Lineas agregadas (enfasis intra-linea) | Verde mas intenso | `#3e5a3e` |
+| Lineas eliminadas | Fondo rojo oscuro | `#4d3649` |
+| Lineas eliminadas (enfasis intra-linea) | Rojo mas intenso | `#6f475c` |
+| Lineas agregadas | Fondo verde oscuro | `#394545` |
+| Lineas agregadas (enfasis intra-linea) | Verde mas intenso | `#4a5d53` |
 | Numeros de linea | Overlay (gris) | `#6c7086` |
 | Encabezados de hunk | Mauve | `#cba6f7` |
 
@@ -128,7 +134,7 @@ Git usa Neovim en modo diff para resolución visual de conflictos y comparacion 
 ```toml
 [merge]
     tool          = nvimdiff
-    conflictstyle = diff3
+    conflictstyle = zdiff3
 
 [mergetool]
     prompt     = false
@@ -138,8 +144,10 @@ Git usa Neovim en modo diff para resolución visual de conflictos y comparacion 
     cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
 
 [diff]
-    tool       = nvimdiff
-    colorMoved = default
+    tool           = nvimdiff
+    colorMoved     = default
+    algorithm      = histogram
+    mnemonicPrefix = true
 
 [difftool]
     prompt = false
@@ -152,10 +160,12 @@ Git usa Neovim en modo diff para resolución visual de conflictos y comparacion 
 
 | Opcion | Valor | Descripcion |
 |--------|-------|-------------|
-| `merge.conflictstyle` | `diff3` | Muestra el ancestro comun ademas de LOCAL y REMOTE en el marcador de conflicto |
+| `merge.conflictstyle` | `zdiff3` | Como diff3 (muestra el ancestro comun), pero saca del bloque las lineas comunes del principio y del final (git >= 2.35) |
 | `mergetool.keepBackup` | `false` | No genera archivos `.orig` despues de resolver conflictos |
 | `mergetool.prompt` | `false` | Abre la herramienta sin pedir confirmacion por cada archivo |
 | `diff.colorMoved` | `default` | Destaca bloques de codigo movidos con un color distinto al de lineas agregadas/eliminadas |
+| `diff.algorithm` | `histogram` | Diffs mas claros en codigo movido o reordenado |
+| `diff.mnemonicPrefix` | `true` | Prefijos `i/`, `w/`, `c/` en vez de `a/`, `b/` segun lo que se compara |
 
 ### Layout de mergetool
 
@@ -170,7 +180,7 @@ git mergetool
 # └─────────────────────────┘
 ```
 
-La opcion `conflictstyle = diff3` agrega el bloque BASE (ancestro comun) dentro del marcador de conflicto, lo que permite entender mejor la intencion original de ambas versiones.
+La opcion `conflictstyle = zdiff3` agrega el bloque BASE (ancestro comun) dentro del marcador de conflicto, lo que permite entender mejor la intencion original de ambas versiones.
 
 ### Keybindings en nvimdiff
 
@@ -263,7 +273,7 @@ Todos los aliases estan definidos en el bloque `[alias]` del `.gitconfig`.
 | Alias | Comando completo | Descripcion |
 |-------|-----------------|-------------|
 | `git sl` | `git stash list` | Ver lista de stashes |
-| `git ss` | `git stash save` | Guardar stash con mensaje |
+| `git ss` | `git stash push` | Guardar stash (admite `-m` y pathspecs; `stash save` esta obsoleto) |
 | `git sp` | `git stash pop` | Aplicar y eliminar el ultimo stash |
 | `git sa` | `git stash apply` | Aplicar el ultimo stash sin eliminarlo |
 
@@ -347,7 +357,8 @@ Con `ff = only`, si tu branch y la rama remota divergieron, Git devuelve un erro
 
 ```toml
 [rerere]
-    enabled = true
+    enabled    = true
+    autoupdate = true
 ```
 
 Rerere guarda la resolucion de cada conflicto de merge. Si el mismo conflicto aparece de nuevo (por ejemplo, en rebases repetidos o cherry-picks), Git lo resuelve automaticamente usando la resolucion guardada.
@@ -359,15 +370,6 @@ ls .git/rr-cache/
 # Borrar todas las resoluciones (reiniciar rerere)
 git rerere forget
 ```
-
-### Compresion
-
-```toml
-[core]
-    compression = 9
-```
-
-Nivel de compresion zlib para objetos de Git (escala 0-9). El valor `9` maximiza la compresion a costa de mayor uso de CPU. Util en repositorios grandes con historial extenso.
 
 ### Protocolo version 2
 
@@ -382,10 +384,10 @@ Git Protocol v2 reduce la cantidad de datos transferidos en `git fetch` al permi
 
 ```toml
 [help]
-    autocorrect = 1
+    autocorrect = prompt
 ```
 
-Si escribes un comando con typo, Git lo corrige automaticamente despues de `1` decimo de segundo (100ms). Por ejemplo, `git stauts` ejecuta `git status` automaticamente.
+Si escribes un comando con typo, Git propone el comando corregido y pregunta antes de ejecutarlo. Por ejemplo, `git stauts` ofrece ejecutar `git status`.
 
 ---
 
@@ -444,18 +446,23 @@ El `.gitconfig` del repositorio lo incluye y define el resto:
     defaultBranch = main
 
 [core]
-    editor   = nvim
-    filemode = false
+    editor       = nvim
+    excludesfile = ~/.gitignore_global
 
-[credential]
-    helper = osxkeychain
+[credential "https://github.com"]
+    helper =
+    helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper =
+    helper = !gh auth git-credential
 ```
 
 | Opcion | Valor | Descripcion |
 |--------|-------|-------------|
 | `init.defaultBranch` | `main` | Nombre de branch inicial en `git init` |
-| `core.filemode` | `false` | Ignora cambios en permisos de archivo (util en entornos con distintos sistemas de archivos) |
-| `credential.helper` | `osxkeychain` | Usa el keychain de macOS para guardar credenciales de HTTPS |
+| `credential.<github>.helper` | `!gh auth git-credential` | `gh` entrega su token como credencial HTTPS para github.com y gist.github.com, igual en macOS y Linux. Requiere `gh auth login`. El `helper =` vacio descarta helpers heredados de la config del sistema. Para otros hosts, define un helper en `~/.gitconfig-local` (p. ej. `osxkeychain` en la Mac) |
+| `core.filemode` | (sin fijar) | Git lo autodetecta por repo; forzarlo a `false` ocultaria los `chmod +x` |
 
 ---
 
@@ -551,9 +558,10 @@ git tree
 # Verificar instalacion
 which delta
 
-# Verificar que esta configurado como pager
+# Verificar el pager configurado
 git config --get core.pager
-# Esperado: delta
+# Esperado: if command -v delta ... then delta; else less; fi
+# Si `which delta` no encuentra nada, git cae a less (sin colores de delta)
 
 # Instalar si falta
 brew install git-delta
