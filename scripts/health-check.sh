@@ -66,6 +66,26 @@ check_warn() {
     ((++CHECKS_WARNING))
 }
 
+# Ruta canónica, portable. `readlink -f` no existe en macOS anteriores a 12.3,
+# así que allí se usa Python. La ruta va como ARGUMENTO (sys.argv[1]), nunca
+# interpolada en el código: una ruta con una comilla rompía el script y una con
+# `'); …` ejecutaba Python arbitrario. Nunca falla: con set -e, un $(…) fallido
+# en una asignación abortaría el health check entero.
+resolve_path() {
+    if [[ "$OS" == "macOS" ]]; then
+        python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1" 2>/dev/null || true
+    else
+        readlink -f "$1" 2>/dev/null || true
+    fi
+}
+
+# Permisos en octal (p.ej. 600), siguiendo symlinks. GNU stat usa -c y BSD -f;
+# se prueba GNU primero porque en Linux `stat -f` existe pero significa otra
+# cosa (estado del sistema de archivos). Vacío si no se puede leer.
+file_mode() {
+    stat -L -c %a "$1" 2>/dev/null || stat -L -f %Lp "$1" 2>/dev/null || true
+}
+
 # ==============================================================================
 # BINARY CHECKS
 # ==============================================================================
@@ -139,13 +159,7 @@ check_symlinks() {
 
         if [ -L "$path" ]; then
             local target
-            # Cross-platform canonical path resolution
-            if [[ "$OS" == "macOS" ]]; then
-                # macOS doesn't have readlink -f, use Python for portability
-                target=$(python3 -c "import os; print(os.path.realpath('$path'))" 2>/dev/null)
-            else
-                target=$(readlink -f "$path" 2>/dev/null)
-            fi
+            target=$(resolve_path "$path")
             if [[ "$target" == *"$DOTFILES_DIR/$name"* ]]; then
                 check_pass "$(basename "$path") → $name"
             else
@@ -169,11 +183,7 @@ check_symlinks() {
 
     if [ -n "$tmux_path" ]; then
         local tmux_target
-        if [[ "$OS" == "macOS" ]]; then
-            tmux_target=$(python3 -c "import os; print(os.path.realpath('$tmux_path'))" 2>/dev/null)
-        else
-            tmux_target=$(readlink -f "$tmux_path" 2>/dev/null)
-        fi
+        tmux_target=$(resolve_path "$tmux_path")
         if [[ "$tmux_target" == *"$DOTFILES_DIR/tmux"* ]]; then
             check_pass "$(basename "$tmux_path") → tmux"
         else
@@ -402,11 +412,44 @@ check_submodules() {
         return
     fi
 
-    if echo "$submodule_status" | grep -q "^-"; then
+    # Sin `echo | grep -q`: con pipefail, la salida temprana de grep puede matar
+    # a echo por SIGPIPE y la tubería daría el resultado contrario.
+    if [[ "$submodule_status" == -* || "$submodule_status" == *$'\n'-* ]]; then
         check_warn "Submodules not initialized (run: git submodule update --init --recursive)"
     else
         check_pass "Git submodules initialized"
     fi
+}
+
+# ==============================================================================
+# SECRET FILE PERMISSIONS
+# ==============================================================================
+
+check_secret_perms() {
+    print_section "Secret File Permissions"
+
+    local secrets=(
+        "$HOME/.config/zsh/secrets.zsh"
+        "$HOME/.gitconfig-local"
+    )
+
+    for file in "${secrets[@]}"; do
+        local name="${file/#$HOME/\~}"
+        if [ ! -e "$file" ]; then
+            check_pass "$name no existe (nada que proteger)"
+            continue
+        fi
+
+        local mode
+        mode=$(file_mode "$file")
+        if [ -z "$mode" ]; then
+            check_warn "$name: no se pudieron leer sus permisos"
+        elif [ "$mode" = "600" ]; then
+            check_pass "$name permisos 600"
+        else
+            check_warn "$name tiene permisos $mode (debe ser 600): chmod 600 $name"
+        fi
+    done
 }
 
 # ==============================================================================
@@ -428,9 +471,9 @@ check_stale_claude() {
     local output
     output=$("$reaper" 2>/dev/null || true)
 
-    if echo "$output" | grep -q "Nothing to reap"; then
+    if [[ "$output" == *"Nothing to reap"* ]]; then
         check_pass "No stale Claude sessions"
-    elif echo "$output" | grep -q "Found"; then
+    elif [[ "$output" == *"Found"* ]]; then
         local summary
         summary=$(echo "$output" | grep "Found" | sed -E 's/\x1b\[[0-9;]*m//g; s/^[^F]*//; s/:$//')
         check_warn "$summary — run: scripts/reap-stale-claude.sh --kill"
@@ -484,6 +527,7 @@ main() {
     check_zsh
     check_tmux
     check_submodules
+    check_secret_perms
     check_stale_claude
 
     print_summary
