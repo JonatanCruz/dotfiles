@@ -28,10 +28,16 @@ INTERACTIVE=true
 OS=""
 DISTRO=""
 
-# Required dependencies
+# Required dependencies, by the BINARY each one provides (that is what
+# `command -v` can check; package names differ per distro: neovim -> nvim,
+# ripgrep -> rg, nodejs -> node, git-delta -> delta). "a|b" accepts either
+# name: Debian/Ubuntu install bat and fd as batcat and fdfind.
 readonly CORE_DEPS=(git stow)
-readonly TOOL_DEPS=(neovim tmux zsh starship eza bat fd ripgrep zoxide fzf)
-readonly DEV_DEPS=(nodejs python3)
+readonly TOOL_DEPS=(nvim tmux zsh starship eza "bat|batcat" "fd|fdfind" rg zoxide fzf delta)
+readonly DEV_DEPS=(node python3)
+
+# Stow packages, shared by the backup step and the stow step
+readonly STOW_PACKAGES=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude opencode git mise)
 
 # ==============================================================================
 # UTILITY FUNCTIONS
@@ -121,9 +127,18 @@ install_dependencies() {
     local to_install=()
 
     # Check what needs to be installed
+    local dep name found
     for dep in "${all_deps[@]}"; do
-        if ! command -v "$dep" &>/dev/null; then
-            to_install+=("$dep")
+        found=false
+        IFS='|' read -ra names <<< "$dep"
+        for name in "${names[@]}"; do
+            if command -v "$name" &>/dev/null; then
+                found=true
+                break
+            fi
+        done
+        if [ "$found" = false ]; then
+            to_install+=("${names[0]}")
         fi
     done
 
@@ -137,7 +152,7 @@ install_dependencies() {
     case "$DISTRO" in
         arch)
             print_info "Installing via pacman..."
-            local arch_packages=(git stow neovim tmux zsh starship eza bat fd ripgrep zoxide fzf nodejs python)
+            local arch_packages=(git stow neovim tmux zsh starship eza bat fd ripgrep zoxide fzf git-delta mise nodejs python)
             sudo pacman -S --noconfirm --needed "${arch_packages[@]}"
             ;;
         debian)
@@ -152,19 +167,31 @@ install_dependencies() {
             fi
             if ! command -v eza &>/dev/null; then
                 sudo apt install -y gpg
-                mkdir -p /etc/apt/keyrings
+                sudo mkdir -p /etc/apt/keyrings
                 wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
                 echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
                 sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
                 sudo apt update
                 sudo apt install -y eza
             fi
-            # Install other tools
-            sudo apt install -y bat fd-find ripgrep fzf nodejs python3 python3-pip
+            # Install other tools. NOTE: apt's fzf is too old on Ubuntu 24.04
+            # (0.44, the zsh config needs >= 0.48); quick-setup-ubuntu.sh
+            # installs a pinned release instead.
+            sudo apt install -y bat fd-find ripgrep zoxide fzf git-delta nodejs python3 python3-pip
+            # Debian names the binaries batcat/fdfind; expose them as bat/fd
+            # (~/.local/bin is on PATH via zsh/config/environment.zsh)
+            mkdir -p "$HOME/.local/bin"
+            local alias_name real_name
+            for alias_name in bat fd; do
+                real_name=$([ "$alias_name" = bat ] && echo batcat || echo fdfind)
+                if command -v "$real_name" &>/dev/null; then
+                    ln -sf "$(command -v "$real_name")" "$HOME/.local/bin/$alias_name"
+                fi
+            done
             ;;
         homebrew)
             print_info "Installing via Homebrew..."
-            brew install git stow neovim tmux zsh starship eza bat fd ripgrep zoxide fzf node python
+            brew install git stow neovim tmux zsh starship eza bat fd ripgrep zoxide fzf git-delta mise node python
             ;;
         *)
             print_error "Unsupported distribution. Please install manually:"
@@ -180,50 +207,80 @@ install_dependencies() {
 # BACKUP EXISTING CONFIGS
 # ==============================================================================
 
+# Prints, NUL-separated (may repeat; callers dedupe), the paths relative to
+# $HOME that would block `stow <pkg>`: for every file the package provides,
+#   - a symlinked parent directory that points somewhere else (the symlink
+#     itself is the conflict; what it points to is never touched), or
+#   - an existing target that is not the dotfiles file itself (a real file,
+#     or a symlink pointing elsewhere).
+# Existing real directories are fine: stow descends into them.
+stow_conflicts() {
+    local pkg="$1" src rel target prefix part blocked
+    (cd "$DOTFILES_DIR/$pkg" && find . \( -type f -o -type l \) \
+        ! -name '.gitignore' ! -path './README*' ! -path './LICENSE*' -print0) |
+    while IFS= read -r -d '' src; do
+        rel="${src#./}"
+
+        # Walk the parent directories: ~/.config, ~/.config/nvim, ...
+        blocked=false
+        prefix=""
+        IFS='/' read -ra parts <<< "$(dirname "$rel")"
+        for part in "${parts[@]}"; do
+            [ "$part" = "." ] && continue
+            prefix="${prefix:+$prefix/}$part"
+            if [ -L "$HOME/$prefix" ]; then
+                # A stow-folded directory link into the repo is ours
+                if [ "$(readlink -f "$HOME/$prefix")" != "$(readlink -f "$DOTFILES_DIR/$pkg/$prefix")" ]; then
+                    printf '%s\0' "$prefix"
+                fi
+                blocked=true
+                break
+            fi
+        done
+        [ "$blocked" = true ] && continue
+
+        target="$HOME/$rel"
+        if [ -e "$target" ] || [ -L "$target" ]; then
+            if [ "$(readlink -f "$target")" != "$(readlink -f "$DOTFILES_DIR/$pkg/$rel")" ]; then
+                printf '%s\0' "$rel"
+            fi
+        fi
+    done
+}
+
 backup_existing_configs() {
     print_step "Checking for existing configurations..."
 
-    local configs_to_backup=(
-        "$HOME/.config/nvim"
-        "$HOME/.config/tmux"
-        "$HOME/.config/zsh"
-        "$HOME/.config/yazi"
-        "$HOME/.config/wezterm"
-        "$HOME/.tmux.conf"
-        "$HOME/.zshrc"
-        "$HOME/.claude"
-    )
-
-    local needs_backup=false
-
-    for config in "${configs_to_backup[@]}"; do
-        if [ -e "$config" ] && [ ! -L "$config" ]; then
-            needs_backup=true
-            break
-        fi
+    # Only what would make stow fail is backed up, and it is MOVED (not
+    # copied): with `cp` the original stayed in place and stow then aborted
+    # on the very files that had just been backed up. Moving whole
+    # directories would also take state with them (~/.claude holds sessions
+    # and credentials), so only the conflicting files move.
+    local conflicts=() pkg rel
+    for pkg in "${STOW_PACKAGES[@]}"; do
+        [ -d "$DOTFILES_DIR/$pkg" ] || continue
+        while IFS= read -r -d '' rel; do
+            conflicts+=("$rel")
+        done < <(stow_conflicts "$pkg" | sort -zu)
     done
 
-    if [ "$needs_backup" = false ]; then
+    if [ ${#conflicts[@]} -eq 0 ]; then
         print_success "No existing configs to backup"
         return 0
     fi
 
-    print_warning "Found existing configurations"
+    print_warning "Found ${#conflicts[@]} existing files that would block stow:"
+    printf '    ~/%s\n' "${conflicts[@]}"
 
-    if ! confirm "Create backup before proceeding?"; then
-        print_info "Skipping backup (manual backup recommended)"
+    if ! confirm "Move them to $BACKUP_DIR before proceeding?"; then
+        print_info "Skipping backup: stow will fail for those packages"
         return 0
     fi
 
-    mkdir -p "$BACKUP_DIR"
-
-    for config in "${configs_to_backup[@]}"; do
-        if [ -e "$config" ] && [ ! -L "$config" ]; then
-            local basename
-            basename=$(basename "$config")
-            cp -r "$config" "$BACKUP_DIR/$basename"
-            print_success "Backed up: $basename"
-        fi
+    for rel in "${conflicts[@]}"; do
+        mkdir -p "$BACKUP_DIR/$(dirname "$rel")"
+        mv "$HOME/$rel" "$BACKUP_DIR/$rel"
+        print_success "Moved: ~/$rel"
     done
 
     print_success "Backup created at: $BACKUP_DIR"
@@ -256,17 +313,17 @@ apply_stow_packages() {
 
     cd "$DOTFILES_DIR"
 
-    local packages=(nvim zsh zsh-plugins tmux starship yazi wezterm docker claude opencode git mise)
     local success=0
     local failed=0
 
-    for pkg in "${packages[@]}"; do
+    for pkg in "${STOW_PACKAGES[@]}"; do
         if [ ! -d "$pkg" ]; then
             continue
         fi
 
-        # Sin -v stow no imprime nada; el código de salida es la única señal fiable.
-        if stow -R "$pkg"; then
+        # Success is stow's exit status: it only prints LINK/UNLINK with -v,
+        # so grepping its output reported every package as failed.
+        if stow -R -t "$HOME" "$pkg"; then
             print_success "Stowed: $pkg"
             ((++success))
         else
@@ -286,7 +343,7 @@ set_default_shell() {
     print_step "Configuring default shell..."
 
     local zsh_path
-    zsh_path=$(command -v zsh)
+    zsh_path=$(command -v zsh || true)
 
     if [ -z "$zsh_path" ]; then
         print_error "Zsh not found"
@@ -320,15 +377,17 @@ post_install_notes() {
     echo ""
 
     print_info "Next steps:"
-    echo "  1. ${CYAN}exec zsh${NC} - Start new Zsh session"
-    echo "  2. ${CYAN}nvim${NC} - Open Neovim (plugins auto-install)"
-    echo "  3. ${CYAN}git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm${NC}"
-    echo "     Then in tmux: ${CYAN}Ctrl+s I${NC} to install plugins"
+    # echo -e: without it the color variables print a literal \033[...
+    echo -e "  1. ${CYAN}exec zsh${NC} - Start new Zsh session"
+    echo -e "  2. ${CYAN}nvim${NC} - Open Neovim (plugins auto-install)"
+    echo -e "  3. ${CYAN}git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm${NC}"
+    echo -e "     Then in tmux: ${CYAN}Ctrl+s I${NC} to install plugins"
+    echo -e "  4. ${CYAN}mise install${NC} - Install the node/python versions from mise/config.toml"
     echo ""
 
     print_info "Useful commands:"
-    echo "  - ${CYAN}cd ~/dotfiles && ./scripts/health-check.sh${NC} - Verify installation"
-    echo "  - ${CYAN}cd ~/dotfiles && ./scripts/snapshot.sh \"post-bootstrap\"${NC} - Create snapshot"
+    echo -e "  - ${CYAN}cd ~/dotfiles && ./scripts/health-check.sh${NC} - Verify installation"
+    echo -e "  - ${CYAN}cd ~/dotfiles && ./scripts/snapshot.sh \"post-bootstrap\"${NC} - Create snapshot"
     echo ""
 
     if [ -d "$BACKUP_DIR" ]; then
