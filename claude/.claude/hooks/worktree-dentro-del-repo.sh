@@ -2,7 +2,7 @@
 # PreToolUse hook (matcher: Bash). BLOQUEA (exit 2) crear o mover un worktree
 # fuera de <repo>/.claude/worktrees/ en los repos que ya usan esa carpeta.
 #
-# Indicación del dueño (2026-10-14): los worktrees no se crean junto al repo
+# Indicación del dueño: los worktrees no se crean junto al repo
 # (p.ej. ../<repo>-algo). Fuera del repo cada comando pide aprobación y ensucia
 # la carpeta padre. La indicación ya se había dado antes y se ignoró porque sólo
 # vivía en una conversación: este hook la vuelve estructura.

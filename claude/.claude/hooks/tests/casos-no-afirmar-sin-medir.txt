@@ -8,9 +8,9 @@
 #
 # ── LA CALIBRACIÓN ES EL PUNTO ────────────────────────────────────────────
 #
-# Lo primero que se probó fue bloquear "nunca/siempre/imposible". Medido el
-# 2026-09-19: 45 ocurrencias LEGÍTIMAS ya existían en los hooks ("un agente
-# NUNCA se auto-autoriza"). Ese gate habría dado 45 falsos positivos el primer
+# Lo primero que se probó fue bloquear "nunca/siempre/imposible". Medido sobre
+# los propios hooks: decenas de ocurrencias LEGÍTIMAS ya existían ("un agente
+# NUNCA se auto-autoriza"). Ese gate habría dado decenas de falsos positivos el primer
 # día. Por eso la mitad de estos casos son de "calla": si el gate muerde
 # comentarios correctos, se desactiva en una hora y no sirve de nada.
 #
@@ -22,14 +22,14 @@
 #
 # Formato:  <AVISA|calla> <TAB> <ruta> <TAB> <comentario>
 
-# ── DEBE AVISAR: los seis comentarios falsos reales del 2026-09-19 ────────
+# ── DEBE AVISAR: comentarios falsos reales ──────────────────────────────
 
 AVISA	/x/.claude/hooks/a.sh	#   42 casos en exit 2 · 15 usos legítimos (42 casos en total)
 AVISA	/x/.claude/hooks/a.sh	#   ./tests/run-suite.sh ./hook.sh casos.txt → 42/42, sin desvíos
 AVISA	/x/.claude/hooks/a.sh	# Medido: PATH vacío → exit 0, queda ciego
 AVISA	/x/.claude/hooks/a.sh	# La mezcla es estructuralmente imposible por construcción.
 AVISA	/x/a.ts	// 33 casos, 0 fallan
-AVISA	/x/.claude/hooks/a.sh	# Verificado el 2026-09-19: tofu apply → exit 2
+AVISA	/x/.claude/hooks/a.sh	# Verificado el 2025-03-14: tofu apply → exit 2
 
 # ── DEBE CALLAR: comentarios legítimos que YA existen en estos hooks ──────
 #

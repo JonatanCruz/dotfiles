@@ -14,9 +14,8 @@
 # que "no existe". Es un falso negativo silencioso: la peor clase, porque funda
 # conclusiones seguras sobre una medición que jamás se hizo.
 #
-# En una sola sesión esto produjo TRES conclusiones equivocadas ("X no tiene
-# restos de Y", "el servicio Z no menciona a X", "el campo W no existe"): las
-# tres eran falsas, y por poco se desmintió el hallazgo correcto de un agente.
+# Una búsqueda que no corrió produce conclusiones equivocadas que parecen
+# seguras ("X no existe", "Z no menciona a X").
 #
 # POR QUÉ BLOQUEA
 # ---------------
@@ -26,31 +25,20 @@
 # con o sin hook — bloquearlo no le quita al agente ninguna capacidad, sólo
 # convierte una falla muda en un error visible.
 #
-# EJECUTAR ≠ NOMBRAR — el hook SÍ distingue las dos cosas (desde 2026-09-19).
+# EJECUTAR ≠ NOMBRAR — el hook distingue las dos cosas. MENCIONAR la sintaxis
+# no la ejecuta:
 #
-# Acá decía "el falso positivo es imposible por construcción". Era FALSO, y lo
-# refutaba un caso trivial. Medido ejecutando el hook:
+#   git commit -m "fix: usar --include=*.ts entrecomillado"
+#   echo "usa --include=*.ts con comillas"
+#   cat > /tmp/nota.md <<EOF … --include=*.ts … EOF
+#   ls src/  # ojo con --include=*.ts
 #
-#   git commit -m "fix: usar --include=*.ts entrecomillado"   → exit 2
-#   echo "usa --include=*.ts con comillas"                    → exit 2
-#   cat > /tmp/nota.md <<EOF … --include=*.ts … EOF           → exit 2
-#   ls src/  # ojo con --include=*.ts                         → exit 2
+# Un gate que muerde el trabajo de escribir y medir se termina desactivando, y
+# ahí se pierde también el bloqueo que sí servía. Por eso se descartan strings,
+# heredocs y comentarios antes de evaluar (detalle junto al código, más abajo).
 #
-# No se podía escribir el mensaje de commit que documenta el arreglo, ni la nota
-# que explica el modo de falla, porque MENCIONAN la sintaxis. El patrón miraba el
-# comando entero sin descartar strings, heredocs ni comentarios — justo la pasada
-# que guard-sensitive-exec.sh y no-editar-repo-por-bash.sh sí tenían.
-#
-# En su momento se dejó documentado en vez de arreglado, con el argumento de que
-# el error era CONSERVADOR (bloquea texto inocuo, nunca deja pasar el glob roto).
-# El argumento no alcanza: un gate que muerde el trabajo de escribir y medir se
-# termina desactivando, y ahí se pierde también el bloqueo que sí servía. Se
-# portó la pasada; el detalle está junto al código, más abajo.
-#
-# ESTADO MEDIDO: 10 usos legítimos → exit 0 · 5 ejecuciones reales → exit 2.
 # La suite está en tests/casos-block-silent-grep-glob-failure.txt y se corre con
-# tests/correr.sh. No se vuelve a escribir "imposible": es la palabra que hizo
-# que nadie volviera a probar esto durante meses.
+# tests/correr.sh.
 #
 # Esa es la diferencia con un gate de conducta: no cierra una categoría de
 # comportamiento, cierra un modo de falla concreto y verificable.
@@ -80,31 +68,15 @@ if [ -z "$cmd" ]; then
 fi
 [ -z "$cmd" ] && exit 0
 
-# ── EJECUTAR ≠ NOMBRAR (portado de guard-sensitive-exec.sh, 2026-09-19) ─────
+# ── EJECUTAR ≠ NOMBRAR ──────────────────────────────────────────────────────
 #
-# El encabezado afirmaba que "el falso positivo es imposible por construcción".
-# Era falso, y lo refutaba un caso trivial. Medido ejecutando el hook:
-#
-#   git commit -m "fix: usar --include=*.ts entrecomillado"   → exit 2
-#   echo "usa --include=*.ts con comillas"                    → exit 2
-#   cat > /tmp/nota.md <<EOF … --include=*.ts … EOF           → exit 2
-#   ls src/  # ojo con --include=*.ts                         → exit 2
-#
-# O sea: no se podía escribir el mensaje de commit que documenta este arreglo,
-# ni la nota que explica el modo de falla, porque MENCIONAN la sintaxis. Se
-# dejó documentado en vez de arreglado con el argumento de que el error era
-# "conservador". Pero un gate que muerde el trabajo de escribir y medir se
-# termina desactivando — y ahí se pierde también el bloqueo que sí servía.
-#
-# Los otros dos gates de este sistema ya tenían la pasada que falta acá. Se
-# porta: se descartan heredocs, strings entrecomillados y comentarios, porque
-# ahí vive TEXTO, no ejecución.
+# Se descartan heredocs, strings entrecomillados y comentarios, porque ahí vive
+# TEXTO, no ejecución (los ejemplos están en el encabezado).
 #
 # Dos detalles que son parte del control, no de la implementación:
 #
 #   1. Las comillas VACÍAS se colapsan ANTES del awk que borra strings. Después
 #      ya es tarde: el borrado las convirtió en un espacio y el match se pierde.
-#      (commit 7de969c7 en el guard de prod, misma corrección.)
 #   2. El string que recibe un INTÉRPRETE no es texto, es código: ahí se evalúa
 #      el comando CRUDO. `bash -c 'grep … --include=*.ts'` SÍ ejecuta el glob
 #      roto, así que debe seguir bloqueando.

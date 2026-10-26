@@ -1,0 +1,27 @@
+# Las actions están fijadas por SHA (el repo lo exige): sin esto nadie las
+# actualizaría. Dependabot abre un PR por actualización, con el CI como filtro.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Sólo releases con más de dos semanas: margen para que una release
+    # comprometida se detecte y retire antes de que llegue aquí.
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Plugins de zsh como submódulos: también quedan fijados a un commit.
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: chore(deps)

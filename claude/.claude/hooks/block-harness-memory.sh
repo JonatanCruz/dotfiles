@@ -1,73 +1,37 @@
 #!/usr/bin/env bash
 # block-harness-memory.sh — Control DURO global: Engram es el ÚNICO sistema de memoria.
 #
-# Bloquea (exit 2) cualquier Write/Edit/MultiEdit al sistema de memoria de archivos
-# del harness de Claude Code:
+# Bloquea (exit 2) cualquier Write/Edit/MultiEdit —y cualquier escritura por
+# Bash— al sistema de memoria de archivos del harness de Claude Code:
 #   ~/.claude/projects/<slug>/memory/MEMORY.md
 #   ~/.claude/projects/<slug>/memory/*.md
 #
 # Motivación: el system prompt del harness inyecta una instrucción "# Memory" que
 # ordena escribir esos archivos. Eso ENTRA EN CONFLICTO con la regla "Engram ONLY"
 # de ~/.claude/CLAUDE.md. Una regla de prosa no previene el "error competente"
-# (el agente que cree que cumple). Este hook SUBE MUCHO EL COSTO de ese conflicto
-# — patrón Meadows ya usado en guard-sensitive-exec.sh / Reglas #13/#14.
+# (el agente que cree que cumple): el control tiene que estar en la estructura.
 #
-# ⚠️ NO dice "estructuralmente imposible", y la palabra NO vuelve. No porque el
-# gate sea débil —hoy cierra todo lo que se le midió— sino porque esa palabra es
-# la que hace que nadie vuelva a medir. Este archivo es el caso de estudio:
+# ⚠️ Este archivo NO afirma que el gate no se pueda evadir, y esa afirmación no
+# vuelve: es la que hace que nadie vuelva a medir. Una garantía escrita sin
+# probarla es falsa, y la más cara, porque parece verificada. El caso que lo
+# enseña: `pathlib.Path(RUTA).write_text('x')` siguió abierto mientras el regex
+# NOMBRABA `write_text`, porque además exigía un modo 'w'/'a' que esa llamada
+# no lleva.
 #
-#   · mañana del 2026-09-19: la afirmación era falsa, se rodeaba escribiendo por
-#     Bash. Se corrigió el código… y la frase quedó escrita.
-#   · tarde del 2026-09-19: auditando los comentarios, la frase SEGUÍA ahí y
-#     SEGUÍA siendo falsa. Medidas 13 vías con exit 0 sobre la ruta protegida.
-#   · el caso que más enseña es `pathlib.Path(RUTA).write_text('x')`: el regex
-#     NOMBRABA `write_text`, o sea que el autor creyó cubrirlo — pero exigía
-#     además un modo 'w'/'a' que `write_text` no lleva. Una garantía escrita sin
-#     probarla es una garantía falsa, y encima la más cara: parece verificada.
+# LA PREGUNTA ESTÁ INVERTIDA: enumerar escrituras es una lista abierta (siempre
+# falta una); sobre la ruta protegida se bloquea por defecto y sólo pasa la lista
+# CERRADA de lecturas, que es la excepción que la regla documenta. El detalle
+# está en "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo. Consecuencia
+# deliberada: una LECTURA por intérprete (`python3 -c "open(RUTA).read()"`)
+# también se bloquea, porque un intérprete no está en la lista de lectores.
 #
-# QUÉ CAMBIÓ (2026-09-19, tarde): la pregunta del gate se INVIRTIÓ. Antes
-# enumeraba escrituras —lista abierta, siempre falta una—; ahora sobre la ruta
-# protegida bloquea por defecto y sólo deja pasar la lista CERRADA de lecturas,
-# que es justamente la excepción que la regla documenta. El detalle está en el
-# bloque "POR QUÉ LA PREGUNTA ESTÁ INVERTIDA", más abajo.
-#
-# ESTADO MEDIDO (no "imposible": medido, con fecha y suite reproducible):
-#   23 casos en exit 2   ·   20 usos legítimos → exit 0   (43 casos en total)
-#   incluidas las evasiones por intérprete (python/node), awk/sed con sus
-#   primitivas de escritura, tar/rsync/unzip hacia el DIRECTORIO, el pipe a un
-#   escritor (`| tee`, `| dd of=`), comillas vacías y el modo sin jq.
+# El estado lo da la suite, no una cifra escrita acá (una cifra en un comentario
+# envejece y se vuelve más creíble a medida que se aleja de la verdad):
 #
 #   bash ~/.claude/hooks/tests/correr.sh block-harness-memory
 #
-# ⚠️ ESTE BLOQUE DECÍA "42 casos (27 en exit 2)" Y ERA FALSO — las tres veces.
-#
-# Una auditoría independiente lo midió el 2026-09-19: el archivo tenía 33 casos
-# (18/15), y las clases `EVA`/`BLK` que el texto decía haber CONTADO aparecen
-# CERO veces en él. Peor, citaba como prueba reproducible:
-#
-#   ./tests/run-suite.sh … → 42/42, sin desvíos
-#
-# Correr ese comando exacto daba **"→ 0/0, sin desvíos"**: `run-suite.sh`
-# parseaba `CLASE|desc|cmd` y el archivo de casos usa `<exit><TAB>desc<TAB>cmd`.
-# Era herramienta muerta que reportaba ÉXITO sobre cero casos ejecutados — el
-# mismo "control presente y apagado" que este hook existe para cazar. Se borró.
-#
-# La lección, que vale más que el número corregido: el comentario se hizo MÁS
-# creíble con cada ronda —primero "23", después "42 contados por clase", después
-# una suite citada por nombre— mientras se alejaba de la verdad. **Subir la
-# precisión de una cifra no la vuelve verdadera, sólo la vuelve más difícil de
-# dudar.** Por eso el número ahora se acompaña del comando que lo reproduce, y
-# ese comando se verificó que ejecuta algo: el runner falla si cuenta cero.
-#
-# Y ya no dice "vías de ESCRITURA": de los 4 BLK, tres lo son (`echo x >`, su
-# append, `cat otro >`) pero el cuarto es una LECTURA por intérprete
-# (`python3 -c "open(RUTA).read()"`) que bloquea igual. No es un defecto: es la
-# consecuencia deliberada de la pregunta invertida —sobre la ruta protegida sólo
-# pasa la lista CERRADA de lecturas, y un intérprete no está en ella—. Se dice
-# acá porque "27 vías de escritura" habría vuelto a ser una etiqueta que no
-# describe lo que el archivo contiene.
-# Si mañana aparece una vía nueva, se agrega a la suite y se cierra. Lo que no
-# se hace es volver a escribir que es imposible.
+# El runner falla si ejecuta cero casos. Una vía nueva se agrega a la suite y
+# se cierra.
 #
 # Read NO se bloquea (el usuario puede pedir leer un archivo viejo sin migrar aún).
 # Override consciente y auditable: export ENGRAM_MIGRATION=1 (para migrar/limpiar
@@ -107,40 +71,25 @@ MEM_RE='\.claude/projects/[^/]+/memory/[^[:space:]"'"'"'<>|;&]*\.md'
 # de resolución de rutas se salteaba en silencio.
 MEM_DIR_RE='\.claude/projects/[^/]+/memory(/|[[:space:]]|[;|&]|$)'
 
-# ── EL HUECO QUE ESTO CIERRA (medido el 2026-09-19) ─────────────────────────
-# Este hook estaba registrado sólo en `Write|Edit|MultiEdit`. Una escritura hecha
-# desde Bash no pasaba por acá. Probado contra un mock en /tmp con la MISMA
-# estructura de ruta:
+# ── EL HUECO QUE ESTO CIERRA ─────────────────────────────────────────────────
+# Registrado sólo en `Write|Edit|MultiEdit`, una escritura hecha desde Bash no
+# pasaría por acá: `python3 - <<PY … open(".../memory/MEMORY.md","w")` o
+# `cat > .../memory/MEMORY.md <<EOF`. Por eso también corre sobre Bash.
 #
-#   python3 - <<PY  →  open(".../memory/MEMORY.md","w")   → hook exit=0, archivo escrito
-#   cat > .../memory/MEMORY.md <<EOF                      → hook exit=0, archivo escrito
+# ── POR QUÉ LA PREGUNTA ESTÁ INVERTIDA ──────────────────────────────────────
 #
-# El encabezado de este archivo decía que la regla era "estructuralmente
-# imposible" de violar. No lo era: se rodeaba cambiando de herramienta.
+# Preguntar «¿hay un operador de ESCRITURA?» obliga a enumerarlos, y la lista
+# queda corta enseguida. Vías que escriben sin un `>` a la vista:
 #
-# ── POR QUÉ LA PREGUNTA ESTÁ INVERTIDA (corrección 2026-09-19, tarde) ───────
-#
-# La versión de la mañana preguntaba «¿hay un operador de ESCRITURA?» y enumeraba
-# los que se le ocurrieron: `>`, `sed -i`, `tee`, `cp|mv`, y una apertura en modo
-# 'w'. Esa lista se quedó corta al instante. Medido ejecutando el hook, 13 vías
-# que salían 0 sobre la ruta protegida:
-#
-#   python3 …Path(RUTA).write_text('x')     ← el regex NOMBRABA write_text, pero
-#                                             exigía además un modo 'w'/'a' que
-#                                             write_text no lleva. El autor creyó
-#                                             cubrirlo, y es el caso que más
-#                                             enseña: una garantía escrita sin
-#                                             probarla es una garantía falsa.
-#   cd …/memory && echo x > MEMORY.md       ← el `cd` se llevó el directorio y la
-#                                             ruta quedó relativa: no matcheaba
+#   python3 …Path(RUTA).write_text('x')     ← sin modo 'w'/'a' que buscar
+#   cd …/memory && echo x > MEMORY.md       ← el `cd` se lleva el directorio y
+#                                             la ruta queda relativa
 #   D=…/memory; echo x > $D/MEMORY.md       ← lo mismo, vía variable
 #   dd of= · truncate · install · rsync · ln -sf · touch · vim -c wq ·
 #   node writeFileSync · perl -i · git checkout -- RUTA
 #
 # ENUMERAR ESCRITURAS ES UNA LISTA ABIERTA: todo intérprete, todo editor y todo
-# comando de copia escribe archivos, y siempre falta uno. Este repo ya pagó el
-# mismo error dos veces el mismo día — el catálogo de verbos de `tofu`, que
-# ignoraba `destroy`; y la lista `mysql|psql`, que ignoraba `mysqldump`.
+# comando de copia escribe archivos, y siempre falta uno.
 #
 # LEER, EN CAMBIO, ES UNA LISTA CERRADA. Y es exactamente la excepción que la
 # regla documenta: un archivo viejo sin migrar SE PUEDE LEER. Así que la pregunta
@@ -160,15 +109,9 @@ if [[ -z "$target" ]]; then
   fi
   # ── FALLBACK SIN jq: extraer "command" con sed, NO usar el payload crudo.
   #
-  # Acá decía `cmd="$input"`. Medido al agregar la pasada de normalización: el
-  # payload crudo es JSON, o sea que está TODO entre comillas dobles, y el awk que
-  # borra strings lo dejaba en `{ :{ : }}` — el comando desaparecía y el hook
-  # salía 0. Sin jq el gate no era "más ruidoso": era INERTE.
-  #
-  #   sin jq:  touch …/memory/MEMORY.md   → exit 0   (debía ser 2)
-  #
-  # Es literalmente el mismo defecto que guard-sensitive-exec.sh ya había medido
-  # y corregido en su propio fallback — la corrección no se había portado acá.
+  # El payload crudo es JSON, o sea que está TODO entre comillas dobles, y el awk
+  # que borra strings lo reduce a `{ :{ : }}`: el comando desaparece y el hook
+  # sale 0. Sin jq el gate no sería "más ruidoso": sería INERTE.
   # Último recurso: neutralizar las comillas del payload para que el texto
   # ejecutable sobreviva a la normalización en vez de ser borrado con ellas.
   if [[ -z "$cmd" ]]; then
@@ -180,14 +123,12 @@ if [[ -z "$target" ]]; then
   fi
   [[ -z "$cmd" ]] && exit 0
 
-  # ── EJECUTAR ≠ NOMBRAR (portado de guard-sensitive-exec.sh, 2026-09-19).
+  # ── EJECUTAR ≠ NOMBRAR.
   #
-  # Invertir la pregunta —bloquear salvo lectura— trajo el falso positivo que ya
-  # tenían los otros gates: MENCIONAR la ruta pasó a bloquear.
-  #   echo "no escribas en …/memory/MEMORY.md"   → exit 2   (debía pasar)
-  # Es el mismo defecto que block-silent-grep-glob-failure.sh tenía: no se puede
-  # escribir el texto que documenta el gate sin que el gate lo muerda. Y un gate
-  # que muerde el trabajo de escribir y medir se termina desactivando.
+  # Con la pregunta invertida —bloquear salvo lectura—, MENCIONAR la ruta
+  # bloquearía: `echo "no escribas en …/memory/MEMORY.md"`. No se podría escribir
+  # el texto que documenta el gate, y un gate que muerde el trabajo de escribir
+  # y medir se termina desactivando.
   #
   # Se descartan heredocs, strings entrecomillados y comentarios: ahí vive TEXTO,
   # no ejecución. Dos detalles que NO son de implementación sino parte del control:
@@ -200,29 +141,24 @@ if [[ -z "$target" ]]; then
   #      NO es texto, es código: ahí se evalúa el comando CRUDO. Es el único
   #      agujero que esta pasada puede abrir, y se cierra sin abrirlo.
   #
-  # ⚠️ LA LISTA DE INTÉRPRETES NO ES SÓLO LA SHELL. Medido al portar esta pasada:
-  # cubrir únicamente `bash -c`/`eval`/`sh <<` REGRESIONÓ los tres casos de
-  # intérprete que ya estaban cerrados, porque la ruta viaja DENTRO de comillas y
-  # el borrado de strings se la llevó:
+  # ⚠️ LA LISTA DE INTÉRPRETES NO ES SÓLO LA SHELL. Cubrir únicamente
+  # `bash -c`/`eval`/`sh <<` deja pasar las escrituras cuya ruta viaja DENTRO de
+  # comillas, porque el borrado de strings se la lleva:
   #
-  #   python3 -c "…Path(RUTA).write_text('x')"   → volvía a exit 0
-  #   node -e "…writeFileSync('RUTA','x')"       → volvía a exit 0
-  #   perl -e 'open(F,">","RUTA")'               → volvía a exit 0
+  #   python3 -c "…Path(RUTA).write_text('x')"
+  #   node -e "…writeFileSync('RUTA','x')"
+  #   perl -e 'open(F,">","RUTA")'
   #
-  # Es la misma trampa que este archivo documenta arriba, un nivel más adentro:
-  # `sh` no es la clase, "programa que ejecuta el string que le pasás" sí lo es.
-  # Por eso van también python/node/perl/ruby/php y sus banderas -c/-e.
-  # ⚠️ Y LA LISTA SEGUÍA CORTA: faltaban los que reciben su programa como
-  # argumento POSICIONAL, sin bandera. Medido el 2026-09-19, ambos con exit 0 y
-  # el archivo realmente creado:
+  # `sh` no es la clase; "programa que ejecuta el string que le pasás" sí lo es.
+  # Por eso van también python/node/perl/ruby/php y sus banderas -c/-e, y los
+  # que reciben su programa como argumento POSICIONAL, sin bandera:
   #
-  #   awk 'BEGIN{print "x" > "RUTA"}'      → el borrado de strings dejaba `awk `
-  #   sed -n 'w RUTA' /etc/hostname        → dejaba `sed -n  /etc/hostname`
+  #   awk 'BEGIN{print "x" > "RUTA"}'      → el borrado de strings dejaría `awk `
+  #   sed -n 'w RUTA' /etc/hostname        → dejaría `sed -n  /etc/hostname`
   #
-  # La traza lo muestra sin ambigüedad: la ruta viaja DENTRO de las comillas, la
-  # pasada la borra, y el chequeo "(1) ¿está la ruta?" sale por exit 0 **antes**
-  # de cualquier análisis del verbo. Corregirlo en la lista de LECTORES no sirve:
-  # ese código nunca se alcanza.
+  # La ruta viaja DENTRO de las comillas, la pasada la borra, y el chequeo
+  # "(1) ¿está la ruta?" sale por exit 0 **antes** de cualquier análisis del
+  # verbo. Corregirlo en la lista de LECTORES no sirve: ese código no se alcanza.
   #
   # `awk`/`sed` son la misma CLASE que `python -c` —programa que ejecuta el
   # string que le pasás— sólo que sin bandera que lo anuncie. Y `tar` entra por
@@ -281,16 +217,14 @@ if [[ -z "$target" ]]; then
   # (1) ¿Está involucrada la ruta protegida? Si no, no es nuestra incumbencia.
   #
   # ⚠️ DOS FORMAS DE APUNTAR AL MISMO LUGAR. `MEM_RE` exige un `.md` NOMBRADO, y
-  # hay comandos que escriben dentro del directorio sin nombrar archivo alguno.
-  # Medido el 2026-09-19, ambos con exit 0 saliendo por acá mismo:
+  # hay comandos que escriben dentro del directorio sin nombrar archivo alguno:
   #
   #   tar -xf /tmp/t.tar -C …/memory      ← el destino es el DIRECTORIO
   #   rsync /tmp/a.md …/memory/           ← idem, con barra final
   #
-  # Los dos caían antes de cualquier análisis de verbo: el `|| exit 0` de esta
-  # línea los soltaba porque en el comando no aparece ningún `*.md`. Por eso
-  # `ln`/`install` sí se bloqueaban (terminan en un `.md`) y estos dos no — la
-  # misma escritura, distinta forma de escribir el destino.
+  # Con sólo MEM_RE, el `|| exit 0` de esta línea los soltaría porque en el
+  # comando no aparece ningún `*.md`: la misma escritura que `ln`/`install`,
+  # con otra forma de escribir el destino.
   #
   # Para los que escriben en un directorio, la pregunta correcta es MEM_DIR_RE.
   if printf '%s' "$probe" | grep -qE "^[[:space:]]*(tar|rsync|cp|mv|install|unzip|gunzip|bsdtar)\b"; then
@@ -310,22 +244,17 @@ if [[ -z "$target" ]]; then
   LECTORES='cat|head|tail|less|more|wc|grep|egrep|fgrep|rg|nl|file|stat|md5sum|sha256sum|sha1sum|ls|diff|cmp|realpath|dirname|basename|jq|awk|sed'
   # ⚠️ SE EVALÚA CADA SEGMENTO, NO EL COMANDO ENTERO.
   #
-  # El test anclaba en la PRIMERA palabra del comando completo, así que bastaba
-  # arrancar con un lector y encadenar. Medido el 2026-09-19 por una auditoría
-  # independiente, verificado EN DISCO (el archivo protegido cambió de contenido):
+  # Anclar en la PRIMERA palabra del comando completo dejaría arrancar con un
+  # lector y encadenar una escritura:
   #
-  #   cat /tmp/a.md | tee   …/memory/f.md    → exit 0, archivo sobrescrito
-  #   cat /tmp/a.md | dd of=…/memory/f.md    → exit 0, archivo sobrescrito
-  #   wc -l /tmp/a.md; cp /tmp/a.md …/memory/f.md → exit 0, sobrescrito
-  #   (tee …/memory/f.md < /tmp/a.md         → exit 2, el control)
+  #   cat /tmp/a.md | tee   …/memory/f.md
+  #   cat /tmp/a.md | dd of=…/memory/f.md
+  #   wc -l /tmp/a.md; cp /tmp/a.md …/memory/f.md
   #
-  # `>` ya se chequeaba aparte, pero un PIPE no: `| tee` y `| dd of=` escriben
-  # sin ninguna redirección. Y el `;` es aún más barato — dos comandos
-  # independientes donde sólo se miraba el primero.
-  #
-  # Ahora el comando se parte por `|`, `;`, `&&`, `||` y CADA segmento que toque
-  # la ruta protegida tiene que ser una lectura por sí mismo. Un solo segmento
-  # que escriba basta para bloquear, sin importar con qué empiece la línea.
+  # `| tee` y `| dd of=` escriben sin ninguna redirección, y el `;` separa dos
+  # comandos independientes. Por eso el comando se parte por `|`, `;`, `&&`,
+  # `||` y CADA segmento que toque la ruta protegida tiene que ser una lectura
+  # por sí mismo. Un solo segmento que escriba basta para bloquear.
   es_lectura=1
   segmentos="$(printf '%s' "$probe" | sed -E 's/(\|\||&&|[|;&])/\n/g')"
   while IFS= read -r seg; do
@@ -343,8 +272,7 @@ SEGEOF
      || printf '%s' "$probe" | grep -qE "^[[:space:]]*awk[[:space:]]+[^|;&]*-i[[:space:]]*inplace"; then
     es_lectura=0
   fi
-  # ⚠️ `-i` NO es la única forma en que un "lector" escribe. Medido el
-  # 2026-09-19, las dos con exit 0 y el archivo realmente creado:
+  # ⚠️ `-i` NO es la única forma en que un "lector" escribe:
   #
   #   awk 'BEGIN{print "x" > "…/memory/f.md"}'   ← la redirección va DENTRO de
   #                                                la cadena: el chequeo del
@@ -352,9 +280,9 @@ SEGEOF
   #   sed -n 'w …/memory/f.md' /etc/hostname     ← el comando `w` escribe, y
   #                                                no es `-i`.
   #
-  # El defecto es el de siempre: `awk` y `sed` entraron a LECTORES por su uso
-  # habitual, y ambos tienen una primitiva de escritura que la excepción no
-  # contemplaba. Se cierra mirando el PROGRAMA que se les pasa, no sus banderas.
+  # `awk` y `sed` están en LECTORES por su uso habitual, y ambos tienen una
+  # primitiva de escritura. Se cierra mirando el PROGRAMA que se les pasa, no
+  # sus banderas.
   if printf '%s' "$probe" | grep -qE "^[[:space:]]*(awk|gawk|mawk|nawk|perl)\b" \
      && printf '%s' "$probe" | grep -qE "(>>?|print[[:space:]]*>|printf[^;]*>)"; then
     es_lectura=0
@@ -371,18 +299,15 @@ SEGEOF
   # ── ESCRITURA HACIA UN DIRECTORIO: mirar el DESTINO, no sólo el verbo ──
   #
   # `tar -C <dir>`, `rsync a <dir>/`, `cp a <dir>/` escriben SIN nombrar ningún
-  # archivo. Medido el 2026-09-19: los tres con exit 0, y por DOS razones
-  # encadenadas que hay que arreglar juntas —parchear una sola no alcanza, y
-  # eso ya costó una ronda entera:
+  # archivo, y hay DOS razones encadenadas que se arreglan juntas:
   #
   #   (a) el chequeo "(1) ¿está la ruta?" exige `MEM_RE`, que pide un `.md`
-  #       NOMBRADO. Sin él, salían antes de cualquier análisis.
-  #   (b) aun pasando (a), `target` se extrae con `MEM_RE` más abajo: queda
-  #       vacío y el `[[ -z "$target" ]] && exit 0` los soltaba igual.
+  #       NOMBRADO. Sin él, saldrían antes de cualquier análisis.
+  #   (b) aun pasando (a), `target` se extrae con `MEM_RE` más abajo: quedaría
+  #       vacío y el `[[ -z "$target" ]] && exit 0` los soltaría igual.
   #
   # Y el verbo SOLO no alcanza para decidir: `cp …/memory/MEMORY.md /tmp/bak.md`
-  # es un RESPALDO legítimo —lee de la ruta protegida y escribe fuera—. Marcar
-  # `cp` como escritura sin mirar a dónde rompió ese caso en la misma ronda.
+  # es un RESPALDO legítimo —lee de la ruta protegida y escribe fuera—.
   # Lo que decide es el ÚLTIMO argumento: ahí es donde estos comandos escriben.
   if printf '%s' "$probe" | grep -qE "^[[:space:]]*(tar|rsync|install|ln|cp|mv|unzip|gunzip|bsdtar)\b"; then
     destino="$(printf '%s' "$probe" | awk '{print $NF}' | tr -d '"'"'"'')"
@@ -395,17 +320,14 @@ SEGEOF
       dir_target="${flag_dst:-$destino}"
     elif printf '%s' "$probe" | grep -qE "^[[:space:]]*mv\b"; then
       # `mv` SACANDO de memory BORRA el origen: destino afuera no lo vuelve
-      # lectura. Es la excepción a la rama de abajo, y se mide aparte porque
-      # al escribirla se coló como "respaldo legítimo" (exit 0) en la ronda
-      # del 2026-09-19 — `cp` copia, `mv` destruye.
+      # lectura. Es la excepción a la rama de abajo — `cp` copia, `mv` destruye.
       es_lectura=0
       dir_target="$(printf '%s' "$probe" | grep -oE "$MEM_RE" | head -1)"
     else
       # Destino FUERA de la ruta protegida ⇒ el comando LEE de memory y escribe
       # afuera: `cp …/memory/MEMORY.md /tmp/bak.md` es un respaldo legítimo.
       # Estos verbos no están en LECTORES (escriben, en general), así que sin
-      # esta rama quedaban bloqueados. Medido el 2026-09-19: el respaldo daba
-      # exit 2 — un falso positivo introducido al cerrar `tar`/`rsync`.
+      # esta rama el respaldo quedaría bloqueado.
       es_lectura=1
     fi
   fi

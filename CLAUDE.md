@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) and OpenCode when wo
 
 Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** — ninguno guarda memoria entre sesiones.
 
-- **codebase-memory (grafo)** → navegar/entender **barato** (solo lectura, ~120x menos tokens). `search_code`, `query_graph` (Cypher), `trace_path`, `get_architecture`. Indexa una vez con `index_repository(repo_path=...)`.
+- **codebase-memory (grafo)** → navegar/entender **barato** (solo lectura; para preguntas estructurales gasta menos que grep). `search_code`, `query_graph` (Cypher), `trace_path`, `get_architecture`. Indexa una vez con `index_repository(repo_path=...)`.
 - **Serena** → **editar/refactorizar** por símbolo, que el grafo NO hace: `serena_rename_symbol`, `serena_replace_symbol_body`, `serena_insert_after_symbol`.
 
 **Regla**: grafo para leer, Serena para escribir. No dupliques Serena (plugin **o** servidor `.mcp.json`, nunca ambos → procesos `uvx` huérfanos).
@@ -19,6 +19,35 @@ El protocolo completo (cuándo `mem_save`/`mem_search`, formato, sesión) vive e
 `claude/.claude/CLAUDE.md`, que se carga en todas las sesiones como `~/.claude/CLAUDE.md`.
 Resumen: **hechos y decisiones entre sesiones → Engram**; **reglas del dueño → un CLAUDE.md**
 (este si son del repo, el global si no). Nunca `MEMORY.md` ni `memory/*.md`.
+
+---
+
+## 🪝 Hooks de Claude: genéricos, con configuración por proyecto
+
+Los hooks de `claude/.claude/hooks/` se enlazan a `~/.claude/hooks` y aplican a **todos**
+los proyectos, así que no nombran ninguno: nada de dominio, rutas ni stack de un repo
+concreto. Lo que es de un proyecto vive en **ese** proyecto, en un único archivo,
+`<raíz del repo>/.claude/hooks.json`, leído por `hooks/lib/config.sh` (sólo con `jq`,
+nunca con `source`):
+
+```json
+{
+  "engram":           { "proyectos": ["nombre-viejo"] },
+  "reglas_escritura": [{ "patron": "select[[:space:]]+\\*[[:space:]]+from", "id": 123,
+                         "titulo": "Las consultas nombran sus columnas",
+                         "exige": "Listar las columnas que se usan." }],
+  "busqueda_codigo":  { "extensiones": ["zig"], "directorios": ["generated/api"] },
+  "secretos":         { "clis": ["mycli secret reveal"] }
+}
+```
+
+**Modelo de confianza**: un repo clonado de un tercero también es un proyecto, así que su
+archivo sólo puede **sumar** restricción o alcance (más extensiones, directorios, CLIs de
+secretos, reglas, alias). No puede quitar valores por defecto, desactivar un hook ni
+añadir exenciones; las claves desconocidas y los valores inválidos se ignoran, y un JSON
+ilegible deja sólo los valores por defecto. Precedencia: `$CLAUDE_HOOKS_CONFIG` (pruebas)
+> el archivo del repo > los valores por defecto. Detalle y validaciones en el encabezado
+de `lib/config.sh`; pruebas en `hooks/tests/correr-config.sh`.
 
 ---
 

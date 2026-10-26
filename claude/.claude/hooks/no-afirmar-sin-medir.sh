@@ -89,7 +89,7 @@ fi
 # (2) FECHAS. Una fecha en un comentario es casi siempre crónica: el archivo no
 #     necesita saber cuándo se escribió — git lo sabe con precisión de segundo.
 if printf '%s' "$comentarios" | grep -qE '20[0-9]{2}-[0-9]{2}-[0-9]{2}'; then
-  hallazgos="${hallazgos}· una FECHA. git ya registra cuándo cambió cada línea, con más precisión y\n  sin desincronizarse. Si la fecha importa para el invariante, dejá el hecho\n  (\"el proveedor cambió el formato\"), no la crónica.\n"
+  hallazgos="${hallazgos}· una FECHA. git ya registra cuándo cambió cada línea, con más precisión y\n  sin desincronizarse. Si la fecha importa para el invariante, dejá el hecho\n  (\"la API externa cambió el formato\"), no la crónica.\n"
 fi
 
 # (3) CIFRA DE CASOS/TESTS. Se desincroniza sola: el "33 casos" de este mismo
@@ -172,7 +172,7 @@ Un INVARIANTE ("la lista es cerrada: lo que falte queda bloqueado") se queda:
 sin él, el próximo lo rompe. La CRÓNICA de cómo se llegó ahí, no.
 
 Reescribí el comentario y reintentá. Si el hecho importa para el invariante,
-dejá el HECHO ("el proveedor cambió el formato"), no la crónica de cuándo se
+dejá el HECHO ("la API externa cambió el formato"), no la crónica de cuándo se
 descubrió. NO hay variable de override: un gate que se rodea deja de existir.
 Los ADRs y los tests están exentos — ahí la historia es legítima.
 EOF

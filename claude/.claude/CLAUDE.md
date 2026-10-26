@@ -47,19 +47,10 @@ Dos MCP complementarios para código. **Engram sigue siendo el único sistema de
 ### codebase-memory (grafo) → navegar/entender barato
 Grafo de conocimiento pre-indexado. **Solo lectura.** Úsalo primero para preguntas estructurales:
 
-> **Cuánto ahorra** (medido 2026-09-19 en un repo de 1.393 archivos TS; órdenes de
-> magnitud, no cifras, porque dependen del modo y del conjunto de archivos):
->
-> | Contra qué | Resultado |
-> | --- | --- |
-> | Leer enteros los archivos que contienen el símbolo | **decenas de veces** a favor del grafo |
-> | grep, para preguntas estructurales (dónde está / quién llama) | **unas pocas veces** a favor del grafo |
-> | grep, para búsqueda de TEXTO plano | **a favor de grep**: el grafo devuelve más tokens |
->
-> Para texto plano, grep es la herramienta correcta. Lo que justifica el grafo no es sólo
-> el token count: ve lo que grep no puede (una dependencia inyectada, el docstring tres
-> líneas arriba del match). La cifra anterior ("~120x") juntaba dos comparaciones
-> distintas y se retiró; el detalle está en el historial de git de este archivo.
+> **Cuándo conviene**: para preguntas estructurales (dónde está, quién llama) el grafo gasta
+> menos que grep y mucho menos que leer archivos enteros; para TEXTO plano, grep es la
+> herramienta correcta. Además ve lo que grep no puede (una dependencia inyectada, el
+> docstring tres líneas arriba del match).
 - `search_code` / `search_graph` → buscar símbolos y patrones
 - `query_graph` (Cypher) → quién llama a qué, dependencias
 - `trace_path` → trazar cadenas de llamadas
@@ -153,7 +144,9 @@ content:
 
 ### Session Protocol — Non-Negotiable
 
-**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`
+**Session Start**: Call `mem_session_start(project="<project-name>", directory="<cwd>")`.
+`<project-name>` is the folder name of the MAIN repo (`basename "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"`),
+never the worktree's: the recall hooks group memories by repo, and a worktree name scatters them.
 
 **Session End / "done"**: Call `mem_session_summary` with:
 ```

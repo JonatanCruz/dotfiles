@@ -14,7 +14,7 @@ CRITICAL - Code Discovery Protocol:
    CLI output), and always Read a file before editing it.
    NOT "freely" over CODE: a hard gate (redirect-code-search-to-mcp.sh)
    BLOCKS recursive grep/sed over source files via Bash, and there is no
-   override. Verified 2026-09-19: `grep -rn "handler" src/` -> exit 2.
+   override: `grep -rn "handler" src/` -> exit 2.
    For code, step 1 is not a preference — it is the only path.
 3. If a project is not indexed yet, run index_repository FIRST.
 REMINDER

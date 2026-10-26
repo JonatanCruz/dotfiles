@@ -5,8 +5,8 @@
 #
 # ⚠️ ESTE TEXTO DESCRIBE UN GATE DURO, NO UNA PREFERENCIA.
 #
-# Decía "prefer … over grep/file-read" y "use Grep/Glob/Read for text". Medido el
-# 2026-09-19, `redirect-code-search-to-mcp.sh` NO trata eso como preferencia:
+# "prefer … over grep/file-read" no describe lo que pasa:
+# `redirect-code-search-to-mcp.sh` NO lo trata como preferencia:
 #
 #   grep -rn "handler" src/          → exit 2 (bloqueado, sin override)
 #   grep -n error /var/log/syslog    → exit 0

@@ -17,8 +17,7 @@
 # y no un resumen que envejece dentro de este archivo.
 #
 # La tabla CRECE cuando el dueño dicta una regla, no cuando crece la DB, y vive
-# en el repo del PROYECTO (`.claude/reglas-escritura.tsv`), no en este hook
-# global. Cada entrada nueva exige su caso negativo junto a ella.
+# en el repo del PROYECTO (`.claude/hooks.json`), no en este hook global. Cada entrada nueva exige su caso negativo junto a ella.
 #
 # ── BLOQUEA, NO INYECTA ─────────────────────────────────────────────────────
 #
@@ -55,17 +54,30 @@ payload="$(cat 2>/dev/null || true)"
 
 # ── DE DÓNDE SALEN LAS REGLAS ───────────────────────────────────────────────
 # Las reglas son del PROYECTO, no de estos dotfiles (que son públicos y se usan
-# con cualquier repo): viven en `<raíz del repo>/.claude/reglas-escritura.tsv`,
-# versionadas en el repo de ese proyecto. ENGRAM_REGLAS_ARCHIVO lo fuerza (las
-# pruebas usan tests/reglas-escritura-ejemplo.tsv).
-# Sin archivo no hay nada que aplicar: sale 0 ANTES de exigir jq, para no frenar
-# las escrituras de un repo que no usa este gate.
+# con cualquier repo): viven en la clave `reglas_escritura` de
+# `<raíz del repo>/.claude/hooks.json`, versionado en el repo de ese proyecto
+# (formato y modelo de confianza en lib/config.sh). Por compatibilidad se lee
+# también `<raíz del repo>/.claude/reglas-escritura.tsv`; ENGRAM_REGLAS_ARCHIVO
+# fuerza ese TSV (las pruebas usan tests/reglas-escritura-ejemplo.tsv). Las dos
+# fuentes SUMAN, y las dos pasan por la misma validación.
+# Sin reglas no hay nada que aplicar: sale 0 ANTES de exigir jq, para no frenar
+# las escrituras de un repo que no usa este gate. (Sin jq, hooks.json no se
+# puede leer: sólo cuenta el TSV.)
+dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+_cfg="$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+# shellcheck source=lib/config.sh
+[ -r "$_cfg" ] && . "$_cfg"
 REGLAS="${ENGRAM_REGLAS_ARCHIVO:-}"
 if [ -z "$REGLAS" ]; then
-  raiz="$(git -C "${CLAUDE_PROJECT_DIR:-$PWD}" rev-parse --show-toplevel 2>/dev/null || true)"
+  raiz="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null || true)"
   [ -n "$raiz" ] && REGLAS="$raiz/.claude/reglas-escritura.tsv"
 fi
-[ -n "$REGLAS" ] && [ -r "$REGLAS" ] || exit 0
+{ [ -n "$REGLAS" ] && [ -f "$REGLAS" ] && [ -r "$REGLAS" ]; } || REGLAS=""
+REGLAS_CFG=""
+if command -v config_reglas_escritura >/dev/null 2>&1; then
+  REGLAS_CFG="$(config_reglas_escritura "$dir")"
+fi
+[ -n "$REGLAS" ] || [ -n "$REGLAS_CFG" ] || exit 0
 
 if ! command -v jq >/dev/null 2>&1; then
   cat >&2 <<'EOF'
@@ -90,6 +102,7 @@ texto="$(printf '%s' "$payload" | jq -r '
 # sus casos enuncian los patrones que cazan.
 case "$ruta" in
   */engram-reglas-antes-de-escribir.sh|*/casos-engram-reglas*|*/reglas-escritura*.tsv) exit 0 ;;
+  */.claude/hooks.json) exit 0 ;;
   *.md|*.mdx|*.markdown) exit 0 ;;
   */test/*|*/tests/*|*/__tests__/*|*/spec/*|*/testdata/*) exit 0 ;;
   *.test.*|*.spec.*|*_test.*|*-test.*|*/test_*|*.bats) exit 0 ;;
@@ -104,7 +117,18 @@ esac
 # NO se usa un caracter multibyte: IFS parte por BYTES y rompería los campos.
 # Las líneas que empiezan con # y las vacías se ignoran.
 reglas() {
-  sed '/^#/d; /^[[:space:]]*$/d' "$REGLAS" 2>/dev/null || true
+  local pat id tit exi s
+  s="$(printf '\001')"
+  if [ -n "$REGLAS" ]; then
+    sed '/^#/d; /^[[:space:]]*$/d' "$REGLAS" 2>/dev/null | while IFS="$s" read -r pat id tit exi; do
+      if command -v config_regla_valida >/dev/null 2>&1; then
+        config_regla_valida "$pat" "$id" "$tit" "$exi"
+      else
+        printf '%s%s%s%s%s%s%s\n' "$pat" "$s" "$id" "$s" "$tit" "$s" "$exi"
+      fi
+    done
+  fi
+  [ -z "$REGLAS_CFG" ] || printf '%s\n' "$REGLAS_CFG"
 }
 
 texto_low="$(printf '%s' "$texto" | tr '[:upper:]' '[:lower:]')"
@@ -112,9 +136,9 @@ texto_low="$(printf '%s' "$texto" | tr '[:upper:]' '[:lower:]')"
 CRUCE=""; FRAGMENTO=""
 while IFS='' read -r PAT ID TITULO EXIGE; do
   [ -n "${PAT:-}" ] || continue
-  if printf '%s' "$texto_low" | grep -aqE "$PAT" 2>/dev/null; then
+  if printf '%s' "$texto_low" | grep -aqE -e "$PAT" 2>/dev/null; then
     CRUCE="$ID$TITULO$EXIGE"
-    FRAGMENTO="$(printf '%s' "$texto_low" | grep -aoE "$PAT" 2>/dev/null | head -1)"
+    FRAGMENTO="$(printf '%s' "$texto_low" | grep -aoE -e "$PAT" 2>/dev/null | head -1)"
     break
   fi
 done <<EOF
