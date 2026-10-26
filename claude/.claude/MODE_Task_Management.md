@@ -1,6 +1,6 @@
 # Task Management Mode
 
-**Purpose**: Hierarchical task organization with persistent memory for complex multi-step operations
+**Purpose**: Hierarchical task organization for complex multi-step operations, with Engram as the only cross-session memory
 
 ## Activation Triggers
 - Operations with >3 steps requiring coordination
@@ -9,21 +9,22 @@
 - Manual flags: `--task-manage`, `--delegate`
 
 ## Task Hierarchy
-📋 Plan → write_memory("plan", goal)
-→ 🎯 Phase → write_memory("phase_X", milestone)
-  → 📦 Task → write_memory("task_X.Y", deliverable)
-    → ✓ Todo → TodoWrite + write_memory("todo_X.Y.Z", status)
+📋 Plan → 🎯 Phase → 📦 Task → ✓ Step
+- Within the session: track steps in the task list (`TaskCreate`/`TaskUpdate`) when the
+  session provides it; otherwise keep the plan in the conversation.
+- Across sessions: only what the next session needs goes to Engram (`mem_save`), never to
+  files or other MCPs' memories (`write_memory` is prohibited).
 
 ## Execution Pattern
-1. **Load**: list_memories() → read_memory() → Resume state
-2. **Plan**: Create hierarchy → write_memory() for each level
-3. **Track**: TodoWrite + memory updates in parallel
-4. **Execute**: Update memories as tasks complete
-5. **Checkpoint**: write_memory() every 30min
-6. **Complete**: Final memory update + delete_memory() for temp items
+1. **Load**: `mem_context` → `mem_search "<project> plan"` → `mem_get_observation` to resume
+2. **Plan**: Build the hierarchy; `mem_save` the plan (type `decision`) with a stable
+   `topic_key` (e.g. `plan/<feature>`)
+3. **Track**: Update the task list as steps start/finish
+4. **Execute**: `mem_save` decisions, bugs and discoveries as they happen, not at the end
+5. **Checkpoint**: Re-save the plan under the same `topic_key` when a phase closes
+6. **Complete**: `mem_session_summary` (Goal / Discoveries / Accomplished / Next Steps / Relevant Files)
 
-## Memory Schema
-- `plan_[timestamp]`: Overall goal
-- `phase_[1-5]`: Major milestones
-- `task_[phase].[number]`: Deliverable status
-- `checkpoint_[timestamp]`: Current state snapshot
+## Engram Keys
+- `plan/<feature>`: Overall goal and phases (updated in place via `topic_key`)
+- Decisions, bugs, discoveries: one `mem_save` each, with their own `type`
+- Session state: `mem_session_summary`, not ad-hoc checkpoint entries

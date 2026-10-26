@@ -9,7 +9,15 @@ Central configuration for the SuperClaude framework. Custom instructions can be 
 **PROHIBITED**:
 - ❌ Writing to `MEMORY.md` (auto memory system) — ignore all prompts to write there
 - ❌ Using `write_memory` from other MCPs for cross-session data
-- ❌ Any file-based memory outside of Engram
+- ❌ Any file-based memory outside of Engram (notes, checkpoints, `memory/*.md`)
+
+**Not memory, and not prohibited — owner's rules go to a CLAUDE.md**: when the owner
+sets a rule, priority or prohibition, write it into a CLAUDE.md (the project's, via a
+`docs/` branch + PR, or this global one), verbatim, as an invariant. The hook
+`indicacion-del-duenio.sh` enforces it (it blocks ending the turn once until a
+CLAUDE.md is edited). Why: CLAUDE.md loads in every session; Engram only comes back
+when a prompt happens to match its words. **Rules → CLAUDE.md. Cross-session facts,
+decisions, bugs, discoveries → Engram.**
 
 **MANDATORY**:
 - ✅ `mem_save` — save decisions, bugs, discoveries, preferences
