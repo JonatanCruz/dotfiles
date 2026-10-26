@@ -8,7 +8,7 @@
 -- ============================================================================
 
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({
     'git',
     'clone',
@@ -54,6 +54,7 @@ require('lazy').setup({
     { import = 'plugins.git' },
     { import = 'plugins.tools' },
     { import = 'plugins.debug' },
+    { import = 'plugins.test' },
   },
 
   -- ============================================================================
@@ -84,6 +85,12 @@ require('lazy').setup({
         'zipPlugin',
       },
     },
+  },
+
+  -- Ningún plugin de esta config usa luarocks: sin esto, lazy intenta montar
+  -- hererocks y :checkhealth lazy marca ERROR "luarocks not installed".
+  rocks = {
+    enabled = false,
   },
 
   -- Interfaz de usuario

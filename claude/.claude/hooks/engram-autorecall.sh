@@ -3,7 +3,7 @@
 #
 # PROBLEMA QUE RESUELVE (2026-07-13, feedback del dueño): las memorias de Engram
 # existen pero no se consultan en el momento de actuar — el agente afirma desde
-# memoria stale ("2 usuarios de prueba") teniendo los datos reales guardados.
+# memoria stale (una cifra vieja) teniendo los datos reales guardados.
 # Una instrucción de prosa ("busca antes de opinar") no previene el error
 # competente; este hook pone el control en la ESTRUCTURA (Meadows): en cada
 # prompt del usuario, consulta el FTS de Engram e inyecta las memorias
@@ -33,9 +33,13 @@ DB="$HOME/.engram/engram.db"
 command -v sqlite3 >/dev/null 2>&1 || exit 0
 command -v jq >/dev/null 2>&1 || exit 0
 
-INPUT="$(cat 2>/dev/null || true)"
-PROMPT="$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || true)"
-CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)"
+# Un solo jq para los dos campos. @sh los entrega como literales entre comillas simples
+# (seguro para eval aunque el prompt traiga comillas, $() o saltos de línea; `read -d`
+# sobre un pipe lee byte a byte y con prompts largos tardaba más que dos jq). Los saltos
+# finales se quitan en jq, igual que hacía la sustitución $(...) anterior (en bash,
+# ${x%"${x##*[!$'\n']}"} es cuadrático y costaba ~50 ms con prompts largos).
+PROMPT="" CWD=""
+eval "$(jq -r '@sh "PROMPT=\(.prompt // "" | tostring | sub("\n+\\z"; "")) CWD=\(.cwd // "" | tostring | sub("\n+\\z"; ""))"' 2>/dev/null)" 2>/dev/null || exit 0
 [ -n "$PROMPT" ] || exit 0
 
 # Avisos del sistema (resultados de agentes/shells en segundo plano): no son del dueño.
@@ -65,31 +69,60 @@ MIN=1; [ "$NKW" -ge 2 ] && MIN=2
 FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"", (i>1?" OR ":""), $i}}')"
 [ -n "$FTS_QUERY" ] || exit 0
 
-CANDIDATOS="$(sqlite3 -separator '|' "$DB" "
-  SELECT o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), substr(o.created_at, 1, 10),
-         lower(replace(replace(o.title || ' ' || o.content, char(10), ' '), '|', '/'))
-  FROM observations_fts f
-  JOIN observations o ON o.id = f.rowid
-  WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
-    AND o.deleted_at IS NULL
-    $( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(printf '%s' "$PROJECT" | sed "s/'/''/g")" )
-  ORDER BY rank
-  LIMIT 25;
-" 2>/dev/null || true)"
-[ -n "$CANDIDATOS" ] || exit 0
-
+# UNA sola apertura de la base para todo (antes eran 2 + una por palabra clave, ~10
+# procesos sqlite3 por prompt). Cada fila lleva una etiqueta en la 1.ª columna:
+#   C|…  candidatos (FTS, ORDER BY rank LIMIT 25)
+#   T|n  total de memorias vivas del proyecto (base del IDF)
+#   D|i|n  en cuántas memorias aparece la palabra clave i (IDF)
 # Peso de cada palabra = qué tan rara es en las memorias del proyecto (IDF): una
 # palabra que aparece en un tercio de las memorias ("staging") casi no pesa; una que
 # aparece en pocas, sí; la que está en más del 15% no cuenta. Si el proyecto no
 # resuelve, el total sale de todas.
-SQL_PROY="$( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(printf '%s' "$PROJECT" | sed "s/'/''/g")" )"
-TOTAL="$(sqlite3 "$DB" "SELECT count(*) FROM observations o WHERE o.deleted_at IS NULL $SQL_PROY;" 2>/dev/null || echo 0)"
-[ "${TOTAL:-0}" -gt 0 ] || exit 0
-PESOS=""
+# `.timeout`: si otra sesión está escribiendo, espera como mucho 1 s al lock en vez de
+# fallar al instante o colgar el prompt. sqlite3 corta en el primer error, así que un
+# fallo en los candidatos o en el total deja la salida vacía (fail-open, como antes).
+sqlq() { printf '%s' "$1" | sed "s/'/''/g"; }
+SQL_PROY="$( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(sqlq "$PROJECT")" )"
+SQL="SELECT 'C', replace(replace(replace(o.type, char(10), ' '), char(13), ' '), '|', '/'),
+         replace(replace(replace(o.title, char(10), ' '), char(13), ' '), '|', '/'),
+         substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 220), replace(substr(o.created_at, 1, 10), char(10), ' '),
+         lower(replace(replace(o.title || ' ' || o.content, char(10), ' '), '|', '/'))
+  FROM observations_fts f
+  JOIN observations o ON o.id = f.rowid
+  WHERE observations_fts MATCH '$(sqlq "$FTS_QUERY")'
+    AND o.deleted_at IS NULL
+    $SQL_PROY
+  ORDER BY rank
+  LIMIT 25;
+SELECT 'T', count(*) FROM observations o WHERE o.deleted_at IS NULL $SQL_PROY;"
+i=0
 for w in $KEYWORDS; do
-  df="$(sqlite3 "$DB" "SELECT count(*) FROM observations_fts f JOIN observations o ON o.id = f.rowid
-         WHERE observations_fts MATCH '\"$(printf '%s' "$w" | sed "s/'/''/g")\"' AND o.deleted_at IS NULL $SQL_PROY;" 2>/dev/null || echo 0)"
-  PESOS="$PESOS $w:${df:-0}"
+  i=$((i + 1))
+  SQL="$SQL
+SELECT 'D', $i, count(*) FROM observations_fts f JOIN observations o ON o.id = f.rowid
+  WHERE observations_fts MATCH '\"$(sqlq "$w")\"' AND o.deleted_at IS NULL $SQL_PROY;"
+done
+SALIDA="$(sqlite3 -cmd '.timeout 1000' -separator '|' "$DB" "$SQL" 2>/dev/null || true)"
+
+# Separar secciones. La fila T marca el fin de los candidatos. Ningún dato almacenado
+# puede falsificar una fila T o D: type, title y created_at llegan sin saltos de línea
+# (arriba, en el SQL) y content ya venía aplanado.
+CANDIDATOS="$(printf '%s\n' "$SALIDA" | awk '/^T\|[0-9]+$/ { exit } { sub(/^C\|/, ""); print }')"
+[ -n "$CANDIDATOS" ] || exit 0
+TOTAL="$(printf '%s\n' "$SALIDA" | awk '/^T\|[0-9]+$/ { print substr($0, 3); exit }')"
+[ "${TOTAL:-0}" -gt 0 ] 2>/dev/null || exit 0
+DF=()
+while IFS='|' read -r idx n; do
+  # El subíndice de un array indexado se evalúa como aritmética: `x[$(cmd)]` ejecutaría
+  # cmd. Solo se aceptan números, aunque las filas D las genere este mismo SQL.
+  [[ "$idx" =~ ^[0-9]+$ && "$n" =~ ^[0-9]+$ ]] || continue
+  DF[idx]="$n"
+done < <(printf '%s\n' "$SALIDA" | awk 'f && sub(/^D\|/, "") { print } /^T\|[0-9]+$/ { f = 1 }')
+PESOS=""
+i=0
+for w in $KEYWORDS; do
+  i=$((i + 1))
+  PESOS="$PESOS $w:${DF[i]:-0}"
 done
 
 # Filtro de relevancia: al menos MIN palabras clave distintas en título+contenido Y

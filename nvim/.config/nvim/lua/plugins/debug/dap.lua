@@ -4,6 +4,22 @@
 -- Plugin principal de debugging con configuraciones para múltiples lenguajes
 -- Lazy load: se activa con keybindings bajo <leader>d
 
+-- Para <leader>da: pide argumentos y los inyecta en la config elegida (hook `before`
+-- de dap.continue). Parte de los args que ya tenga la config.
+local function get_args(config)
+  local args = type(config.args) == "function" and (config.args() or {}) or config.args or {}
+  local args_str = type(args) == "table" and table.concat(args, " ") or args
+  config = vim.deepcopy(config)
+  config.args = function()
+    local new_args = vim.fn.expand(vim.fn.input("Run with args: ", args_str))
+    if config.type == "java" then
+      return new_args
+    end
+    return require("dap.utils").splitstr(new_args)
+  end
+  return config
+end
+
 return {
   -- Plugin principal de DAP
   {
@@ -18,7 +34,7 @@ return {
           local dap = require("dap")
           local dapui = require("dapui")
           dapui.setup(opts)
-          
+
           -- Auto-abrir/cerrar UI en eventos de debug
           dap.listeners.after.event_initialized["dapui_config"] = function()
             dapui.open({})
@@ -31,7 +47,7 @@ return {
           end
         end,
       },
-      
+
       -- Virtual text para mostrar valores inline
       {
         "theHamsta/nvim-dap-virtual-text",
@@ -47,7 +63,7 @@ return {
           virt_text_pos = "eol", -- Posición: 'eol' | 'overlay' | 'right_align'
         },
       },
-      
+
       -- Mason integration para auto-instalación de adapters
       {
         "jay-babu/mason-nvim-dap.nvim",
@@ -63,11 +79,11 @@ return {
           },
         },
       },
-      
+
       -- Dependencia requerida
       "nvim-neotest/nvim-nio",
     },
-    
+
     keys = {
       -- ===============================================================
       -- BREAKPOINTS
@@ -86,7 +102,7 @@ return {
         end,
         desc = "🟡 Conditional Breakpoint",
       },
-      
+
       -- ===============================================================
       -- CONTROL DE EJECUCIÓN
       -- ===============================================================
@@ -132,7 +148,7 @@ return {
         end,
         desc = "⏹️  Terminate",
       },
-      
+
       -- ===============================================================
       -- STEPPING
       -- ===============================================================
@@ -164,7 +180,7 @@ return {
         end,
         desc = "🎯 Go to Line (no execute)",
       },
-      
+
       -- ===============================================================
       -- STACK NAVIGATION
       -- ===============================================================
@@ -182,7 +198,7 @@ return {
         end,
         desc = "⬇️  Stack Down",
       },
-      
+
       -- ===============================================================
       -- UI & INSPECTION
       -- ===============================================================
@@ -223,7 +239,7 @@ return {
         desc = "📋 Session Info",
       },
     },
-    
+
     config = function()
       local dap = require("dap")
 

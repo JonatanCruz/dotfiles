@@ -48,8 +48,8 @@ Thumbs.db
 *~
 
 # === NEOVIM ===
-# lazy-lock.json es específico de cada servidor (versiones de plugins/LSP)
-nvim/.config/nvim/lazy-lock.json
+# nvim/.config/nvim/lazy-lock.json SÍ se versiona: es lo que hace que todos los
+# servidores tengan los mismos commits de plugins (`:Lazy restore`).
 
 # === SERENA MEMORY (session-only memories) ===
 .serena/

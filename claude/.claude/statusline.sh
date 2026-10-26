@@ -44,17 +44,23 @@ SURFACE0="\033[38;2;49;50;68m"
 input=$(cat)
 
 # ---------- Extracción JSON ----------
+# Un solo jq (antes eran 7). @sh entrega cada campo como literal entre comillas simples,
+# seguro para eval. Cada campo va en su propio try: si uno falla (p. ej. "model" es un
+# string y .model.display_name da error) solo ese queda vacío, como cuando cada campo
+# tenía su propio jq. sub() quita los saltos finales igual que hacía $(...).
+model_name=""; current_dir=""; ctx_pct=""; exceeds_200k="false"
+five_h_pct=""; five_h_reset=""; worktree_name=""
 if command -v jq >/dev/null 2>&1; then
-    model_name=$(echo "$input" | jq -r '.model.display_name // .model.displayName // .display_name // .displayName // .modelDisplayName // .model.id // .id // empty' 2>/dev/null)
-    current_dir=$(echo "$input" | jq -r '.workspace.current_dir // .workspace.project_dir // .workingDirectory // .working_directory // .cwd // empty' 2>/dev/null)
-    ctx_pct=$(echo "$input"     | jq -r '.context_window.used_percentage // empty' 2>/dev/null)
-    exceeds_200k=$(echo "$input"| jq -r '.exceeds_200k_tokens // false' 2>/dev/null)
-    five_h_pct=$(echo "$input"  | jq -r '.rate_limits.five_hour.used_percentage // empty' 2>/dev/null)
-    five_h_reset=$(echo "$input"| jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
-    worktree_name=$(echo "$input"| jq -r '.worktree.name // empty' 2>/dev/null)
-else
-    model_name=""; current_dir=""; ctx_pct=""; exceeds_200k="false"
-    five_h_pct=""; five_h_reset=""; worktree_name=""
+    exceeds_200k=""
+    eval "$(printf '%s' "$input" | jq -r '
+        def f(e): try (e // "" | tostring | sub("\n+\\z"; "")) catch "";
+        @sh "model_name=\(f(.model.display_name // .model.displayName // .display_name // .displayName // .modelDisplayName // .model.id // .id))
+             current_dir=\(f(.workspace.current_dir // .workspace.project_dir // .workingDirectory // .working_directory // .cwd))
+             ctx_pct=\(f(.context_window.used_percentage))
+             exceeds_200k=\(f(.exceeds_200k_tokens // false))
+             five_h_pct=\(f(.rate_limits.five_hour.used_percentage))
+             five_h_reset=\(f(.rate_limits.five_hour.resets_at))
+             worktree_name=\(f(.worktree.name))"' 2>/dev/null)" 2>/dev/null
 fi
 
 [ -z "$model_name" ] && model_name="${CLAUDE_MODEL:-Sonnet 4.5}"
@@ -62,10 +68,11 @@ fi
 
 # ---------- OS / SSH ----------
 os_icon=""
-case "$(uname -s)" in
-    Darwin) os_icon=$'' ;;
-    Linux)
+case "${OSTYPE:-$(uname -s)}" in
+    Darwin|darwin*) os_icon=$'' ;;
+    Linux|linux*)
         if [ -f /etc/os-release ]; then
+            # shellcheck source=/dev/null
             . /etc/os-release
             case "$ID" in
                 ubuntu) os_icon=$'' ;;
@@ -78,7 +85,7 @@ case "$(uname -s)" in
             os_icon=$''
         fi
         ;;
-    MINGW*|MSYS*|CYGWIN*) os_icon=$'' ;;
+    MINGW*|MSYS*|CYGWIN*|msys*|cygwin*) os_icon=$'' ;;
     *) os_icon=$'' ;;
 esac
 
@@ -87,32 +94,53 @@ if [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
     ssh_hostname=$(hostname -s 2>/dev/null || hostname | cut -d'.' -f1)
 fi
 
-dir_name=$(basename "$current_dir")
+# basename sin fork (mismas reglas: ignora las / finales; "/" sigue siendo "/")
+dir_name="$current_dir"
+while [ "${#dir_name}" -gt 1 ] && [ "${dir_name%/}" != "$dir_name" ]; do dir_name="${dir_name%/}"; done
+[ "$dir_name" = "/" ] || dir_name="${dir_name##*/}"
 
 # ---------- Git (branch + dirty + ahead/behind) ----------
+# Un solo `git status --porcelain=v2 --branch` (antes 4-5 llamadas): las cabeceras
+# "# branch.head/branch.ab" dan rama y ahead/behind, y cualquier otra línea es un
+# cambio (staged/unstaged/untracked). Sin upstream no hay branch.ab: no se muestra nada.
 git_segment=""
-if git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
+git_branch=""; dirty=""; ahead_behind=""; ahead=""; behind=""; en_repo=""
+if git_st=$(git -C "$current_dir" status --porcelain=v2 --branch 2>/dev/null); then
+    en_repo=1
+    while IFS= read -r line; do
+        case "$line" in
+            "# branch.head "*) git_branch="${line#\# branch.head }" ;;
+            "# branch.ab "*)
+                ab="${line#\# branch.ab }"          # "+A -B"
+                ahead="${ab%% *}"; ahead="${ahead#+}"
+                behind="${ab##* }"; behind="${behind#-}" ;;
+            "# "*) ;;
+            ?*) dirty="${YELLOW}●${RESET}" ;;
+        esac
+    done <<< "$git_st"
+    if [ "$git_branch" = "(detached)" ]; then
+        # Igual que antes: hash corto con la longitud que elija git (core.abbrev)
+        short=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
+        git_branch=""
+        [ -n "$short" ] && git_branch="detached@${short}"
+    fi
+elif git -C "$current_dir" rev-parse --git-dir > /dev/null 2>&1; then
+    # Dentro de un repo pero sin árbol de trabajo (bare, o dentro de .git): status
+    # falla; se resuelve como hacía la versión anterior.
+    en_repo=1
     git_branch=$(git -C "$current_dir" branch --show-current 2>/dev/null)
     if [ -z "$git_branch" ]; then
         short=$(git -C "$current_dir" rev-parse --short HEAD 2>/dev/null)
         [ -n "$short" ] && git_branch="detached@${short}"
     fi
-
-    # Dirty marker (any staged/unstaged/untracked change)
-    dirty=""
-    if [ -n "$(git -C "$current_dir" status --porcelain 2>/dev/null)" ]; then
-        dirty="${YELLOW}●${RESET}"
-    fi
-
-    # Ahead/behind vs upstream (silent if no upstream)
-    ahead_behind=""
     counts=$(git -C "$current_dir" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
     if [ -n "$counts" ]; then
-        behind=$(echo "$counts" | awk '{print $1}')
-        ahead=$(echo "$counts"  | awk '{print $2}')
-        [ "$ahead"  -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${GREEN}↑${ahead}${RESET}"
-        [ "$behind" -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${RED}↓${behind}${RESET}"
+        behind="${counts%%[[:space:]]*}"; ahead="${counts##*[[:space:]]}"
     fi
+fi
+if [ -n "$en_repo" ]; then
+    [ "$ahead"  -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${GREEN}↑${ahead}${RESET}"
+    [ "$behind" -gt 0 ] 2>/dev/null && ahead_behind="${ahead_behind}${RED}↓${behind}${RESET}"
 
     if [ -n "$git_branch" ]; then
         icon_git_branch=$''
@@ -155,10 +183,14 @@ if [ -n "$five_h_pct" ] && [ "$five_h_pct" != "null" ]; then
     fi
     reset_str=""
     if [ -n "$five_h_reset" ] && [ "$five_h_reset" != "null" ]; then
-        if date -r "$five_h_reset" +"%H:%M" >/dev/null 2>&1; then
-            reset_str=$(date -r "$five_h_reset" +"%H:%M")        # macOS
-        elif date -d "@$five_h_reset" +"%H:%M" >/dev/null 2>&1; then
-            reset_str=$(date -d "@$five_h_reset" +"%H:%M")       # GNU/Linux
+        # Epoch entero con bash >= 4.2: printf builtin, sin fork. Si no, date (una
+        # llamada por variante en vez de comprobar y repetir).
+        if [[ "$five_h_reset" =~ ^[0-9]+$ ]] && (( BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 2) )); then
+            printf -v reset_str '%(%H:%M)T' "$five_h_reset"
+        elif r=$(date -r "$five_h_reset" +"%H:%M" 2>/dev/null); then
+            reset_str="$r"                                       # macOS
+        elif r=$(date -d "@$five_h_reset" +"%H:%M" 2>/dev/null); then
+            reset_str="$r"                                       # GNU/Linux
         fi
     fi
     if [ -n "$reset_str" ]; then
