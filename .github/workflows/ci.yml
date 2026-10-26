@@ -7,6 +7,17 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# Mínimo privilegio: ningún job escribe en el repo ni usa otros scopes del
+# GITHUB_TOKEN. Si un job futuro lo necesita, que lo pida en su propio bloque.
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama/PR cancela la ejecución anterior: su resultado
+# ya no describe el código actual y solo ocupa runners.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DOTFILES_DIR: ${{ github.workspace }}
 
@@ -20,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -73,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Install Lua and Luacheck
         run: |
@@ -124,7 +135,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -157,7 +168,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # Versión FIJA, no un canal. El PPA `unstable` (nightly) cambia sola y
       # rompe el CI sin que nadie toque el repo — fue lo que pasó cuando 0.12
@@ -245,17 +256,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
+      # Fijada a un commit (antes @main: cualquier push a esa rama ajena
+      # corría con el GITHUB_TOKEN de este repo). Se eligió una release con
+      # más de dos semanas, no la última de hace días. `version` fija también
+      # la imagen de Docker que la action ejecuta, que por defecto es :latest.
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9 # v3.99.2
         with:
           path: ./
           base: ""
           head: ${{ github.ref_name }}
           extra_args: --only-verified
+          version: 3.99.2
 
   # ==============================================================================
   # CLAUDE HOOKS VERSIONADOS
@@ -269,7 +285,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Check hooks cited in settings.json are versioned
         run: |
@@ -326,7 +342,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -363,7 +379,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
@@ -422,7 +438,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
 
