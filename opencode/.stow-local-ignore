@@ -1,0 +1,8 @@
+# Este archivo REEMPLAZA la lista por defecto de stow: se repiten sus patrones.
+\.git
+\.gitignore
+^/README.*
+^/LICENSE.*
+^/COPYING
+# Documentación del paquete, no configuración: sin esto aparecía en ~/.
+^/AGENTS_COMMANDS\.md

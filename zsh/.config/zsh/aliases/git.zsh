@@ -2,7 +2,7 @@
 # GIT - Aliases para Git y LazyGit
 # ==============================================================================
 
-# LazyGit
+# Base (gcloud usa `gcl`, no `g`)
 alias g='git'
 alias lg='lazygit'
 

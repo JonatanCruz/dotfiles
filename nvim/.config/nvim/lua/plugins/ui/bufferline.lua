@@ -17,9 +17,9 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons", "catppuccin/nvim" },
   event = "VeryLazy",
   keys = {
-    -- Navegación con Tab
-    { "<Tab>", "<cmd>BufferLineCycleNext<cr>", desc = "Siguiente buffer (Tab)" },
-    { "<S-Tab>", "<cmd>BufferLineCyclePrev<cr>", desc = "Buffer anterior (Shift+Tab)" },
+    -- Navegación: <S-h>/<S-l> (config/keymaps.lua). Sin <Tab> en modo normal:
+    -- el terminal envía el mismo código para <Tab> y <C-i>, así que mapearlo
+    -- rompía el salto hacia delante en la jumplist (<C-o>/<C-i>).
 
     -- Gestión intuitiva con <leader>b
     { "<leader>bc", "<cmd>bdelete<cr>", desc = "Cerrar buffer actual (close)" },

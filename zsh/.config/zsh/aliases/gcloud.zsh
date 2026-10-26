@@ -2,8 +2,9 @@
 # GCLOUD - Aliases para Google Cloud CLI
 # ==============================================================================
 
-# Comando base
-alias g='gcloud'
+# Comando base. No es `g`: `g` es git (git.zsh) y este archivo se carga
+# después, así que lo pisaba. `gc` también está ocupado (git commit -m).
+alias gcl='gcloud'
 
 # ==============================================================================
 # AUTENTICACIÓN Y CONFIGURACIÓN

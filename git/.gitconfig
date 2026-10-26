@@ -1,7 +1,7 @@
 # ============================================================================
 # CONFIGURACIÓN DE GIT
 # ============================================================================
-# Configuración optimizada para desarrollo con git-delta integrado
+# Usa git-delta como pager si está instalado (si no, cae a less)
 
 # ----------------------------------------------------------------------------
 # IDENTIDAD
@@ -24,18 +24,22 @@
 
 [core]
 	editor = nvim
-	pager = delta
-	# Ignorar cambios de permisos
-	filemode = false
-	# Mejor compresión
-	compression = 9
+	# delta si está instalado; si no, less. Un `pager = delta` a secas rompe
+	# `git log`/`git diff` en cualquier máquina sin delta (servidor recién
+	# instalado, contenedor...). Git ejecuta el pager con sh y exporta
+	# LESS=FRX si no está definido, así que el fallback se comporta igual que
+	# el pager por defecto.
+	pager = "if command -v delta >/dev/null 2>&1; then delta; else less; fi"
+	# Sin core.filemode global: git lo autodetecta en cada `init`/`clone`, y
+	# forzarlo a false oculta los `chmod +x` de los scripts en todos los repos.
+	# Sin core.compression = 9: cuesta CPU en cada commit/gc/push para ahorrar
+	# muy poco frente al nivel por defecto de zlib.
 	excludesfile = ~/.gitignore_global
 
 [interactive]
-	diffFilter = delta --color-only
-
-[add.interactive]
-	useBuiltin = false
+	# Mismo criterio: sin delta, `git add -p` falla con "mismatched output".
+	# `cat` deja pasar el diff tal cual (git ya lo colorea).
+	diffFilter = "if command -v delta >/dev/null 2>&1; then delta --color-only; else cat; fi"
 
 # ============================================================================
 # DELTA (Diff Viewer Mejorado)
@@ -53,7 +57,9 @@
 
 [merge]
 	tool = nvimdiff
-	conflictstyle = diff3
+	# zdiff3 (git ≥ 2.35): como diff3, pero saca del bloque en conflicto las
+	# líneas comunes del principio y del final.
+	conflictstyle = zdiff3
 
 [mergetool]
 	prompt = false
@@ -136,7 +142,8 @@
 
 	# Stash
 	sl = stash list
-	ss = stash save
+	# `stash save` está obsoleto; `push` admite pathspecs y -m
+	ss = stash push
 	sp = stash pop
 	sa = stash apply
 
@@ -193,11 +200,21 @@
 	untracked = red
 
 # ============================================================================
-# GITHUB CLI
+# CREDENCIALES (HTTPS)
 # ============================================================================
+# Para github.com, gh hace de helper: funciona igual en macOS y Linux (antes
+# era `osxkeychain`, que no existe en Linux). Requiere `gh auth login`.
+# El `helper =` vacío vacía la lista para no encadenar helpers heredados de
+# la config del sistema. Para otros hosts, define el helper que quieras en
+# ~/.gitconfig-local (p. ej. `osxkeychain` en la Mac).
 
-[credential]
-	helper = osxkeychain
+[credential "https://github.com"]
+	helper =
+	helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !gh auth git-credential
 
 # ============================================================================
 # OPTIMIZACIONES
@@ -225,7 +242,9 @@
 	ui = auto
 
 [help]
-	autocorrect = 1
+	# Pregunta antes de ejecutar el comando corregido (con 1 lo ejecutaba a
+	# la décima de segundo, sin margen para cancelar).
+	autocorrect = prompt
 
 [protocol]
 	version = 2

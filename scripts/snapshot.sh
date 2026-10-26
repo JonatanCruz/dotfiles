@@ -32,15 +32,24 @@ readonly SNAPSHOT_DIR="$HOME/.dotfiles-snapshots"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 readonly TIMESTAMP
 
-# Directories to snapshot
+# Files and directories to snapshot. Every entry must live under $HOME: the
+# archive stores each one at its path relative to $HOME, and rollback puts it
+# back at the same place.
 readonly SNAPSHOT_TARGETS=(
     "$HOME/.config/nvim"
     "$HOME/.config/tmux"
     "$HOME/.config/zsh"
     "$HOME/.config/yazi"
     "$HOME/.config/wezterm"
+    "$HOME/.config/mise"
+    "$HOME/.config/starship.toml"
+    "$HOME/.zshenv"
     "$HOME/.zsh"
     "$HOME/.tmux"
+    "$HOME/.tmux.conf"
+    "$HOME/.tmux-colors.conf"
+    "$HOME/.gitconfig"
+    "$HOME/.gitignore_global"
 )
 
 # ==============================================================================
@@ -89,12 +98,15 @@ create_snapshot() {
         if [ -e "$target" ]; then
             local basename
             basename=$(basename "$target")
-            local parent_dir
-            parent_dir=$(dirname "$target" | sed "s|$HOME/||")
+            # Path relative to $HOME (".zsh", ".config/nvim"). The old
+            # `dirname | sed "s|$HOME/||"` left "$HOME" untouched for entries
+            # directly in $HOME, so ~/.zsh was archived under an absolute
+            # path and rollback never found it.
+            local rel="${target#"$HOME"/}"
 
             # Preserve directory structure
-            mkdir -p "$staging_dir/$parent_dir"
-            cp -rL "$target" "$staging_dir/$parent_dir/" 2>/dev/null || {
+            mkdir -p "$staging_dir/$(dirname "$rel")"
+            cp -rL "$target" "$staging_dir/$rel" 2>/dev/null || {
                 print_warning "Could not copy $basename (may be broken symlink)"
                 skipped=$((skipped + 1))
                 continue
@@ -214,9 +226,11 @@ rollback_snapshot() {
         exit 0
     fi
 
-    # Create backup of current state before rollback
+    # Create backup of current state before rollback (aborts on failure via
+    # set -e, so nothing is removed below without a backup)
     print_step "Creating pre-rollback backup..."
     create_snapshot "pre-rollback" >/dev/null 2>&1
+    print_info "Saved as $SNAPSHOT_DIR/dotfiles_pre-rollback_${TIMESTAMP}.tar.gz"
 
     # Extract snapshot to temporary location
     local temp_dir
@@ -239,33 +253,24 @@ rollback_snapshot() {
     local restored=0
     local failed=0
 
-    # Remove current symlinks
+    # Restore each target the snapshot contains, at the same path relative to
+    # $HOME it was captured from. Targets absent from the snapshot are left
+    # alone. The current version (stow symlink, directory or file) is removed
+    # first: `cp -r dir existing_dir` would nest the copy inside it. It is
+    # already saved in the pre-rollback snapshot.
     for target in "${SNAPSHOT_TARGETS[@]}"; do
-        if [ -L "$target" ]; then
-            rm "$target"
-        fi
-    done
+        local rel="${target#"$HOME"/}"
+        local item="$extracted_dir/$rel"
+        [ -e "$item" ] || continue
 
-    # Copy from snapshot
-    for item in "$extracted_dir"/.config/* "$extracted_dir"/.zsh "$extracted_dir"/.tmux; do
-        if [ -e "$item" ]; then
-            local basename
-            basename=$(basename "$item")
-            local target_path
-
-            if [[ "$item" == *".config/"* ]]; then
-                target_path="$HOME/.config/$basename"
-            else
-                target_path="$HOME/$basename"
-            fi
-
-            if cp -r "$item" "$target_path" 2>/dev/null; then
-                print_success "Restored: $basename"
-                ((++restored))
-            else
-                print_error "Failed to restore: $basename"
-                ((++failed))
-            fi
+        rm -rf "$target"
+        mkdir -p "$(dirname "$target")"
+        if cp -r "$item" "$target" 2>/dev/null; then
+            print_success "Restored: $rel"
+            ((++restored))
+        else
+            print_error "Failed to restore: $rel"
+            ((++failed))
         fi
     done
 
