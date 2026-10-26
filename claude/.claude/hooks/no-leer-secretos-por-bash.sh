@@ -205,18 +205,25 @@ fi
 # Se busca la secuencia como PALABRAS en cualquier posición del tramo (`aws` …
 # `secretsmanager` … `get-secret-value`), no sólo al inicio tras una lista de
 # envoltorios: cualquier envoltorio con argumentos (`sudo -u x`, `timeout -s
-# KILL 5`, `env -u X`) la esquivaba. Un texto entrecomillado de varias palabras
-# sigue siendo UNA palabra (lleva \037 en vez de espacios), así que `echo "aws
-# secretsmanager get-secret-value"` no coincide; el string de un intérprete
-# (`bash -c "…"`) se evalúa aparte, ya partido en palabras.
-SEP=$'\036'
-RE_INTERPRETE="(^|[[:space:];&|(${SEP}])(eval|(ba|z|k|da|fi)?sh|su|ssh|watch|xargs|parallel|script|python[0-9.]*|node|perl|ruby|php|deno|bun)([[:space:]]|\$)"
+# KILL 5`, `env -u X`) la esquivaba. El texto entrecomillado se evalúa TAMBIÉN
+# partido en palabras: una lista de intérpretes que "podrían ejecutarlo" nunca
+# está completa (env -S, flock, awk system(), git -c alias, tmux, /bin/sh…).
+# La única exención es la de las rutas: el mensaje de un git commit/tag simple.
+# Las opciones obligatorias (`--with-decryption`, la salida de kubectl) se buscan
+# en el comando ENTERO: un corte artificial no puede esconderlas.
 # es_palabra <palabra> <nombre>: `aws` o `/usr/local/bin/aws`.
 es_palabra() { [ "$1" = "$2" ] || [[ "$1" == */"$2" ]]; }
 # vetar_clis <texto>: bloquea si un tramo ejecuta un CLI de la tabla.
 vetar_clis() {
-  local tramo entrada w i n ok_kc tiene_get tiene_secret tiene_salida
-  local -a palabras req
+  local tramo entrada w i n ok_kc tiene_get tiene_secret tiene_salida=0
+  local -a palabras req todas
+  # Comillas y llaves que quedan dentro de un texto citado (`awk 'BEGIN{system("op
+  # read …")}'`) no son parte de la palabra: `"op` es `op`. Tampoco `=` ni `!`:
+  # `alias.x='!aws …'` ejecuta `aws`.
+  local texto
+  texto="$(printf '%s' "$1" | tr "\"'{}=!" '      ')"
+  read -r -a todas <<<"$(printf '%s' "$texto" | tr ";&|()\`\n" '      ')"
+  for w in ${todas[@]+"${todas[@]}"}; do [[ "$w" =~ $RE_KUBE_SALIDA ]] && tiene_salida=1; done
   while IFS= read -r tramo; do
     read -r -a palabras <<<"$tramo"
     n="${#palabras[@]}"
@@ -236,24 +243,23 @@ vetar_clis() {
       [ "$j" = "$nw" ] || continue
       for o in "${req[@]:j}"; do
         [[ "$o" == --* ]] || { opciones_ok=0; break; }
-        case " ${palabras[*]} " in *" $o "* | *" $o="*) ;; *) opciones_ok=0 ;; esac
+        case " ${todas[*]} " in *" $o "* | *" $o="*) ;; *) opciones_ok=0 ;; esac
       done
       [ "$opciones_ok" = 1 ] || continue
       bloquear "\`$entrada\` devuelve el valor de un secreto. Para metadatos usá el subcomando de listar o describir."
     done <<<"$SECRETOS_CLIS"
-    # kubectl: dos condiciones independientes sobre el mismo tramo, en cualquier
-    # orden: (a) kubectl + get + secret(s); (b) una salida que muestra los datos.
-    ok_kc=0; tiene_get=0; tiene_secret=0; tiene_salida=0
+    # kubectl, en cualquier orden: (a) kubectl + get + secret(s) en el tramo;
+    # (b) una salida que muestra los datos, en cualquier parte del comando.
+    ok_kc=0; tiene_get=0; tiene_secret=0
     for w in "${palabras[@]}"; do
       es_palabra "$w" kubectl && ok_kc=1
       [ "$w" = get ] && tiene_get=1
       [[ "$w" =~ $RE_KUBE_SECRET ]] && tiene_secret=1
-      [[ "$w" =~ $RE_KUBE_SALIDA ]] && tiene_salida=1
     done
     if [ "$ok_kc$tiene_get$tiene_secret$tiene_salida" = 1111 ]; then
       bloquear "\`kubectl get secret\` con -o/--output/--template devuelve los valores del secreto. Para metadatos: kubectl get secrets (sin -o) / describe secret."
     fi
-  done < <(printf '%s\n' "$1" | tr ";&|()\`${SEP}" '\n\n\n\n\n\n\n')
+  done < <(printf '%s\n' "$texto" | tr ";&|()\`" '\n\n\n\n\n\n')
 }
 RE_KUBE_SECRET='^(([a-z0-9.-]+,)*secrets?(,[a-z0-9.-]+)*)(/.*)?$'
 RE_KUBE_SALIDA='^(-o.*|--output(=.*)?|--template(=.*)?|--go-template.*)$'
@@ -324,8 +330,9 @@ fi
 
 # Normalización básica como la de bash: fuera de comillas, `\x` → `x`; las
 # comillas se quitan y su contenido se conserva, con sus espacios y separadores
-# marcados (\037/\036) para que un texto de varias palabras no forme tokens
-# sueltos ni corte el comando.
+# marcados (\037 espacio, \036 ; & |, \035 \034 \033 paréntesis y backtick)
+# para que un texto de varias palabras no forme tokens sueltos ni corte el comando.
+# Para las rutas los paréntesis y el backtick citados se restituyen enseguida.
 normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
   s = $0; out = ""; q = ""; n = length(s)
   for (i = 1; i <= n; i++) {
@@ -340,6 +347,9 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
       if (q == "\"" && c == "\\" && i < n) { i++; c = substr(s, i, 1) }
       if (c == " " || c == "\t" || c == "\n") c = "\037"
       else if (c == ";" || c == "&" || c == "|") c = "\036"
+      else if (c == "(") c = "\035"
+      else if (c == ")") c = "\034"
+      else if (c == "`") c = "\033"
       out = out c
     }
   }
@@ -349,17 +359,23 @@ normal="$(printf '%s' "$cmd" | awk 'BEGIN { RS = "\001" } {
 # El texto entrecomillado cuenta como tokens (sus espacios son bordes), salvo
 # en el mensaje de un git commit/tag simple: ahí es prosa y no se ejecuta.
 SIMPLE_RE='[`;&|<>]|\$\('
-# Los CLIs de secretos se miran con el texto citado todavía en UNA palabra.
 normal_citado="$normal"
-if ! { [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
-       && ! [[ "$original" =~ $SIMPLE_RE ]] && [[ "$original" != *$'\n'* ]] \
-       && [[ "$original" != *\\* ]]; }; then
+normal="$(printf '%s' "$normal" | tr '\035\034\033' '()`')"
+commit_simple=0
+if [[ "$original" =~ ^[[:space:]]*git[[:space:]]+(commit|tag)([[:space:]]|$) ]] \
+   && ! [[ "$original" =~ $SIMPLE_RE ]] && [[ "$original" != *$'\n'* ]] \
+   && [[ "$original" != *\\* ]]; then
+  commit_simple=1
+else
   normal="$(printf '%s' "$normal" | tr '\037\036' ' ;')"
 fi
 
-vetar_clis "$normal_citado"
-if [[ "$normal_citado" =~ $RE_INTERPRETE ]]; then
-  vetar_clis "$(printf '%s' "$normal_citado" | tr '\037\036' ' ;')"
+# CLIs de secretos: el texto citado cuenta partido en palabras y SIN cortes (un
+# `(` o un `;` citados no separan comandos), salvo en el commit simple.
+if [ "$commit_simple" = 1 ]; then
+  vetar_clis "$normal_citado"
+else
+  vetar_clis "$(printf '%s' "$normal_citado" | tr '\037\036\035\034\033' '     ')"
 fi
 
 hallados="$(secretos_en "$normal"; globs_sospechosos "$cmd")"
