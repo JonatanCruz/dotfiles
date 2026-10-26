@@ -3,7 +3,7 @@
 # ── POR QUÉ EXISTE ESTE ARCHIVO ────────────────────────────────────────────
 #
 # El hook llevaba TRES rondas de auditoría, y cada una parcheó el lugar
-# equivocado. El 2026-09-19 se trazó con `bash -x` y apareció la causa que
+# equivocado. Se trazó con `bash -x` y apareció la causa que
 # ninguna ronda había visto: la pasada que borra strings se llevaba la RUTA
 # —que viaja dentro de comillas— y el chequeo "¿está la ruta?" salía con
 # exit 0 **antes** de cualquier análisis del verbo. Los parches anteriores
@@ -73,7 +73,7 @@
 0	redirección a /tmp	echo x > /tmp/f.md
 0	rsync en /tmp	rsync /tmp/a /tmp/b
 
-# ── PIPE Y ENCADENAMIENTO (E3, auditoría independiente 2026-09-19) ────────
+# ── PIPE Y ENCADENAMIENTO ──────────────────────────────────────────────────
 #
 # El test de lectura anclaba en la PRIMERA palabra del comando entero, así que
 # bastaba arrancar con un lector y encadenar. Verificado EN DISCO: el archivo

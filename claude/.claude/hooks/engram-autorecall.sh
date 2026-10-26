@@ -12,7 +12,7 @@
 # (una regla tiene que estar presente cuando toca, no cuando el prompt la nombra):
 # las reglas van en CLAUDE.md (ver indicacion-del-duenio.sh).
 #
-# Calibración (2026-10-23, medido sobre prompts reales de una sesión):
+# Calibración (medida sobre prompts reales de una sesión):
 #  - las palabras clave salían en orden ALFABÉTICO (`sort -u | head -8`), no por
 #    aparición: con prompts largos se perdían las palabras del final;
 #  - bastaba UNA palabra en común: "eso es lo mas importante, que ya no descargue todo
@@ -190,14 +190,9 @@ RESULTS="$(printf '%s\n' "$CANDIDATOS" | awk -F'|' -v sel="$(printf '%s' "$ELEGI
   ok[NR] { print $1 "|" $2 "|" $3 "|" $4 }')"
 [ -n "$RESULTS" ] || exit 0
 
-# ⚠️ EL ENCABEZADO IMPORTA, y el anterior causaba el daño que venía a evitar.
-#
-# Decía: "son contexto, NO medición". Medido el 2026-09-19: el agente lo leyó
-# como "esto no es evidencia, seguí de largo" y las ignoró sistemáticamente. El
-# caso testigo: una memoria del 05-sep decía textual *"culpar al SyncInventarioJob
-# fue FALSO"*, llegó con ese encabezado, y el agente armó igual su diagnóstico
-# sobre el SyncInventarioJob — repitiendo el error exacto que la memoria
-# advertía. El dueño lo detectó y ordenó arreglarlo.
+# ⚠️ EL ENCABEZADO IMPORTA. Presentar las memorias como "contexto, no
+# medición" se lee como "esto no es evidencia, seguí de largo": el agente las
+# ignora y repite justo el diagnóstico que una memoria ya había refutado.
 #
 # La distinción correcta NO es "contexto vs medición": es que una memoria es un
 # HECHO DATADO. Lo que dice fue cierto cuando se midió. Puede haber cambiado —

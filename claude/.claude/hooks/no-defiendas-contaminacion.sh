@@ -11,7 +11,7 @@
 # estar en ese instante, no en la memoria del que escribe.
 #
 # POR QUÉ AVISA Y NO BLOQUEA: distinguir un veto indebido de un límite legítimo
-# ("no borres la tabla de la que depende el cobro") exige entender el dominio, y
+# ("no borres la tabla que todavía lee el job de facturación") exige entender el dominio, y
 # eso un patrón de texto no lo hace. Bloquear sobre esa señal ambigua frenaría
 # encargos correctos. Acá el aviso alcanza porque llega ANTES de mandar el
 # encargo, con el texto exacto a reescribir señalado: el costo de corregirlo es
@@ -29,10 +29,8 @@ set -uo pipefail
 INPUT="$(cat 2>/dev/null || true)"
 [ -n "$INPUT" ] || exit 0
 
-# Sin jq se usa el payload crudo. Antes había un `command -v jq || exit 0` acá:
-# en una máquina sin jq el hook salía en silencio y el encargo con cláusula de
-# escape se mandaba sin aviso. Medido el 2026-09-19 con jq oculto del PATH:
-# un encargo de borrado con "no lo borres" salía exit=0 SIN imprimir nada.
+# Sin jq se usa el payload crudo: salir en silencio dejaría que un encargo de
+# borrado con "no lo borres" se mandara sin aviso en una máquina sin jq.
 #
 # El crudo sirve para este hook —a diferencia del gate del índice— porque acá se
 # buscan FRASES en español dentro del texto del encargo, y esas frases sobreviven
