@@ -265,7 +265,8 @@ apply_stow_packages() {
             continue
         fi
 
-        if stow -R "$pkg" 2>&1 | grep -q "LINK\|UNLINK"; then
+        # Sin -v stow no imprime nada; el código de salida es la única señal fiable.
+        if stow -R "$pkg"; then
             print_success "Stowed: $pkg"
             ((++success))
         else
