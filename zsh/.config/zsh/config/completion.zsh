@@ -20,13 +20,33 @@ fi
 # aquí, y sin él la ruta evalúa a "/.zcompdump" y la caché nunca se usa.
 autoload -Uz compinit
 _zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
-[[ -d "${_zcompdump:h}" ]] || mkdir -p "${_zcompdump:h}"
+[[ -d "${_zcompdump:h}" ]] || mkdir -p "${_zcompdump:h}" 2>/dev/null
 
-# (#qN.mh+24) = glob calificado: archivo normal, modificado hace más de 24h
-if [[ -n "$_zcompdump"(#qN.mh+24) ]]; then
-  compinit -i -d "$_zcompdump"     # tocado hace >24h -> revalida
+# Dump corrupto (cortado a medias, basura): compinit -C lo cargaría tal cual.
+# Un dump válido empieza por "#files:"; si no, se borra (con su .zwc) y compinit
+# lo regenera desde cero.
+if [[ -f "$_zcompdump" ]]; then
+  IFS= read -r _zline < "$_zcompdump" 2>/dev/null
+  [[ "$_zline" == '#files: '* ]] || rm -f -- "$_zcompdump" "$_zcompdump.zwc" 2>/dev/null
+  unset _zline
+fi
+
+# (#qN.mh+24) = glob calificado: archivo normal, modificado hace más de 24h.
+# Sin dump (primer arranque o recién borrado) también va por la rama completa.
+if [[ ! -f "$_zcompdump" || -n "$_zcompdump"(#qN.mh+24) ]]; then
+  compinit -i -d "$_zcompdump"     # >24h o sin dump -> revalida
+  # compinit solo reescribe el dump si cambió el número de completions; sin el
+  # touch, un fpath estable deja el mtime viejo y TODOS los arranques siguientes
+  # pagarían la revalidación completa (~230 ms) en vez de una vez al día.
+  touch "$_zcompdump" 2>/dev/null
 else
   compinit -C -i -d "$_zcompdump"  # reciente -> confía en el dump
+fi
+
+# Versión compilada del dump (zsh la prefiere si es más nueva). Si zcompile falla
+# (disco lleno, solo lectura) se sigue usando el dump en texto.
+if [[ -s "$_zcompdump" && ( ! -s "$_zcompdump.zwc" || "$_zcompdump" -nt "$_zcompdump.zwc" ) ]]; then
+  zcompile "$_zcompdump" 2>/dev/null
 fi
 unset _zcompdump
 
