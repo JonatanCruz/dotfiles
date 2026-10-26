@@ -2,12 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) and OpenCode when working with code in this repository.
 
-## 🌐 Repo PÚBLICO y genérico (regla del dueño, invariante)
-
-> El dueño (2026-10-26): _"solo ataca lo que es de este proyecto, ahi esta el problema de
-> contaminar y hacer las reglas especificas y no genericas para todos los proyectos futuros,
-> esta acoplado y no es extensible a lo que venga … no se puede tener este proyecto acoplado
-> aparte porque esta liberado al publico en general"_.
+## 🌐 Repo PÚBLICO y genérico (invariante)
 
 - Este repo es **público** y su configuración aplica a **todos** los proyectos. Nada en él
   (código, hooks, tests, docs, mensajes de commit, títulos o cuerpos de PR) nombra ni
@@ -18,23 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) and OpenCode when wo
 - Las memorias de Engram que se inyectan son sólo las del proyecto actual.
 - `main` sólo cambia por PR con el CI en verde (ruleset); no se fuerza ni se borra.
 
-## 🤖 Navegación de Código: Serena + codebase-memory (grafo)
+## 🧠 Memoria y navegación de código
 
-Dos MCP complementarios. **Engram sigue siendo el único sistema de memoria** — ninguno guarda memoria entre sesiones.
-
-- **codebase-memory (grafo)** → navegar/entender **barato** (solo lectura; para preguntas estructurales gasta menos que grep). `search_code`, `query_graph` (Cypher), `trace_path`, `get_architecture`. Indexa una vez con `index_repository(repo_path=...)`.
-- **Serena** → **editar/refactorizar** por símbolo, que el grafo NO hace: `serena_rename_symbol`, `serena_replace_symbol_body`, `serena_insert_after_symbol`.
-
-**Regla**: grafo para leer, Serena para escribir. No dupliques Serena (plugin **o** servidor `.mcp.json`, nunca ambos → procesos `uvx` huérfanos).
-
----
-
-## 🧠 Memoria: Engram + CLAUDE.md
-
-El protocolo completo (cuándo `mem_save`/`mem_search`, formato, sesión) vive en
-`claude/.claude/CLAUDE.md`, que se carga en todas las sesiones como `~/.claude/CLAUDE.md`.
-Resumen: **hechos y decisiones entre sesiones → Engram**; **reglas del dueño → un CLAUDE.md**
-(este si son del repo, el global si no). Nunca `MEMORY.md` ni `memory/*.md`.
+Viven en `claude/.claude/CLAUDE.md` (se carga en todas las sesiones como
+`~/.claude/CLAUDE.md`); no se repiten aquí.
 
 ---
 
@@ -432,8 +414,6 @@ Cada proyecto puede declarar sus versiones en `mise.toml`. Los archivos
 
 `mise activate` instala un hook de precmd que reescribe el PATH al cambiar de
 directorio; no usa shims, así que `node` es el binario real y no un wrapper.
-Cuesta ~20ms de arranque; a cambio, el primer `node` ya no paga los ~310ms que
-costaba el lazy-load de nvm.
 
 ---
 
