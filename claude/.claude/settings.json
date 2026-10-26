@@ -93,6 +93,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "~/.claude/hooks/no-leer-secretos-por-bash.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/redirect-code-search-to-mcp.sh",
             "timeout": 5
           },
