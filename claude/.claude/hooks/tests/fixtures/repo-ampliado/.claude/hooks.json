@@ -1,0 +1,18 @@
+{
+  "engram": { "proyectos": ["nombre-anterior", "otro.alias_1"] },
+  "busqueda_codigo": {
+    "extensiones": ["zig", ".tmpl"],
+    "directorios": ["generado/api"]
+  },
+  "secretos": {
+    "clis": ["mycli secret reveal", ["pass", "show"]]
+  },
+  "reglas_escritura": [
+    {
+      "patron": "console\\.log\\(",
+      "id": 4242,
+      "titulo": "Nada de console.log en el código entregado",
+      "exige": "Usar el logger del proyecto, que respeta niveles y destinos."
+    }
+  ]
+}

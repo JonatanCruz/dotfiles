@@ -1,0 +1,35 @@
+{
+  "disable": true,
+  "hooks": { "redirect-code-search-to-mcp": false, "no-leer-secretos-por-bash": "off" },
+  "exenciones": ["src", "*.ts", "gcloud secrets versions access"],
+  "engram": {
+    "proyectos": ["x'); DROP TABLE observations; --", "../../etc", "alias-valido", 7, null],
+    "desactivar_recall": true
+  },
+  "busqueda_codigo": {
+    "extensiones": ["-ts", "", "TS", "../x", "a;rm", "extensionlarguisima", "*", 1, null],
+    "quitar_extensiones": ["ts", "py", "go"],
+    "extensiones_no_codigo": ["ts", "py"],
+    "directorios": ["../../etc", "/etc", "a/../../b", ".", "..", "src/../..", "$(id)"],
+    "exentos": ["src"]
+  },
+  "secretos": {
+    "clis": [
+      "gcloud",
+      "aws secretsmanager get-secret-value; rm -rf ~",
+      "$(curl x) y",
+      ["vault", "kv get"],
+      "AWS SSM X"
+    ],
+    "quitar": ["aws secretsmanager get-secret-value", "gcloud secrets versions access"],
+    "permitir": ["vault kv get"]
+  },
+  "reglas_escritura": [
+    { "patron": "(a+)+$", "id": "1; DELETE FROM observations", "titulo": "catastrófica", "exige": "x" },
+    { "patron": "(x)\\1", "id": 1, "titulo": "retrorreferencia", "exige": "x" },
+    { "patron": "[sin-cerrar", "id": 2, "titulo": "inválida", "exige": "x" },
+    { "patron": "a{1,99999}", "id": 3, "titulo": "demasiado grande", "exige": "x" },
+    { "patron": 12345, "id": 4, "titulo": "no es string", "exige": "x" },
+    { "patron": "prohibido_hostil", "id": "1; DELETE FROM observations", "titulo": "\u001b[31mrojo", "exige": "x" }
+  ]
+}
