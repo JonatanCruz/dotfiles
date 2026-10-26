@@ -1,0 +1,92 @@
+# Casos de block-harness-memory.sh
+#
+# ── POR QUÉ EXISTE ESTE ARCHIVO ────────────────────────────────────────────
+#
+# El hook llevaba TRES rondas de auditoría, y cada una parcheó el lugar
+# equivocado. El 2026-09-19 se trazó con `bash -x` y apareció la causa que
+# ninguna ronda había visto: la pasada que borra strings se llevaba la RUTA
+# —que viaja dentro de comillas— y el chequeo "¿está la ruta?" salía con
+# exit 0 **antes** de cualquier análisis del verbo. Los parches anteriores
+# vivían en código que nunca se alcanzaba.
+#
+# La lección, y la razón de versionar los casos: probar caso-por-caso dice
+# QUÉ falla; trazar dice DÓNDE. Sin lo segundo se parchea a ciegas.
+#
+# Formato:  <exit esperado> <TAB> <descripción> <TAB> <comando>
+# La ruta protegida se escribe como @MEM@ y el runner la sustituye.
+
+# ── DEBE BLOQUEAR (exit 2): escritura sobre la ruta protegida ─────────────
+
+# Las tres evasiones que sobrevivieron a tres auditorías. Las dos primeras
+# porque awk/sed escriben con una primitiva que no es `-i` y la redirección
+# va DENTRO de la cadena; la tercera porque el destino es el DIRECTORIO y
+# `MEM_RE` exige un `.md` nombrado.
+2	awk escribe con > dentro de la cadena	awk 'BEGIN{print "x" > "@MEM@/f.md"}'
+2	sed escribe con el comando w	sed -n 'w @MEM@/f.md' /etc/hostname
+2	tar extrae sobre el directorio	tar -xf /tmp/t.tar -C @MEM@
+
+# Misma clase que tar: destino = directorio, ningún .md nombrado.
+2	tar --extract forma larga	tar --extract -f /tmp/t.tar -C @MEM@
+2	rsync hacia el directorio	rsync /tmp/a.md @MEM@/
+2	cp hacia el directorio	cp /tmp/a.md @MEM@/
+2	mv hacia el directorio	mv /tmp/a.md @MEM@/
+2	unzip -d hacia el directorio	unzip /tmp/z.zip -d @MEM@
+
+# `mv` SACANDO de memory borra el origen: destino afuera NO lo vuelve lectura.
+# Se coló como exit 0 al escribir la rama que rescata el respaldo con `cp`.
+2	mv desde memory destruye el origen	mv @MEM@/MEMORY.md /tmp/x.md
+
+# Intérpretes: el string ES el comando.
+2	python -c	python3 -c "open('@MEM@/f.md','w').write('x')"
+2	node -e	node -e "require('fs').writeFileSync('@MEM@/f.md','x')"
+
+# Escrituras directas.
+2	redirección	echo x > @MEM@/f.md
+2	append	cat /tmp/a >> @MEM@/MEMORY.md
+2	touch	touch @MEM@/f.md
+2	rm	rm -f @MEM@/MEMORY.md
+2	sed -i	sed -i 's/a/b/' @MEM@/MEMORY.md
+2	ln -sf	ln -sf /etc/hostname @MEM@/f.md
+2	install	install /tmp/a.md @MEM@/f.md
+
+# ── DEBE PASAR (exit 0): lecturas y usos legítimos ────────────────────────
+#
+# Un gate que bloquea lecturas se termina desactivando. `cp DESDE memory` es
+# el caso testigo: se rompió al cerrar tar/rsync y hubo que medirlo aparte.
+
+0	cp desde memory es un respaldo	cp @MEM@/MEMORY.md /tmp/backup.md
+0	rsync desde memory	rsync @MEM@/ /tmp/bak/
+0	awk leyendo (sin >)	awk '{print $1}' @MEM@/MEMORY.md
+0	sed -n p (leer)	sed -n '1,5p' @MEM@/MEMORY.md
+0	cat	cat @MEM@/MEMORY.md
+0	grep	grep -n foo @MEM@/MEMORY.md
+0	ls	ls -la @MEM@/
+0	wc	wc -l @MEM@/MEMORY.md
+0	diff	diff @MEM@/a.md @MEM@/b.md
+0	head	head -20 @MEM@/MEMORY.md
+0	tar -t sólo lista	tar -tf /tmp/t.tar
+
+# ── DEBE PASAR: fuera de la ruta protegida ────────────────────────────────
+
+0	tar a /tmp	tar -xf /tmp/t.tar -C /tmp/out
+0	cp a /tmp	cp /etc/hostname /tmp/f.md
+0	redirección a /tmp	echo x > /tmp/f.md
+0	rsync en /tmp	rsync /tmp/a /tmp/b
+
+# ── PIPE Y ENCADENAMIENTO (E3, auditoría independiente 2026-09-19) ────────
+#
+# El test de lectura anclaba en la PRIMERA palabra del comando entero, así que
+# bastaba arrancar con un lector y encadenar. Verificado EN DISCO: el archivo
+# protegido cambiaba de contenido con exit 0.
+2	pipe a tee	cat /tmp/a.md | tee @MEM@/f.md
+2	pipe a dd	cat /tmp/a.md | dd of=@MEM@/f.md
+2	punto y coma tras un lector	wc -l /tmp/a.md; cp /tmp/a.md @MEM@/f.md
+2	&& seguido de rm	cat @MEM@/MEMORY.md && rm @MEM@/f.md
+2	|| seguido de touch	ls /tmp || touch @MEM@/f.md
+
+# Encadenar LECTURAS sigue siendo legítimo: lo que decide es el segmento.
+0	cat a grep	cat @MEM@/MEMORY.md | grep foo
+0	cat a head	cat @MEM@/MEMORY.md | head -5
+0	ls y wc	ls @MEM@/ && wc -l @MEM@/MEMORY.md
+0	grep sort uniq	grep foo @MEM@/MEMORY.md | sort | uniq
+0	leer y volcar fuera	cat @MEM@/MEMORY.md > /tmp/backup.md

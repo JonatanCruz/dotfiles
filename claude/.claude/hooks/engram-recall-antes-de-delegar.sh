@@ -1,26 +1,58 @@
 #!/usr/bin/env bash
-# engram-recall-antes-de-delegar.sh — PreToolUse hook sobre la herramienta de agentes
+# engram-recall-antes-de-delegar.sh — PreToolUse sobre la herramienta de agentes.
 #
-# PROBLEMA QUE RESUELVE (2026-08-13, feedback del dueño): `engram-autorecall.sh`
-# corre en `UserPromptSubmit`, o sea SOLO cuando el dueño escribe. Cuando el
-# agente principal DELEGA trabajo, ningún hook consulta la memoria — y ese es
-# justo el momento en que el olvido cuesta caro: el encargo sale escrito desde
-# el código, ignorando decisiones que el dueño ya tomó en sesiones anteriores.
+# EL HUECO QUE CIERRA: el autorecall corre en `UserPromptSubmit`, o sea sólo
+# cuando escribe el usuario. Al DELEGAR, ningún hook consulta la memoria — y ese
+# es justo el momento en que el olvido cuesta caro: el encargo sale redactado
+# desde el código, ignorando decisiones ya tomadas en sesiones anteriores. El
+# agente delegado entonces investiga lo ya resuelto y lo reporta como hallazgo.
 #
-# Costo medido ese día: se encargó mover un componente preguntando un destino
-# YA decidido, y se reportó como "hallazgo" la ubicación de una tabla que YA
-# estaba deliberada. El dueño lo nombró: *"¿de qué sirve estar escribiendo en la
-# memoria una y otra vez la misma regla?"* — porque escribir sin leer acumula.
+# POR QUÉ EN LA ESTRUCTURA: el recall no puede depender de que el agente recuerde
+# buscar, porque el que olvidó la decisión no sabe que la olvidó. Acá la memoria
+# relevante llega sola, ANTES de que el encargo se ejecute.
 #
-# El recall no puede depender de que el agente recuerde buscar (es el mismo
-# "error competente" de las Reglas #11/#13/#14: el agente que CREE que cumple).
-# Este hook lo pone en la estructura: al delegar, la memoria relevante llega
-# sola, ANTES de que el encargo se ejecute.
+# FILTRO: sólo `decision`/`architecture`/`preference`/`feedback`. Al delegar
+# importa lo que se DECIDIÓ, no el registro de un bugfix; filtrar es lo que
+# separa la señal del ruido y evita que el aviso se vuelva ignorable.
 #
-# NO bloquea: inyecta contexto (additionalContext) y sale 0. Fail-open ante
+# NO BLOQUEA: inyecta contexto (additionalContext) y sale 0. Fail-open ante
 # cualquier error, incluida la falta de jq o de sqlite3.
-
+#
 set -uo pipefail
+
+# ── LA LISTA BLANCA YA EXCLUYE; ESTO LA HACE AJUSTABLE ──────────────────────
+#
+# Este hook ya filtraba por una lista BLANCA (`type IN (...)`), así que un
+# `session_summary` nunca entró acá — a diferencia del autorecall, que no
+# filtraba nada. Lo que cambia es que la lista deja de estar cableada.
+#
+# Importa por el mismo motivo medido en el hook hermano: el ranking de Engram es
+# `ORDER BY fts.rank` a secas (bm25 sobre title+content), sin boost por tipo. El
+# tipo NO reordena nada; sólo saca filas de la competencia con un WHERE. Una
+# lista blanca es la forma más fuerte de ese WHERE.
+#
+# DESACOPLADO: son tipos del esquema de Engram, no de un proyecto. Ajustable sin
+# tocar la lógica, p. ej. si tu base usa otro vocabulario de tipos:
+#
+#   export ENGRAM_DELEGATE_INCLUDE_TYPES="decision,architecture,preference,feedback,pattern"
+#
+# Vaciarla (="") desactiva el filtro y trae cualquier tipo. Con una base de otro
+# proyecto o vacía no hay nada que configurar: si ningún tipo coincide, el hook
+# no imprime nada y sale 0, que es su comportamiento normal en la mayoría de los
+# turnos.
+ENGRAM_DELEGATE_INCLUDE_TYPES="${ENGRAM_DELEGATE_INCLUDE_TYPES-decision,architecture,preference,feedback}"
+
+_engram_include_sql() {
+  printf '%s' "${1-}" | tr ',' '\n' | sed "s/^[[:space:]]*//; s/[[:space:]]*$//" \
+    | grep -v '^$' | sed "s/'/''/g; s/^/'/; s/$/'/" | paste -sd, - 2>/dev/null || true
+}
+INCLUDE_LIST="$(_engram_include_sql "$ENGRAM_DELEGATE_INCLUDE_TYPES")"
+# Lista vacía ⇒ sin predicado (nunca `IN ()`, que sería un error de sintaxis).
+if [ -n "$INCLUDE_LIST" ]; then
+  TYPE_FILTER="AND o.type IN ($INCLUDE_LIST)"
+else
+  TYPE_FILTER=""
+fi
 
 DB="$HOME/.engram/engram.db"
 [ -f "$DB" ] || exit 0
@@ -34,10 +66,8 @@ INPUT="$(cat 2>/dev/null || true)"
 PROMPT="$(printf '%s' "$INPUT" | jq -r '
   [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
 ' 2>/dev/null || true)"
-CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null || true)"
 [ -n "$PROMPT" ] || exit 0
 
-PROJECT="$(basename "${CWD:-$PWD}" 2>/dev/null || echo "")"
 
 [ "${#PROMPT}" -ge 40 ] || exit 0
 
@@ -49,22 +79,22 @@ KEYWORDS="$(printf '%s' "$PROMPT" \
   | tr -cs '[:alnum:]áéíóúñü' '\n' \
   | awk 'length($0) >= 5' \
   | grep -vxE 'para|pero|como|cuando|donde|entonces|porque|hacer|hacemos|puede|puedes|podemos|tiene|tienen|estamos|ahora|siempre|mientras|sigue|siguen|trabajando|quiero|necesito|verifica|verificá|verificar|tarea|encargo|archivo|archivos|codigo|código|tests|test|commit|commits|rama|branch|worktree|reporta|reportá|reportar|entregable|deberia|debería|antes|despues|después' \
-  | sort -u | head -8 | tr '\n' ' ' | sed 's/ $//')"
+  | sort -u \
+  | awk '{ print length($0), $0 }' | sort -rn | head -8 | cut -d' ' -f2- \
+  | tr '\n' ' ' | sed 's/ $//')"
 [ -n "$KEYWORDS" ] || exit 0
 
 FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"", (i>1?" OR ":""), $i}}')"
 [ -n "$FTS_QUERY" ] || exit 0
 
-# Sólo `decision` y `architecture`: al delegar importa lo que el dueño DECIDIÓ,
-# no el registro de un bugfix. Filtrar acá es lo que separa la señal del ruido.
+# Ver el filtro explicado en el encabezado: decisiones, no bugfixes.
 RESULTS="$(sqlite3 -separator '|' "$DB" "
   SELECT o.type, o.title, substr(replace(replace(o.content, char(10), ' '), '|', '/'), 1, 260), substr(o.created_at, 1, 10)
   FROM observations_fts f
   JOIN observations o ON o.id = f.rowid
   WHERE observations_fts MATCH '$(printf '%s' "$FTS_QUERY" | sed "s/'/''/g")'
     AND o.deleted_at IS NULL
-    AND o.type IN ('decision','architecture','preference','feedback')
-    $( [ -n "$PROJECT" ] && printf "AND o.project = '%s'" "$(printf '%s' "$PROJECT" | sed "s/'/''/g")" )
+    $TYPE_FILTER
   ORDER BY rank
   LIMIT 4;
 " 2>/dev/null || true)"
