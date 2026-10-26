@@ -45,7 +45,21 @@ silent bypass). `Read` is not blocked (you may read an un-migrated old file).
 Dos MCP complementarios para código. **Engram sigue siendo el único sistema de memoria** — ninguno de estos dos guarda memoria entre sesiones.
 
 ### codebase-memory (grafo) → navegar/entender barato
-Grafo de conocimiento pre-indexado. **Solo lectura**, ~120x menos tokens que grep/leer el repo. Úsalo primero para preguntas estructurales:
+Grafo de conocimiento pre-indexado. **Solo lectura.** Úsalo primero para preguntas estructurales:
+
+> **Cuánto ahorra** (medido 2026-09-19 en un repo de 1.393 archivos TS; órdenes de
+> magnitud, no cifras, porque dependen del modo y del conjunto de archivos):
+>
+> | Contra qué | Resultado |
+> | --- | --- |
+> | Leer enteros los archivos que contienen el símbolo | **decenas de veces** a favor del grafo |
+> | grep, para preguntas estructurales (dónde está / quién llama) | **unas pocas veces** a favor del grafo |
+> | grep, para búsqueda de TEXTO plano | **a favor de grep**: el grafo devuelve más tokens |
+>
+> Para texto plano, grep es la herramienta correcta. Lo que justifica el grafo no es sólo
+> el token count: ve lo que grep no puede (una dependencia inyectada, el docstring tres
+> líneas arriba del match). La cifra anterior ("~120x") juntaba dos comparaciones
+> distintas y se retiró; el detalle está en el historial de git de este archivo.
 - `search_code` / `search_graph` → buscar símbolos y patrones
 - `query_graph` (Cypher) → quién llama a qué, dependencias
 - `trace_path` → trazar cadenas de llamadas

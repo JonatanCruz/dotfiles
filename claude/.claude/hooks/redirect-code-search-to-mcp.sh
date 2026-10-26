@@ -1,55 +1,489 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: Bash). Cierra el AGUJERO del `cbm-code-discovery-gate`:
-# ese gate solo intercepta las tools Grep|Glob, así que un `grep` ejecutado DENTRO
-# de Bash lo esquiva por completo.
+# PreToolUse (matcher: Bash) — bloquea la búsqueda de CÓDIGO con grep/sed vía Bash
+# cuando hay un índice de código disponible.
 #
-# Por qué existe (Meadows, la filosofía que ya usa este repo en las Reglas #12/#13/#14):
-# el control tiene que vivir en la ESTRUCTURA, no en la memoria del próximo agente.
-# Un recordatorio en prosa no previene el "error competente" — el agente que CREE que
-# está usando las herramientas correctas. Este hook hace que caer en grep sobre código
-# sea un acto CONSCIENTE, no el camino de menor resistencia.
+# Cierra el hueco de los gates que interceptan las tools Grep|Glob: un `grep` corrido
+# dentro de Bash las esquiva por completo.
 #
-# Qué hace: NO bloquea (exit 0 siempre). Inyecta un recordatorio dirigido cuando el
-# comando es una búsqueda de CÓDIGO. Deliberadamente NO se mete con búsquedas sobre
-# logs, JSON, YAML, configs o salidas de gcloud/gh — ahí grep es la herramienta correcta
-# y bloquearlo sería el falso positivo que el panel rechazó en la Regla #14
-# ("hook heurístico que adivine → falsos positivos → --no-verify crónico").
+# El control vive en la estructura, no en la memoria del agente. Un aviso sólo previene
+# el error que el agente ya sabe que está cometiendo; no previene al que cree que está
+# usando la herramienta correcta. Por eso falla cerrado.
+#
+# ALCANCE — bloquea sólo donde el error es caro:
+#   · sí: búsquedas sobre fuentes de código
+#   · no: logs, JSON, YAML, configs, salidas de CLIs (ahí grep ES la herramienta)
+#   · no: un archivo único ya identificado (leerlo/filtrarlo es legítimo)
+# Bloquear de más entrena a saltarse el gate, y ahí se pierden las dos cosas.
+#
+# ⚠️ ESTE ALCANCE FUE FALSO HASTA EL 2026-09-19. Una auditoría independiente
+# midió que las dos últimas líneas no se cumplían, porque la decisión se tomaba
+# por DIRECTORIO PADRE y no por tipo de archivo:
+#
+#   grep -rn ERROR services/logs/app.log       → exit 2  (un LOG)
+#   grep -n port infra/dev/docker-compose.yml  → exit 2  (un YAML)
+#   grep -rn foo src/README.md                 → exit 2  (un MARKDOWN)
+#
+# Y como este gate NO tiene override, era trabajo imposible de hacer por
+# ninguna vía — el escenario exacto contra el que advierte la línea de arriba.
+# El texto no mentía sobre la intención: describía un comportamiento que el
+# código no tenía. Ahora una extensión inequívocamente no-código gana sobre el
+# directorio, y los tres casos están en la suite para que no vuelva a divergir.
+#
+# LA LÍNEA DIVISORIA ES UNO vs MUCHOS, NO EL BINARIO (medido 2026-09-19)
+# ----------------------------------------------------------------------
+# Una auditoría listó como evasiones `head -100 src/app.ts`, `tail -n +1 …`,
+# `bat src/app.ts` y `less src/app.ts`. NO se bloquearon, a propósito: sobre UN
+# archivo ya identificado son exactamente el caso que el ALCANCE de arriba
+# declara legítimo, y se comportan igual que `cat src/app.ts`, `sed -n 1,50p
+# src/app.ts` y `grep handler src/app.ts`, que este gate deja pasar desde
+# siempre. Bloquearlos obligaría a bloquear también `cat` y `grep` sobre un
+# archivo — o sea, leer código de a un archivo—, que es el falso positivo que
+# desactiva el gate y que su propio ALCANCE prohíbe.
+#
+# Lo que SÍ se cerró de esa familia es el volcado EN VOLUMEN con esos mismos
+# binarios, que estaba abierto y sí es lo que el gate existe para frenar:
+#   cat src/*.ts · head -100 src/*.ts · bat src/*.ts  → antes 0, ahora 2
+#   cat src/{a,b,c}.ts · for f in src/*.ts; do cat …  → antes 0, ahora 2
+#
+# Un índice ve lo que grep no puede: quién llama a qué a través de inyección de
+# dependencias, un docstring completo en vez del fragmento que entró en la línea
+# matcheada, el impacto real de un cambio. Leer código en pedazos produce diagnósticos
+# que el archivo entero habría desmentido.
+#
+# NO HAY OVERRIDE. `CBM_CHECKED=1` existió y se retiró el 2026-09-19 (el porqué,
+# más abajo, junto al código). Este encabezado siguió ofreciéndolo hasta el
+# 2026-09-19: verificado ejecutando, `CBM_CHECKED=1 grep -r handler src/*.ts`
+# devuelve exit=2, igual que sin la variable. Las salidas legítimas están en el
+# ALCANCE de arriba y no dependen de la voluntad del agente.
 #
 # Contrato Claude Code:
-#   - stdin: JSON { tool_input: { command }, ... }
-#   - exit 0 = permitir. El JSON de salida inyecta additionalContext al modelo.
-#   - Sin jq o con JSON ilegible sale 0 sin avisar: el JSON de salida lleva el
-#     nombre del proyecto y sólo jq lo escapa bien.
+#   stdin: JSON { tool_input: { command }, ... }
+#   exit 0 = permitir · exit 2 = bloquear (stderr vuelve al modelo)
 
 set -uo pipefail
 
-payload="$(cat 2>/dev/null || true)"
-command -v jq >/dev/null 2>&1 || exit 0
-cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
-cwd="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
+# CARGA DE LA BIBLIOTECA - FALLA CERRADO (Regla #14)
+# Si no se puede cargar, se BLOQUEA: un gate sin su normalizador no puede
+# decidir, y un control que no resuelve su contexto no debe rendirse en
+# silencio.
+#
+# El hook y su libreria son UN SOLO CAMBIO: este hook corre en PreToolUse sobre
+# Bash, asi que un `source` a un archivo inexistente se lleva puesta la
+# herramienta con la que se arreglaria.
+_lib="$(dirname "${BASH_SOURCE[0]}")/lib/normalizar-comando.sh"
+# shellcheck source=lib/normalizar-comando.sh
+if ! . "$_lib" 2>/dev/null || ! command -v normalizar_ejecutable >/dev/null 2>&1; then
+  printf '\xf0\x9f\x9b\x91 BLOQUEADO (redirect-code-search-to-mcp): no se pudo cargar %s.\n' "$_lib" >&2
+  printf '   Un gate sin su normalizador no puede decidir, y ante la duda no se abre.\n' >&2
+  exit 2
+fi
+
+payload="$(cat)"
+
+# Extracción del comando. El fallback SIN jq no puede ser el payload crudo: en
+# el JSON las comillas van escapadas, y la etapa 1 de abajo exige que la
+# herramienta venga precedida por inicio-de-línea o un separador de shell.
+# Sobre el crudo queda precedida por una comilla -> no matchea -> el gate
+# salía 0 y DEJABA PASAR la búsqueda que venía a bloquear.
+# Medido el 2026-09-19 con jq oculto del PATH: exit=0 sobre un caso que con
+# jq da 2. Ahora se decodifica el campo y, si ni eso funciona, se usa el
+# payload entero como red de contención. Un gate que ante lo inesperado deja
+# pasar es peor que no tenerlo.
+cwd=""
+if command -v jq >/dev/null 2>&1; then
+  cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')"
+  cwd="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
+else
+  cmd="$(printf '%s' "$payload" \
+    | sed -n 's/.*"command"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/p' \
+    | sed 's/\\"/"/g; s/\\\\/\\/g' | head -1)"
+  [ -z "$cmd" ] && cmd="$payload"
+fi
 
 [ -z "$cmd" ] && exit 0
 
-# ¿Es una búsqueda de texto? (grep/rg/ag/sed/find sobre nombres)
-printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|rg|ag|sed|ack)([[:space:]]|$)' || exit 0
+# ── NORMALIZACIÓN ANTES DE EVALUAR (portada de guard-sensitive-exec.sh) ─────
+#
+# Las tres evasiones que siguen se midieron el 2026-09-19, todas en exit 0, y
+# todas atacan la MISMA debilidad: el gate comparaba texto crudo, así que
+# cualquier forma de escribir `grep` que el shell entiende pero el patrón no,
+# lo rodeaba sin dejar rastro.
+#
+#   gr''ep -rn handler src/          → el shell ejecuta `grep`; acá llegaban
+#                                      las comillas vacías intactas.
+#   bash -c 'grep -rn handler src/'  → el comando real vive dentro del string.
+#   G=grep; $G -rn handler src/      → el nombre llega por variable.
+#
+# 1) COMILLAS VACÍAS. El shell elimina `''` y `""` antes de ejecutar: `gr''ep`
+#    ES `grep`. Se colapsan acá, y el ORDEN IMPORTA — tiene que ser ANTES de
+#    cualquier pasada que borre strings, porque después la comilla vacía ya no
+#    existe y en su lugar quedó un espacio (`gr ep`), que no matchea nada. Es
+#    la misma corrección que el commit 7de969c7 hizo en el guard de prod.
+cmd="$(printf '%s' "$cmd" | sed -E "s/''//g; s/\"\"//g")"
 
-# ¿Apunta a CÓDIGO? Extensiones de código o directorios de fuentes del monorepo.
-# Si no toca código (logs, tfstate, csv, salida de gcloud/gh), no molestamos.
-printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs|astro|py|go|rs|java|kt|rb|php|swift)\b|services/[a-z-]+/src|packages/[a-z-]+/src|apps/[a-z-]+/src' || exit 0
+# 2) INTÉRPRETES: `bash -c '…'` y `eval "…"`. El string que recibe un intérprete
+#    NO es texto citado, es CÓDIGO que se va a ejecutar. El guard de prod ya
+#    resolvía esto en su sección "EXCEPCIÓN A LA NORMALIZACIÓN"; acá se porta el
+#    mismo criterio: si aparece un intérprete arrancando un comando, se le
+#    quitan las comillas al comando entero para que el patrón vea lo de adentro.
+#    Se exige que el intérprete inicie comando (o venga tras separador) para que
+#    mencionarlo en un texto —`echo "usá bash -c"`— no dispare.
+if printf '%s' "$cmd" | grep -qE '(^|[|;&`]|&&|\|\||\$\()[[:space:]]*(eval|(env[[:space:]]+)?(ba|z|k|da)?sh([[:space:]]+-[^[:space:]]+)*[[:space:]]+-[a-zA-Z]*c)\b'; then
+  cmd="$(printf '%s' "$cmd" | tr -d "\"'")"
+fi
 
-# Excepción: si el comando ya está acotado a un archivo único que el agente YA
-# identificó, leer/filtrar ese archivo con grep es legítimo y barato.
-# Heurística: un solo path concreto .ts sin comodines ni -r/-R.
-if printf '%s' "$cmd" | grep -qE '\.(ts|tsx|js|py|go)\b' \
-   && ! printf '%s' "$cmd" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
+# 3) ASIGNACIÓN A VARIABLE: `G=grep; $G -rn …`. Se resuelven las asignaciones
+#    simples a nombres de herramientas y se sustituye el uso (`$G`, `${G}`).
+#    Sólo se expanden valores que son binarios de búsqueda/lectura: expandir
+#    variables arbitrarias cambiaría comandos legítimos sin motivo.
+for _v in $(printf '%s' "$cmd" \
+    | grep -oE '(^|[|;&[:space:]])[A-Za-z_][A-Za-z0-9_]*=(grep|rg|ag|ack|sed|awk|cat|head|tail|bat|less|more|nl)\b' \
+    | sed -E 's/^[|;&[:space:]]+//'); do
+  _name="${_v%%=*}"; _val="${_v#*=}"
+  cmd="$(printf '%s' "$cmd" | sed -E "s/\\\$\{?${_name}\}?/${_val}/g")"
+done
+unset _v _name _val
+
+# 4) EJECUTAR ≠ NOMBRAR. El mismo invariante que guard-sensitive-exec: lo que va
+#    ENTRE COMILLAS es texto, no ejecución. Este hook no tenía esta pasada y por
+#    eso `echo "no uses grep -rn handler src/"` y
+#    `git commit -m "fix: dejar de usar grep -rn en src/"` bloqueaban — un gate
+#    que muerde el trabajo de DOCUMENTARLO es el que se termina desactivando.
+#
+#    Sólo se descartan los strings que son ARGUMENTO de un comando que no
+#    ejecuta (echo/printf/git commit -m/…). El string de un intérprete ya se
+#    desenvolvió en el paso 2, así que `bash -c 'grep …'` sigue bloqueando.
+#
+#    ⚠️ El ORDEN importa y es el mismo que en el guard: las comillas vacías (1)
+#    y el desenvuelto del intérprete (2) van ANTES. Borrar strings primero
+#    destruiría la información que esos dos pasos necesitan.
+if printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*(echo|printf)\b' \
+   || printf '%s' "$cmd" | grep -qE 'git[[:space:]]+(commit|tag)\b[^|;&]*-[a-zA-Z]*m\b'; then
+  cmd="$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+fi
+
+# 4b) EL CUERPO DE UN HEREDOC ES TEXTO QUE SE ESCRIBE, NO COMANDOS.
+#
+#     Faltaba por completo — los otros dos hooks del sistema (guard-sensitive-exec,
+#     block-harness-memory) ya descartan cuerpos de heredoc y éste no. Medido el
+#     2026-09-19, bloqueando un `git commit` real:
+#
+#       cat > /tmp/msg.txt <<EOF
+#         grep -oE "…" infra/terraform/envs/prod/main.tf   → exit 2
+#       EOF
+#       git commit -F /tmp/msg.txt
+#
+#     El comando NO busca nada: escribe un mensaje de commit que DESCRIBE una
+#     búsqueda. Es el mismo defecto que el paso (4) ya corrigió para `echo` y
+#     `git commit -m` —"un gate que muerde el trabajo de documentarlo es el que se
+#     termina desactivando"— pero por la vía del heredoc, que es justamente cómo
+#     se escriben los mensajes largos en este repo.
+#
+#     ⚠️ EXCEPCIÓN: un heredoc dirigido a un INTÉRPRETE (`bash <<EOF … EOF`) SÍ
+#     es ejecución, y hay que saltear esta pasada ahí. El paso (2) NO lo cubre:
+#     sólo reconoce `bash -c`, no `bash <<`. Al escribir este bloque se afirmó en
+#     un comentario que (2) "ya lo desenvolvió antes" — era FALSO, y descartar el
+#     cuerpo abrió un agujero real (medido: `bash <<EOF / grep -rn services/ /
+#     EOF` → exit 0). El comentario equivocado duró lo que tardó la prueba en
+#     correr, que es la razón por la que estos casos están versionados.
+if ! printf '%s' "$cmd" | grep -qE '(^|[|;&]|&&|\|\|)[[:space:]]*((ba|z|k|da)?sh|python[0-9.]*|node|perl|ruby)\b[^|;&]*<<'; then
+cmd="$(printf '%s' "$cmd" | awk '
+  BEGIN { inhd = 0 }
+  {
+    line = $0
+    if (inhd) { if (line ~ ("^[[:space:]]*" hd "[[:space:]]*$")) inhd = 0; next }
+    if (match(line, /<<-?[[:space:]]*[\047"]?[A-Za-z_][A-Za-z0-9_]*[\047"]?/)) {
+      hd = substr(line, RSTART, RLENGTH)
+      gsub(/^<<-?[[:space:]]*|[\047"]/, "", hd)
+      inhd = 1
+      line = substr(line, 1, RSTART - 1)
+    }
+    print line
+  }
+')"
+[ -z "${cmd//[[:space:]]/}" ] && exit 0
+fi
+
+# ── NO HAY OVERRIDE. Se retiró el 2026-09-19 por orden del dueño. ───────────
+#
+# Existía `CBM_CHECKED=1`: una palabra que el AGENTE escribía por su cuenta para
+# saltarse este gate. Medido ese mismo día: se usó como atajo sistemático, no
+# como excepción — el agente lo anteponía en vez de usar el índice, y el dueño
+# lo detectó.
+#
+# Primer intento de arreglo: dejarlo pero REGISTRARLO. El dueño lo refutó en una
+# línea: *"¿qué diferencia hay entre saltarlo en silencio y saltarlo con
+# registro?"*. Ninguna, si nadie lee el registro. Era el mismo patrón que este
+# repo ya pagó caro: el detector de líneas trabadas EXISTÍA, medía 101 casos en
+# 30 días, y estaba apagado. Observabilidad que nadie mira no es control.
+#
+# Ahora la puerta no existe. Si el gate bloquea, el camino es el índice
+# (search_code/trace_path/find_symbol) o un comando que no sea una búsqueda
+# recursiva sobre código. Las excepciones LEGÍTIMAS siguen abajo y no dependen
+# de la voluntad del agente: si no apunta a código, o es un archivo concreto sin
+# recursión, no se bloquea.
+#
+# Si algún día aparece un caso real que estas excepciones no cubren, se pide al
+# dueño y él decide. Un agente no se auto-autoriza.
+
+# El registro se conserva: sirve para ver si el gate estorba de verdad.
+log="${HOME}/.claude/logs/cbm-blocked.log"
+
+# ── SUSTITUCIÓN DE HERRAMIENTA (medido el 2026-09-19) ──────────────────────
+# El gate miraba sólo grep/rg/ag/sed/ack. Cambiando de binario se lo rodeaba sin
+# dejar rastro, con el MISMO objetivo (leer código en volumen):
+#
+#   python3 -c "...rglob('*.ts')...p.read_text()..."   → exit=0
+#   awk '/handler/{print FILENAME}' src/*.ts           → exit=0
+#   find src -name '*.ts' -exec cat {} +               → exit=0
+#
+# LA LÍNEA DIVISORIA NO ES LA HERRAMIENTA. python, awk, find y node son legítimos
+# a diario; bloquearlos por nombre rompería el trabajo normal y entrenaría a
+# esquivar el gate (el footgun que este repo ya documenta). Lo que separa el
+# rodeo del uso legítimo es LEER EL CONTENIDO de muchos archivos de código:
+#
+#   find src -name '*.ts'                 → lista NOMBRES   → pasa
+#   find src -name '*.ts' -exec cat {} +  → lee CONTENIDOS  → bloquea
+#
+# Verificado contra 7 usos legítimos (awk sobre /var/log, find -delete, python
+# que lee package.json, node -e, pnpm build, find|wc): ninguno bloquea.
+CODE_HINT='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b|(^|[[:space:]/'"'"'"])(src|lib|app|services|packages|apps)([[:space:]/'"'"'"]|$)'
+
+# Lectura de contenido EN VOLUMEN. Cada alternativa implica varios archivos:
+# un recorrido de directorio (rglob/os.walk/find -exec/xargs) o un comodín que
+# expande a muchos (awk '/patrón/' src/*.ts). `readFileSync`/`read_text` sobre UN
+# archivo ya identificado NO entra: leer un archivo concreto siempre fue legítimo
+# acá, y bloquearlo sería el falso positivo que mata al gate.
+READ_MANY='-exec[[:space:]]+(cat|head|tail|grep)\b'
+READ_MANY="$READ_MANY"'|\|[[:space:]]*xargs[[:space:]]+(cat|head|grep)\b'
+READ_MANY="$READ_MANY"'|rglob|iglob|os\.walk|Files\.walk|glob\.glob'
+# awk/perl con un patrón //, o cualquier lectura, sobre un comodín de fuentes.
+READ_MANY="$READ_MANY"'|(awk|perl)[[:space:]]+[^|;&]*/[^/]*/[^|;&]*\*'
+READ_MANY="$READ_MANY"'|(read_text\(\)|readFileSync|\.read\(\))[^|;&]*\*'
+READ_MANY="$READ_MANY"'|\*\.(ts|tsx|js|jsx|py|go|rs|java|kt|rb|php|swift|cs)\b[^|;&]*(read_text|readFileSync|\.read\(\))'
+# Bucle de shell que recorre fuentes: `for f in src/*.ts; do cat "$f"; done`.
+READ_MANY="$READ_MANY"'|for[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]+in[[:space:]][^;]*\*'
+# Expansión de llaves sobre fuentes: `cat src/{a,b,c}.ts` — un solo comando,
+# varios archivos. El shell la expande; el patrón de comodín no la veía.
+READ_MANY="$READ_MANY"'|(cat|head|tail|bat|less|more|nl)[[:space:]][^|;&]*\{[^}]*,[^}]*\}'
+# Volcado por COMODÍN: `cat src/*.ts`, `head -100 services/**/*.ts`, `bat src/*.ts`.
+# Es el mismo volcado en volumen que ya se bloquea vía find/xargs, pero escrito
+# con la expansión del shell. Medido el 2026-09-19 en exit 0.
+#
+# ⚠️ EXIGE EL COMODÍN. `head -100 src/app.ts` sobre UN archivo ya identificado
+# sigue pasando, igual que `cat src/app.ts` y `grep handler src/app.ts`: leer un
+# archivo concreto es legítimo y está en el ALCANCE de este hook. La línea
+# divisoria es UNO vs MUCHOS, no el binario.
+READ_MANY="$READ_MANY"'|(cat|head|tail|bat|less|more|nl)[[:space:]][^|;&]*\*[^|;&]*\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs)\b'
+
+if printf '%s' "$cmd" | grep -qE "$CODE_HINT" \
+   && printf '%s' "$cmd" | grep -qE -- "$READ_MANY"; then
+  cat >&2 <<'MSG'
+🛑 BLOQUEADO (redirect-code-search-to-mcp): leer CÓDIGO en volumen por fuera del índice.
+
+Cambiar de herramienta (python/awk/find/node) no cambia el problema: leer muchos
+archivos de código en crudo produce los mismos diagnósticos incompletos que grep
+—no ve una dependencia inyectada, ni el docstring tres líneas más arriba—, y
+además gasta contexto en texto que el índice ya tiene resuelto.
+
+  ¿quién llama a X? ¿qué rompe si lo cambio?  → trace_path
+  ¿dónde está definido X?                     → search_graph / find_symbol
+  texto, pero enriquecido con el grafo        → search_code
+
+Esto NO bloquea a python/awk/find en general: sólo cuando LEEN EL CONTENIDO de
+archivos de código. Listar nombres (`find src -name "*.ts"`), procesar logs o
+JSON, o leer UN archivo ya identificado siguen pasando.
+MSG
+  mkdir -p "$(dirname "$log")" 2>/dev/null
+  printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null
+  exit 2
+fi
+
+# ── LO QUE NO ES BUSCAR EN CÓDIGO (exenciones estructurales) ───────────────
+#
+# El ALCANCE de la cabecera declara legítimos los casos de abajo. Sin estas
+# exenciones el gate contradice su propio texto, y como NO tiene override, eso
+# vuelve el trabajo imposible por cualquier vía.
+#
+# ⚠️ SE EVALÚAN SOBRE EL COMANDO NORMALIZADO (`norm`), no sobre el crudo: los
+# strings ya son un marcador inerte, así que un patrón de búsqueda
+# (`grep -E "Tests |FAIL"`) no puede hacerse pasar por una ruta.
+norm="$(colapsar_lineas "$(normalizar_ejecutable "$cmd")")"
+
+# ── (A) grep sobre la SALIDA DE UN COMANDO, no sobre archivos ──────────────
+#
+#   pnpm test 2>&1 | grep -E "Tests |Test Files |FAIL"
+#   git ls-files | grep -i businesssubject
+#   docker compose ps | grep healthy
+#
+# Lo que llega por un pipe es texto que ya produjo otro proceso: el índice no
+# puede responder "¿cuántos tests fallaron?" ni "¿qué contenedor está healthy?".
+#
+# LA PRUEBA ES ESTRUCTURAL, no una lista de binarios: se pregunta si el buscador
+# del último segmento tiene ARGUMENTO DE ARCHIVO propio. Un `grep patrón` sin
+# ruta lee de stdin — no puede abrir código aunque quiera.
+#
+# ⚠️ Sólo exime el segmento que lee de stdin. `grep -rn x src/ | head` NO se
+# exime: ahí el grep sí tiene ruta y sí recorre el árbol.
+lee_solo_de_stdin() {
+  local seg
+  seg="${1##*|}"
+  printf '%s' "$seg" | grep -qE '(^|[[:space:]])(grep|egrep|fgrep|rg|ag|ack|ugrep|sed|awk)([[:space:]]|$)' || return 1
+  # Recursión explícita sobre stdin no existe: si pide -r, quiere un árbol.
+  printf '%s' "$seg" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]([[:space:]]|$)|--include' && return 1
+  # Se quitan binario, banderas y los marcadores de string (los patrones). Si
+  # queda algún token con pinta de RUTA, el buscador abre archivos.
+  printf '%s' "$seg" \
+    | sed -E 's/(^|[[:space:]])(grep|egrep|fgrep|rg|ag|ack|ugrep|sed|awk)([[:space:]]|$)/ /g' \
+    | sed -E 's/(^|[[:space:]])-[^[:space:]]*//g' \
+    | tr ' \t' '\n\n' \
+    | grep -vx 'XSTRX' \
+    | grep -qE '[/.]' && return 1
+  return 0
+}
+
+case "$norm" in
+  *\|*) lee_solo_de_stdin "$norm" && exit 0 ;;
+esac
+
+# ── (B) BUSCAR POR NOMBRE DE ARCHIVO no es buscar EN el archivo ────────────
+#
+#   find services -name "*business-subject*"
+#   git ls-files
+#   ls DLL/*.sql
+#
+# Devuelven NOMBRES, nunca contenido. Es la misma distinción que el gate ya hace
+# para find: listar nombres pasa, `-exec cat` bloquea.
+#
+# ⚠️ CUALQUIER acción que LEA descarta la exención: `-exec`, `-delete`, o un
+# pipe hacia un lector — con ruta o sin ella. `find … -print0 | xargs -0 cat`
+# es un volcado en volumen y debe seguir bloqueando.
+solo_lista_nombres() {
+  local c="$1"
+  printf '%s' "$c" | grep -qE '(^|[|;&]|&&)[[:space:]]*(find|git[[:space:]]+ls-files|ls)([[:space:]]|$)' || return 1
+  printf '%s' "$c" | grep -qE -- '-(exec|execdir|ok|delete)([[:space:]]|$)' && return 1
+  # Un pipe a cualquier LECTOR de contenido descarta la exención.
+  printf '%s' "$c" | grep -qE '\|[[:space:]]*(xargs|cat|head|tail|bat|less|more|nl|od|xxd|strings)([[:space:]]|$)' && return 1
+  # Un buscador con ruta propia en el comando tampoco se exime.
+  printf '%s' "$c" | grep -qE '(^|[|;&]|&&)[[:space:]]*(grep|egrep|fgrep|rg|ag|ack|ugrep|sed)([[:space:]]|$)' && return 1
+  return 0
+}
+
+solo_lista_nombres "$norm" && exit 0
+
+# ¿Es una búsqueda de texto?
+# ⚠️ Faltaban buscadores y las formas indirectas. Medido el 2026-09-19 por una
+# auditoría independiente: `ugrep`/`pt` no estaban en la lista, y
+# `find … -print0 | xargs -0 cat` recorría el código entero sin tocar el gate
+# (sólo se reconocía el `xargs` sin `-0`).
+#
+# Es la misma lista abierta de siempre. Acá no se puede invertir la pregunta
+# —"¿qué binario NO busca?" es infinito— así que se asume el costo: la lista
+# se amplía con lo medido, y `find` con acción de lectura entra por su propia
+# vía, que es estructural (recorrer un árbol + leer cada archivo) y no depende
+# de qué binario haga la lectura.
+printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])(grep|egrep|fgrep|rg|ripgrep|ag|ack|ugrep|pt|sift|sed|awk)([[:space:]]|$)' \
+  || printf '%s' "$cmd" | grep -qE '(^|[|;&[:space:]])find\b[^|;&]*(-exec|-print0?|\|)' \
+  || exit 0
+
+# ¿Apunta a código? Extensiones de fuentes, o directorios de fuentes de layouts comunes
+# (monorepo por paquetes, o `src/` a secas). Si no toca código, no molestamos.
+#
+# `services` y `packages` se agregaron el 2026-09-19: son los directorios REALES
+# de este monorepo y faltaban, así que `grep -rn handler services/` —la búsqueda
+# más habitual acá— salía exit 0. La lista describía un layout genérico, no el
+# del repo donde el gate corre. Se suman también `apps` y `infra`.
+# ⚠️ UNA SOLA LISTA DE EXTENSIONES, usada por los DOS chequeos de abajo.
+# Antes eran dos listas escritas a mano y HABÍAN DIVERGIDO. Medido el
+# 2026-09-19, en uso real:
+#
+#   grep -n handler services/svc-a/src/index.ts   → exit 0  (bien)
+#   grep -oE "[0-9.]+" infra/terraform/envs/prod/main.tf → exit 2  (MAL)
+#
+# Un `.ts` concreto pasaba y un `.tf` concreto no, porque `.tf` estaba en la
+# lista que DECIDE QUÉ ES CÓDIGO pero no en la que reconoce "un archivo ya
+# identificado". El propio mensaje de bloqueo promete esa salida —"un archivo
+# concreto, sin recursión ni comodines"— así que el gate contradecía su texto
+# y el falso positivo costaba dos intentos antes de entender por qué.
+#
+# Unificadas acá: no pueden volver a divergir sin que alguien edite una línea.
+EXT_CODIGO='\.(ts|tsx|js|jsx|mjs|cjs|astro|vue|svelte|py|go|rs|java|kt|rb|php|swift|cs|scala|ex|exs|tf|tfvars|sql|prisma)\b'
+
+# ── UN ARCHIVO QUE NO ES CÓDIGO NO ES CÓDIGO, ESTÉ DONDE ESTÉ ──────────────
+#
+# El chequeo de abajo decide por el DIRECTORIO PADRE además de la extensión, y
+# eso bloqueaba archivos que el ALCANCE de este hook promete explícitamente
+# permitir ("logs, JSON, YAML, configs"). Medido el 2026-09-19 por una
+# auditoría independiente:
+#
+#   grep -rn ERROR services/logs/app.log          → exit 2
+#   grep -n port infra/dev/docker-compose.yml     → exit 2
+#   grep -rn foo src/README.md                    → exit 2
+#   (los mismos fuera de esos directorios         → exit 0)
+#
+# El gate contradecía su propio mensaje de bloqueo, y NO tiene override: era
+# trabajo imposible de hacer por ninguna vía. Exactamente el "bloquear de más
+# entrena a saltarse el gate" contra el que este archivo advierte.
+#
+# Una extensión inequívocamente NO-código gana sobre el directorio.
+EXT_NO_CODIGO='\.(log|md|json|ya?ml|toml|ini|conf|cfg|env|txt|csv|lock|html|css|svg)\b'
+if printf '%s' "$cmd" | grep -qE "$EXT_NO_CODIGO" \
+   && ! printf '%s' "$cmd" | grep -qE "$EXT_CODIGO"; then
   exit 0
 fi
 
-# Nombre del proyecto, derivado del repo y no escrito aquí. Se usa el repo
+# ── LAS COMILLAS OCULTABAN EL DIRECTORIO ───────────────────────────────────
+#
+# El patrón de directorios exige una frontera de espacio o barra, así que
+# entrecomillar lo escondía. Medido el 2026-09-19:
+#
+#   grep -rn handler "services"   → exit 0
+#   grep -rn handler services     → exit 2
+#
+# Es el mismo defecto que E1/E2 del guard de prod: una prueba de substring sin
+# frontera haciendo de prueba estructural. Se normalizan las comillas para el
+# chequeo de ruta — acá no hay riesgo de perder información porque los strings
+# de intérpretes y de `echo` ya se resolvieron en los pasos anteriores.
+ruta_probe="$(printf '%s' "$cmd" | tr -d "\"'")"
+
+printf '%s' "$ruta_probe" | grep -qE "$EXT_CODIGO|(^|[[:space:]/])(src|lib|app|apps|services|packages|infra)([[:space:]/]|\$)" || exit 0
+
+# Un solo path concreto sin recursión ni comodines: el archivo ya está identificado.
+if printf '%s' "$ruta_probe" | grep -qE "$EXT_CODIGO" \
+   && ! printf '%s' "$ruta_probe" | grep -qE '(^|[[:space:]])-[a-zA-Z]*[rR]|[*?]|--include' ; then
+  exit 0
+fi
+
+cat >&2 <<'MSG'
+🛑 BLOQUEADO (redirect-code-search-to-mcp): buscar en CÓDIGO con grep/sed vía Bash.
+
+Usá el índice de código. Responde en una llamada y ve lo que grep no puede:
+
+  ¿quién llama a X? ¿qué rompe si lo cambio?  → trace_path
+  ¿dónde está definido X? ¿qué símbolos hay?  → search_graph / find_symbol
+  ¿qué impacto tiene este diff?               → detect_changes
+  ¿arquitectura, capas, módulos?              → get_architecture
+  texto, pero enriquecido con el grafo        → search_code
+
+(Herramientas mcp__codebase-memory-mcp__* y mcp__plugin_serena_serena__*.)
+
+Por qué bloquea en vez de avisar: avisando se ignora. Y grep sobre código miente por
+construcción — no ve una env leída por indirección, ni una dependencia inyectada, ni
+el docstring que estaba tres líneas más arriba del match.
+
+NO hay variable de override: CBM_CHECKED=1 se retiró el 2026-09-19 porque se usaba
+como atajo sistemático. Anteponerla no cambia nada — el comando vuelve a fallar.
+
+Las salidas legítimas, que no dependen de tu voluntad:
+  · el índice (arriba), que es el camino esperado;
+  · un archivo concreto ya identificado, sin recursión ni comodines;
+  · texto que no sea código: logs, JSON, YAML, configs, salida de CLIs.
+Si ninguna cubre tu caso, pedíselo al dueño: un agente no se auto-autoriza.
+MSG
+# Nombre del índice, derivado del repo y no escrito aquí. Se usa el repo
 # PRINCIPAL (`--git-common-dir`), no el worktree: el índice es del principal.
 # codebase-memory nombra el índice con la ruta absoluta sin la `/` inicial y con
 # `/` → `-` (/home/u/src/app → home-u-src-app); Serena usa el nombre de la carpeta.
-proyecto=""
 comun="$(git -C "${cwd:-$PWD}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
 case "$comun" in
   */.git) raiz="${comun%/.git}" ;;
@@ -57,24 +491,11 @@ case "$comun" in
 esac
 if [ -n "$raiz" ]; then
   indice="${raiz#/}"
-  indice="${indice//\//-}"
-  proyecto="Proyecto indexado: '$indice' (NO '${raiz##*/}'). Serena requiere activate_project('${raiz##*/}') una vez por sesión. Si el índice no existe, mcp__codebase-memory-mcp__index_repository(repo_path='$raiz')."
+  printf "\nÍndice de este repo: '%s' (NO '%s'). Serena: activate_project('%s').\nSi no existe: index_repository(repo_path='%s').\n" \
+    "${indice//\//-}" "${raiz##*/}" "${raiz##*/}" "$raiz" >&2
 else
-  proyecto="El cwd no es un repo de git: mcp__codebase-memory-mcp__list_projects da el nombre del índice."
+  printf '\nEl cwd no es un repo de git: list_projects da el nombre del índice.\n' >&2
 fi
-
-ctx="RECORDATORIO ESTRUCTURAL (hook redirect-code-search-to-mcp): estás por buscar en CÓDIGO con grep/sed vía Bash. Este proyecto tiene MCPs indexados que responden mejor y en UNA llamada:
-
-- ¿Quién llama a X? ¿qué rompe si cambio X? → mcp__codebase-memory-mcp__trace_path (mode=calls|cross_service). grep NO ve el cableado por inyección de dependencias — así se perdió una cadena de decoradores el 2026-07-20.
-- ¿Dónde está definido X? ¿qué símbolos hay? → mcp__codebase-memory-mcp__search_graph o mcp__plugin_serena_serena__find_symbol (include_body/include_info da el docstring COMPLETO, no fragmentos).
-- ¿Qué impacto tiene este cambio/diff? → mcp__codebase-memory-mcp__detect_changes (since=<ref>).
-- ¿Arquitectura, capas, clusters? → mcp__codebase-memory-mcp__get_architecture.
-- Búsqueda de texto pero enriquecida con el grafo → mcp__codebase-memory-mcp__search_code.
-
-$proyecto
-
-POR QUÉ IMPORTA: leer en pedazos con grep produjo 3 diagnósticos sucesivos y equivocados en una sola sesión, porque el test/docstring que los invalidaba estaba fuera del fragmento leído. Si ya mediste con el MCP y necesitás grep para algo puntual, seguí adelante — este aviso no bloquea."
-
-jq -n --arg ctx "$ctx" \
-  '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}' 2>/dev/null || true
-exit 0
+mkdir -p "$(dirname "$log")" 2>/dev/null
+printf '%s\t%s\n' "$(date -Is)" "$(printf '%s' "$cmd" | head -c 300)" >> "$log" 2>/dev/null
+exit 2

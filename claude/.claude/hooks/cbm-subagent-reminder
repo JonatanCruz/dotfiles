@@ -2,6 +2,25 @@
 # SubagentStart hook: tell subagents to use codebase-memory-mcp tools.
 # Installed by codebase-memory-mcp. Fires when any subagent is spawned.
 # SubagentStart injects context via JSON additionalContext, not plain stdout.
+#
+# ⚠️ ESTE TEXTO DESCRIBE UN GATE DURO, NO UNA PREFERENCIA.
+#
+# Decía "prefer … over grep/file-read" y "use Grep/Glob/Read for text". Medido el
+# 2026-09-19, `redirect-code-search-to-mcp.sh` NO trata eso como preferencia:
+#
+#   grep -rn "handler" src/          → exit 2 (bloqueado, sin override)
+#   grep -n error /var/log/syslog    → exit 0
+#   grep -n name package.json        → exit 0
+#   grep -n handler src/index.ts     → exit 0
+#
+# Es el primer texto que un subagente lee, y lo entrenaba a intentar algo que iba
+# a fallar — gastando un turno en descubrir que la "preferencia" era un muro. El
+# mismo defecto que ya se corrigió en cbm-session-reminder (decía "freely").
+#
+# La regla real es la de las tres líneas de abajo: el índice primero para código;
+# grep para lo que el índice no cubre (texto plano, logs, configs, UN archivo ya
+# identificado). Si este texto y el gate vuelven a discrepar, gana el gate — y se
+# corrige el texto, no al revés.
 cat << 'REMINDER'
-{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"Code discovery: prefer codebase-memory-mcp tools (search_graph, trace_path, get_code_snippet, query_graph, get_architecture, search_code) over grep/file-read for navigating code. Use Grep/Glob/Read for text, configs, and non-code files."}}
+{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"Code discovery: for CODE, the index is the only path, not a preference — a hard gate (redirect-code-search-to-mcp.sh) BLOCKS recursive grep/sed over source files via Bash with exit 2 and there is no override. Use codebase-memory-mcp first: search_graph (find symbols), trace_path (call chains), get_code_snippet (exact source), query_graph (Cypher), get_architecture (structure), search_code (graph-augmented text search). If the repo is not indexed yet, run index_repository first. Grep/Glob/Read remain correct — and are NOT blocked — for what the index does not cover: plain text, logs, JSON/YAML/configs, CLI output, and reading ONE already-identified file (always Read a file before editing it)."}}
 REMINDER

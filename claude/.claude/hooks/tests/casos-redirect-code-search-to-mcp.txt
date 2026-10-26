@@ -1,0 +1,109 @@
+# Casos de redirect-code-search-to-mcp.sh — el gate que manda al índice.
+#
+# ── POR QUÉ EXISTE ESTE ARCHIVO ────────────────────────────────────────────
+#
+# Este gate NO tiene override (se retiró `CBM_CHECKED=1` el 2026-09-19 porque
+# se usaba como atajo sistemático). Un gate sin escape hatch tiene que ser
+# exacto: cada falso positivo es trabajo que no se puede hacer de ninguna
+# forma, y entrena a rodearlo por vías peores.
+#
+# El defecto que motivó estos casos: el hook tenía DOS listas de extensiones
+# escritas a mano —una que decide "esto es código", otra que reconoce "un
+# archivo ya identificado"— y habían divergido. Un `.ts` concreto pasaba y un
+# `.tf` concreto se bloqueaba, contradiciendo el propio mensaje del gate, que
+# promete permitir "un archivo concreto, sin recursión ni comodines".
+#
+# Formato:  <exit esperado> <TAB> <descripción> <TAB> <comando>
+
+# ── DEBE BLOQUEAR (exit 2): búsqueda recursiva sobre código ───────────────
+
+2	grep -rn en src/	grep -rn "handler" services/svc-a/src/
+2	rg recursivo sobre services/	rg -n "handler" services/
+2	grep -r sobre packages/	grep -r "export" packages/
+2	grep con comodín sobre código	grep -n "x" services/*.ts
+2	grep --include sobre el repo	grep -n --include=*.ts "x" .
+
+# ── DEBE PASAR (exit 0): lo que el mensaje del gate PROMETE permitir ──────
+#
+# "un archivo concreto, sin recursión ni comodines"
+
+0	UN archivo .ts concreto	grep -n handler services/svc-a/src/index.ts
+0	UN archivo .tf concreto (el falso positivo)	grep -oE "[0-9.]+" infra/terraform/envs/prod/main.tf
+0	UN archivo .sql concreto	grep -n CREATE migrations/0001_init.sql
+0	UN archivo .astro concreto	grep -n props apps/status/src/pages/index.astro
+
+# "texto que no sea código: logs, JSON, YAML, configs, salida de CLIs"
+
+0	log	grep -n error /var/log/syslog
+0	JSON	grep -n name package.json
+0	YAML	grep -n x docker-compose.yml
+0	salida de CLI por pipe	docker compose ps | grep healthy
+0	markdown	grep -rn "Regla" docs/
+
+# Comandos que no son búsqueda en absoluto.
+0	git status	git status
+0	ls	ls -la services/
+
+# ── HEREDOCS: texto escrito vs ejecución ─────────────────────────────────
+#
+# El cuerpo de un heredoc es TEXTO que se escribe a un archivo. Medido el
+# 2026-09-19: este gate bloqueó un `git commit` real cuyo MENSAJE describía
+# una búsqueda. Es el mismo defecto que el paso (4) ya había corregido para
+# `echo` y `git commit -m`, por la vía del heredoc — que es justamente cómo se
+# escriben los mensajes largos en este repo.
+#
+# Pero un heredoc dirigido a un INTÉRPRETE sí es ejecución, y al arreglar lo
+# de arriba se abrió ese agujero durante una corrida: un comentario afirmaba
+# que otro paso ya lo cubría, y era falso. Ambos casos quedan acá.
+# El runner es UNA línea por caso, así que el heredoc se escribe con el cuerpo
+# en la misma línea: el hook ve exactamente el mismo texto que en varias.
+0	heredoc de texto que describe búsquedas	cat > /tmp/m.txt <<EOF ; grep -rn x services/ ; EOF
+2	heredoc a bash ES ejecución	bash <<EOF ; grep -rn x services/ ; EOF
+
+# ── E4 y falsos positivos (auditoría independiente 2026-09-19) ────────────
+#
+# Entrecomillar el directorio lo escondía del patrón (misma clase de defecto
+# que E1/E2 del guard de prod: substring sin frontera). Y decidir por
+# DIRECTORIO PADRE bloqueaba logs/YAML/markdown que el ALCANCE promete.
+2	directorio entrecomillado	grep -rn handler "services"
+2	find con xargs -0	find services -name "*.ts" -print0 | xargs -0 cat
+2	find con -exec	find services -name "*.ts" -exec cat {} +
+2	ugrep no estaba en la lista	ugrep -rn handler services/
+0	log bajo services/	grep -rn ERROR services/logs/app.log
+0	YAML bajo infra/	grep -n port infra/dev/docker-compose.yml
+0	markdown bajo src/	grep -rn foo src/README.md
+0	awk sobre salida de CLI	docker compose ps | awk "{print $1}"
+0	find que sólo lista	find services -name "*.ts"
+
+# ── LO QUE NO ES BUSCAR EN CODIGO ────────────────────────────────────────
+#
+# El ALCANCE de la cabecera ya declaraba legitimos estos casos; el codigo no
+# los cumplia. Como el gate NO tiene override, cada uno era trabajo imposible
+# de hacer por cualquier via.
+
+# (A) grep sobre la SALIDA DE UN COMANDO. El indice no puede responder
+# "cuantos tests fallaron" ni "que contenedor esta healthy".
+0	grep sobre la salida de los tests	pnpm test 2>&1 | grep -E "Tests |Test Files |FAIL"
+0	grep sobre vitest	npx vitest run 2>&1 | grep -E "^ *Tests |FAIL"
+0	git ls-files a grep	git ls-files | grep -i "businesssubject"
+0	ls a grep	ls DLL/*.sql | grep -iE "inventario"
+
+# (B) Buscar por NOMBRE DE ARCHIVO no es buscar EN el archivo.
+0	find -name solo lista nombres	find services -name "*business-subject*"
+0	find con varias extensiones	find infra/terraform -name "*.tf" -o -name "*.tfvars"
+0	git ls-files a secas	git ls-files
+
+# (C) Un bucle sobre archivos CONCRETOS no es un recorrido de arbol.
+0	for sobre archivos nombrados uno a uno	for f in a.tf b.tf; do grep -c X "$f"; done
+
+# ── Y LO QUE ESAS EXENCIONES NO PUEDEN ABRIR ─────────────────────────────
+#
+# Cada exencion es una puerta. Estos son los intentos de entrar por ella:
+# el pipe no absuelve a un grep que SI tiene ruta propia, y listar nombres no
+# absuelve a un volcado de contenido.
+2	pipe pero el grep recurre un arbol	echo x | grep -rn handler services/
+2	pipe pero el grep trae --include	echo x | grep -n --include=*.ts x .
+2	find que lista y LUEGO vuelca	find services -name "*.ts" -print0 | xargs -0 cat
+2	find con -exec cat	find services -name "*.ts" -exec cat {} +
+2	ls que lista y LUEGO vuelca	ls services/*.ts | xargs cat
+2	ls seguido de un grep recursivo	ls && grep -rn handler services/

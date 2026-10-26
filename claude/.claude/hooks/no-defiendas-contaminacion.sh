@@ -1,28 +1,50 @@
 #!/usr/bin/env bash
-# no-defiendas-contaminacion.sh — PreToolUse sobre la herramienta de agentes
+# no-defiendas-contaminacion.sh — PreToolUse sobre la herramienta de agentes.
 #
-# PROBLEMA QUE RESUELVE (2026-08-13): al encargar un borrado de contaminación
-# legacy, escribo una cláusula de escape que suena a prudencia y funciona como
-# veto: *"si al medir encontrás que SÍ se usa, decilo y no lo borres"*. El dueño
-# lo cazó y lo nombró: *"ahí está el error, no defiendas, primero rompe y luego
-# repara"*.
+# QUÉ VIGILA: la cláusula de escape en un encargo de BORRADO. Suena a prudencia
+# —"si al medir encontrás que sí se usa, no lo borres"— y funciona como veto: el
+# agente delegado mide, encuentra un uso vivo, y conserva lo que había que
+# eliminar. El encargo se anula a sí mismo sin que nadie lo note.
 #
-# Corregido en memoria al menos tres veces sin efecto: una nota depende de que
-# la lea justo cuando escribo la cláusula, que es cuando no la leo. Por eso la
-# regla va en la ESTRUCTURA (Meadows), en el instante donde se rompe: el
-# encargo, ANTES de que el agente lo ejecute.
+# POR QUÉ ES UN HOOK Y NO UNA NOTA: la regla se rompe en el instante de ESCRIBIR
+# el encargo, que es justo cuando no se releen las notas. El control tiene que
+# estar en ese instante, no en la memoria del que escribe.
 #
-# NO bloquea — señala el texto exacto que hay que reescribir (como
-# additionalContext) y sale 0. Sin jq sale 0 sin avisar.
-
+# POR QUÉ AVISA Y NO BLOQUEA: distinguir un veto indebido de un límite legítimo
+# ("no borres la tabla de la que depende el cobro") exige entender el dominio, y
+# eso un patrón de texto no lo hace. Bloquear sobre esa señal ambigua frenaría
+# encargos correctos. Acá el aviso alcanza porque llega ANTES de mandar el
+# encargo, con el texto exacto a reescribir señalado: el costo de corregirlo es
+# una edición, no un incidente.
+#
+# El patrón es deliberadamente ESTRECHO —las formas concretas del veto— porque
+# una heurística amplia gritaría en cada delegación y moriría por desconfianza.
+#
+# El aviso sale como additionalContext (JSON con jq): en PreToolUse el texto
+# plano con exit 0 no llega al modelo. Sin jq no hay forma segura de armar el
+# JSON, así que no avisa.
+#
 set -uo pipefail
 
-command -v jq >/dev/null 2>&1 || exit 0
-
 INPUT="$(cat 2>/dev/null || true)"
-PROMPT="$(printf '%s' "$INPUT" | jq -r '
-  [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
-' 2>/dev/null || true)"
+[ -n "$INPUT" ] || exit 0
+
+# Sin jq se usa el payload crudo. Antes había un `command -v jq || exit 0` acá:
+# en una máquina sin jq el hook salía en silencio y el encargo con cláusula de
+# escape se mandaba sin aviso. Medido el 2026-09-19 con jq oculto del PATH:
+# un encargo de borrado con "no lo borres" salía exit=0 SIN imprimir nada.
+#
+# El crudo sirve para este hook —a diferencia del gate del índice— porque acá se
+# buscan FRASES en español dentro del texto del encargo, y esas frases sobreviven
+# intactas al escapado del JSON. No se pierde precisión, sólo se deja de depender
+# de que jq exista.
+PROMPT=""
+if command -v jq >/dev/null 2>&1; then
+  PROMPT="$(printf '%s' "$INPUT" | jq -r '
+    [(.tool_input.description // empty), (.tool_input.prompt // empty)] | join(" ")
+  ' 2>/dev/null || true)"
+fi
+[ -n "$PROMPT" ] || PROMPT="$INPUT"
 [ -n "$PROMPT" ] || exit 0
 
 # Sólo interesa cuando el encargo ES de borrado/descontaminación. Sin esto el
