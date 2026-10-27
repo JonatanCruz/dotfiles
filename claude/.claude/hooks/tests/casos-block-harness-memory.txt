@@ -51,8 +51,8 @@
 
 # ── DEBE PASAR (exit 0): lecturas y usos legítimos ────────────────────────
 #
-# Un gate que bloquea lecturas se termina desactivando. `cp DESDE memory` es
-# el caso testigo: se rompió al cerrar tar/rsync y hubo que medirlo aparte.
+# Un gate que bloquea lecturas se termina desactivando. Copiar DESDE memory
+# (cp, rsync, tar) es un respaldo: no escribe ahí.
 
 0	cp desde memory es un respaldo	cp @MEM@/MEMORY.md /tmp/backup.md
 0	rsync desde memory	rsync @MEM@/ /tmp/bak/

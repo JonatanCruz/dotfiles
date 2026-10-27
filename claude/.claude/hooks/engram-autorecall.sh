@@ -117,8 +117,8 @@ MIN=1; [ "$NKW" -ge 2 ] && MIN=2
 FTS_QUERY="$(printf '%s' "$KEYWORDS" | awk '{for(i=1;i<=NF;i++){printf "%s\"%s\"", (i>1?" OR ":""), $i}}')"
 [ -n "$FTS_QUERY" ] || exit 0
 
-# UNA sola apertura de la base para todo (antes eran 2 + una por palabra clave, ~10
-# procesos sqlite3 por prompt). Cada fila lleva una etiqueta en la 1.ª columna:
+# UNA sola apertura de la base para todo: un proceso sqlite3 por prompt, no uno
+# por palabra clave. Cada fila lleva una etiqueta en la 1.ª columna:
 #   C|…  candidatos (FTS, ORDER BY rank LIMIT 25)
 #   T|n  total de memorias vivas recordables del proyecto (base del IDF)
 #   D|i|n  en cuántas memorias aparece la palabra clave i (IDF)
