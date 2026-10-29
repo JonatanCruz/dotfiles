@@ -29,3 +29,10 @@ echo "=== OPCIONES RELEVANTES ==="
 for o in fill-character window-size default-size aggressive-resize status; do
   printf '  %s\n' "$(tmux show -g "$o" 2>/dev/null || echo "$o (no soportada)")"
 done
+
+echo
+echo "=== VENTANAS CONGELADAS (window-size manual: no siguen a la terminal) ==="
+tmux list-windows -a -F '#{session_name}:#{window_index}' | while read -r w; do
+  if [ "$(tmux show -wv -t "$w" window-size)" = manual ]; then echo "  $w"; fi
+done
+echo "(Repara con: tmux set-option -uw -t <ventana> window-size)"
