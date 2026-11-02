@@ -292,7 +292,7 @@ jobs:
       # más de dos semanas, no la última de hace días. `version` fija también
       # la imagen de Docker que la action ejecuta, que por defecto es :latest.
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9 # v3.99.2
+        uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
         with:
           path: ./
           base: ""
