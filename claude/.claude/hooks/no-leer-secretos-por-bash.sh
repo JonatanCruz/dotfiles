@@ -284,6 +284,26 @@ fi
 # escapada y el salto es un separador real que la unión borraría.
 original="$cmd"
 
+# ── Exención: secretos de proyectos de GCP que el dueño declaró legibles ────
+# El dueño: "es en prod donde no debes, en staging sí debes". La lista es de
+# FORMAS PERMITIDAS, no de lo prohibido: el comando ENTERO tiene que ser
+# exactamente esta forma, con --project literal y el nombre corto del secreto.
+# Cualquier otra cosa (`#`, variables, comillas, CLOUDSDK_*, --flags-file,
+# `projects/<n>/…`, otro flag, un segundo comando) cae al veto de siempre: con
+# un `#` o una redirección suelta, gcloud usaría el proyecto por defecto.
+# La única salida extra es redirigir a un archivo, para que el valor no llegue
+# al transcript, y sólo al scratchpad del harness (/tmp/claude-<uid>/…): con
+# cualquier ruta, `> /dev/tcp/host/puerto` lo mandaría por la red. No vive en
+# .claude/hooks.json a propósito: un repo no añade exenciones (lib/config.sh,
+# modelo de confianza).
+GCLOUD_PROYECTOS_LEGIBLES='reyva-staging'
+for _p in $GCLOUD_PROYECTOS_LEGIBLES; do
+  if [[ "$original" =~ ^gcloud\ secrets\ versions\ access\ (latest|[0-9]+)\ --secret=[a-z0-9_-]+\ --project=${_p}(\ \>\ /tmp/claude-[0-9]+/[A-Za-z0-9_./-]+)?$ ]] \
+    && [[ "$original" != *..* ]]; then
+    exit 0
+  fi
+done
+
 # ── Heredoc que ESCRIBE texto: documentación, no lectura ───────────────────
 # `cat > notas.md <<'EOF'` o `git commit -F - <<'EOF'` con un cuerpo que NOMBRA
 # .env o ~/.ssh no abre nada: lo escribe. Se permite sólo si es eso y nada más:
