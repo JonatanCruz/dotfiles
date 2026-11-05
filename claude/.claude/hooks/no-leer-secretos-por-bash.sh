@@ -292,11 +292,14 @@ original="$cmd"
 # `projects/<n>/…`, otro flag, un segundo comando) cae al veto de siempre: con
 # un `#` o una redirección suelta, gcloud usaría el proyecto por defecto.
 # La única salida extra es redirigir a un archivo, para que el valor no llegue
-# al transcript. No vive en .claude/hooks.json a propósito: un repo no añade
-# exenciones (lib/config.sh, modelo de confianza).
+# al transcript, y sólo al scratchpad del harness (/tmp/claude-<uid>/…): con
+# cualquier ruta, `> /dev/tcp/host/puerto` lo mandaría por la red. No vive en
+# .claude/hooks.json a propósito: un repo no añade exenciones (lib/config.sh,
+# modelo de confianza).
 GCLOUD_PROYECTOS_LEGIBLES='reyva-staging'
 for _p in $GCLOUD_PROYECTOS_LEGIBLES; do
-  if [[ "$original" =~ ^gcloud\ secrets\ versions\ access\ (latest|[0-9]+)\ --secret=[a-z0-9_-]+\ --project=${_p}(\ \>\ [A-Za-z0-9_./-]+)?$ ]]; then
+  if [[ "$original" =~ ^gcloud\ secrets\ versions\ access\ (latest|[0-9]+)\ --secret=[a-z0-9_-]+\ --project=${_p}(\ \>\ /tmp/claude-[0-9]+/[A-Za-z0-9_./-]+)?$ ]] \
+    && [[ "$original" != *..* ]]; then
     exit 0
   fi
 done
