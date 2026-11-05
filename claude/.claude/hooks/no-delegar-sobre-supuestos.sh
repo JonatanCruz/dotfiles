@@ -57,7 +57,7 @@ hallazgos=""
 AFIRMA='(no|nunca) (existe|corre|se (usa|invoca|ejecuta|despliega))|cero (filas|ocurrencias|resultados|consumidores)|(está|estan|están) (limpio|vacío|vacias|desplegad)|ningún (entorno|servicio|test|caller|cron)|no (hay|tiene) (tests?|cobertura|candado|guarda)|es irrecuperable|no se puede (derivar|recuperar)'
 
 # Lo que vuelve LEGÍTIMA la afirmación: la evidencia al lado.
-MIDE='archivo:línea|[a-zA-Z0-9_./-]+\.(ts|tsx|sql|tf|json|sh|md):[0-9]+|`[^`]*(grep|gcloud|git |SELECT|COUNT|psql|mysql|pnpm|docker)[^`]*`|medid[oa]|verificad[oa]|conteo|salida del comando|commit [0-9a-f]{7}|PR #[0-9]+|issue #[0-9]+|no (lo )?(medí|verifiqué)|supongo|verificalo|no está medido'
+MIDE='archivo:línea|[a-zA-Z0-9_./-]+\.[A-Za-z0-9]{1,8}:[0-9]+|`[^`]*(grep|rg |git |find |wc |jq |curl |SELECT|COUNT|sqlite3|psql|mysql|docker|kubectl|gcloud|aws |npm |pnpm|yarn|pytest|go test|cargo|make )[^`]*`|medid[oa]|verificad[oa]|conteo|salida del comando|commit [0-9a-f]{7}|PR #[0-9]+|issue #[0-9]+|no (lo )?(medí|verifiqué)|supongo|verificalo|no está medido'
 
 if printf '%s' "$PROMPT" | grep -qiE "$AFIRMA"; then
   if ! printf '%s' "$PROMPT" | grep -qiE "$MIDE"; then

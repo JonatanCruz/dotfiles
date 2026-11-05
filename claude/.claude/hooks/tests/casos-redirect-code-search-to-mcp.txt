@@ -3,6 +3,7 @@
 # Los comandos corren con cwd en un repo armado con fixtures/repo-casos:
 #   pkg/a/src/*.ts · pkg/b/lib/*.py · src/app.ts · src/README.md
 #   deploy/*.tf · deploy/dev/*.yml (sólo YAML) · db/*.sql · docs/*.md (sólo md)
+#   agente/.claude/hooks/*.ts · agente/.claude/enlace → pkg · web/node_modules/*.js
 # El gate MIDE si un directorio contiene código, así que estas rutas existen.
 #
 # ── POR QUÉ EXISTE ESTE ARCHIVO ────────────────────────────────────────────
@@ -145,3 +146,19 @@
 2	ls seguido de un grep recursivo	ls && grep -rn handler pkg/
 2	cat por comodín	cat pkg/a/src/*.ts
 2	bucle que vuelca un directorio con código	for f in pkg/a/src/*; do cat "$f"; done
+#
+# ── LO QUE EL ÍNDICE NO CUBRE ─────────────────────────────────────────────
+#
+# El indexador no entra en .claude, node_modules, .worktrees… Mandar ahí al índice
+# es un callejón sin salida: esa búsqueda es de grep. Siguiendo enlaces, no.
+0	código que sólo vive en .claude	grep -rn gate agente/
+0	grep -rn dentro de .claude	grep -rn gate agente/.claude/
+0	rg dentro de .claude	rg -n gate agente/.claude
+0	comodín de código dentro de .claude	grep -n gate agente/.claude/hooks/*.ts
+0	--include de código dentro de .claude	grep -rn --include=*.ts gate agente/.claude/
+0	node_modules no está en el índice	grep -rn x web/node_modules/
+2	grep -R sigue el enlace a código indexado	grep -Rn x agente/.claude/
+2	rg -L sigue el enlace a código indexado	rg -L x agente/.claude
+2	enlace dentro de .claude que apunta a código	grep -rn x agente/.claude/enlace/
+2	.claude/.. vuelve al código	grep -rn x agente/.claude/../../pkg/
+2	la raíz sigue siendo código	grep -rn x .

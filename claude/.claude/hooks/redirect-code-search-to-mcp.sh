@@ -13,7 +13,9 @@
 #   · un DIRECTORIO es código si lo contiene, y se MIDE: `git ls-files -- <dir>`
 #     dentro de un repo, `find <dir> -maxdepth 3` fuera, con `timeout 2` y 200
 #     archivos. Si no se puede medir, no abre: bloquea y dice por qué;
-#   · un PATRÓN de búsqueda nunca es una ruta (`grep -rn services docs/` pasa).
+#   · un PATRÓN de búsqueda nunca es una ruta (`grep -rn services docs/` pasa);
+#   · lo que el índice NUNCA cubre no es código para este gate: mandar ahí al
+#     índice es un callejón sin salida (ver DIRS_FUERA_DEL_INDICE).
 # Las extensiones son un valor por defecto amplio; cada proyecto las AMPLÍA (y suma
 # directorios) en `.claude/hooks.json`, nunca las quita (ver lib/config.sh). Shell
 # queda fuera por defecto: vive mezclado con configuración; quien lo quiera, lo suma.
@@ -106,6 +108,35 @@ if command -v config_directorios >/dev/null 2>&1; then
   while IFS= read -r _d; do [ -n "$_d" ] && DIRS_CODIGO+=("$_d"); done < <(config_directorios "$cwd")
 fi
 
+# El indexador (codebase-memory, modo full) no entra en estos directorios, a
+# cualquier profundidad; `index_repository` los devuelve en `excluded.dirs`. Lo que
+# hay dentro se busca con grep. No es configurable: un repo sólo suma restricción.
+# Siguiendo enlaces (`grep -R`, `rg -L`) la exención no vale: un enlace dentro de
+# uno de ellos lleva a código que sí está indexado.
+DIRS_FUERA_DEL_INDICE='.git .claude .claude-worktrees .worktrees .serena node_modules'
+_d="${DIRS_FUERA_DEL_INDICE//./\\.}"
+RE_FUERA_DEL_INDICE="(^|/)(${_d// /|})(/|\$)"
+unset _d
+DEREF=0
+
+# fuera_del_indice <ruta> → 0 si, ya resuelta, cae dentro de un directorio que el
+# índice no cubre. Cuenta lo que queda DEBAJO de la raíz de su repo: un repo que
+# vive dentro de ~/.claude sí se indexa.
+fuera_del_indice() {
+  local abs real d raiz
+  [ "$DEREF" = 0 ] || return 1
+  case "$1" in *'$'* | *'`'*) return 1 ;; esac
+  abs="$(ruta_abs "$1")"; real="$abs"
+  if [ -e "$abs" ] || [ -L "$abs" ]; then
+    real="$(realpath -- "$abs" 2>/dev/null || readlink -f -- "$abs" 2>/dev/null)"
+    [ -n "$real" ] || return 1
+  fi
+  d="$real"; while [ -n "$d" ] && [ ! -d "$d" ]; do d="${d%/*}"; done
+  raiz="$(git -C "${d:-/}" rev-parse --show-toplevel 2>/dev/null || true)"
+  [ -n "$raiz" ] && [[ "$real" == "$raiz/"* ]] && real="${real#"$raiz"}"
+  [[ "$real" =~ $RE_FUERA_DEL_INDICE ]]
+}
+
 tiene_ext() { [[ "${1##*/}" =~ $RE_TIENE_EXT ]]; }
 minus() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 glob_de_codigo() { # <glob> → 0 si pide extensiones de código (`*.ts`, `*.{ts,js}`)
@@ -151,34 +182,46 @@ medir_dir() {
       if [ "$rel" = "$RAIZ/$d" ] || [[ "$rel" == "$RAIZ/$d/"* ]] || [[ "$RAIZ/$d" == "$rel/"* ]]; then return 0; fi
     done
   done
+  # Lo que el índice no cubre se excluye EN la consulta, no después: filtrar una
+  # muestra ya recortada deja fuera el código que sí está indexado.
+  local -a fuera_git=() fuera_find=(-name .git)
+  if [ "$DEREF" = 0 ]; then
+    for d in $DIRS_FUERA_DEL_INDICE; do
+      fuera_git+=(":(exclude,glob)**/$d/**"); fuera_find+=(-o -name "$d")
+    done
+  fi
   if [ -n "$RAIZ" ] && { [ "$real" = "$RAIZ" ] || [[ "$real" == "$RAIZ/"* ]]; }; then
     rel="${real#"$RAIZ"}"; rel="${rel#/}"
-    lista="$(config_timeout 2 git -C "$RAIZ" ls-files -co --exclude-standard -- "${rel:-.}" 2>/dev/null | head -200; exit "${PIPESTATUS[0]}")"
+    lista="$(config_timeout 2 git -C "$RAIZ" ls-files -co --exclude-standard -- "${rel:-.}" ${fuera_git[@]+"${fuera_git[@]}"} 2>/dev/null \
+      | grep -m1 -iE "\\.($EXT_LISTA)\$"; exit "${PIPESTATUS[0]}")"
     rc=$?
-    # 141: `head` ya tenía sus 200 líneas. Otro error (124 = timeout): no se midió.
+    # 141: grep ya encontró código y cerró el pipe. Otro error (124 = timeout): no se midió.
     [ "$rc" = 0 ] || [ "$rc" = 141 ] || return 2
-    printf '%s\n' "$lista" | grep -qiE "\\.($EXT_LISTA)\$" && return 0
+    [ -n "$lista" ] && return 0
   fi
   [ -e "$real" ] || return 1
-  lista="$(config_timeout 2 find "$real" -maxdepth 3 -name .git -prune -o -type f -print 2>/dev/null | head -200; exit "${PIPESTATUS[0]}")"
+  lista="$(config_timeout 2 find "$real" -maxdepth 3 \( "${fuera_find[@]}" \) -prune -o -type f -print 2>/dev/null \
+    | grep -m1 -iE "\\.($EXT_LISTA)\$"; exit "${PIPESTATUS[0]}")"
   # find sale 1 si algún subdirectorio no se pudo leer: la lista parcial vale.
   [ "$?" = 124 ] && return 2
-  printf '%s\n' "$lista" | grep -qiE "\\.($EXT_LISTA)\$"
+  [ -n "$lista" ]
 }
 
 # clasificar <palabra> <recursivo 0|1> → 0 código · 1 no · 2 no se pudo medir.
 clasificar() {
   local t="$1" rec="$2" pref
   if [[ "$t" == *[*?[]* ]]; then
-    glob_de_codigo "${t##*/}" && return 0
-    [[ "${t##*/}" =~ $RE_ALGUNA_EXT ]] && return 1
     pref="${t%%[*?[]*}"; pref="${pref%/*}"
     [[ "$t" == */* ]] || pref="."
+    fuera_del_indice "${pref:-/}" && return 1
+    glob_de_codigo "${t##*/}" && return 0
+    [[ "${t##*/}" =~ $RE_ALGUNA_EXT ]] && return 1
     medir_dir "${pref:-/}"; return $?
   fi
   [ "$rec" = 1 ] || return 1
   [ -f "$(ruta_abs "$t")" ] && return 1
   tiene_ext "$t" && [ ! -d "$(ruta_abs "$t")" ] && return 1
+  fuera_del_indice "$t" && return 1
   medir_dir "$t"
 }
 
@@ -273,7 +316,7 @@ analizar_busqueda() {
   local h="$1"; shift
   local valores a v i k letra resto t rc g es_git=0 git_c="" visto=0 fin=0
   local inc_codigo=0 inc_nocodigo=0
-  patron_dado=0; recursivo=0; incluye=(); filtro_dudoso=0
+  patron_dado=0; recursivo=0; incluye=(); filtro_dudoso=0; DEREF=0
   local nombre
   local -a objetivos=() args=("$@")
   case "$h" in
@@ -295,13 +338,18 @@ analizar_busqueda() {
           nombre="$(larga_grep "$nombre")"
           [ -n "$nombre" ] || { recursivo=1; filtro_dudoso=1; continue; }
         fi
-        case "$nombre" in --recursive | --dereference-recursive) recursivo=1 ;; esac
+        case "$nombre" in
+          --recursive) recursivo=1 ;;
+          --dereference-recursive) recursivo=1; DEREF=1 ;;
+          --follow) DEREF=1 ;;
+        esac
         if [[ "$a" == *=* ]]; then opcion_con_valor "$h" "$nombre" "${a#*=}"
         elif [[ "$valores" == *" $nombre "* ]]; then i=$((i+1)); opcion_con_valor "$h" "$nombre" "${args[i]:-}"; fi
       else
         for ((k = 1; k < ${#a}; k++)); do
           letra="${a:k:1}"; resto="${a:k+1}"
           case "$h:$letra" in grep:[rR] | egrep:[rR] | fgrep:[rR] | ugrep:[rR]) recursivo=1 ;; esac
+          case "$h:$letra" in *grep:R | rg:L | ripgrep:L | ag:f) DEREF=1 ;; esac
           if [[ "$valores" == *" -$letra "* ]]; then
             if [ -n "$resto" ]; then v="$resto"; else i=$((i+1)); v="${args[i]:-}"; fi
             opcion_con_valor "$h" "-$letra" "$v"; break
@@ -344,6 +392,7 @@ analizar_busqueda() {
   [ "$filtro_dudoso" = 0 ] || inc_nocodigo=0
   for t in ${objetivos[@]+"${objetivos[@]}"}; do
     [ -n "$t" ] || continue
+    fuera_del_indice "$t" && continue
     if [[ "$t" == *[*?[]* ]]; then clasificar "$t" 0; rc=$?
     elif [ "$recursivo" = 1 ] && ! tiene_ext "$t" && [ "$inc_codigo" = 1 ]; then rc=0
     elif [ "$recursivo" = 1 ] && ! tiene_ext "$t" && [ "$inc_nocodigo" = 1 ]; then rc=1
@@ -412,6 +461,9 @@ for tok in ${TOKENS[@]+"${TOKENS[@]}"} "$SEP"; do
   fi
 done
 
+# `find -L`/`-follow` también siguen enlaces.
+DEREF=0
+printf '%s' "$cmd" | grep -qE '(^|[[:space:]])(-L|-follow|-R|--follow)([[:space:]]|$)' && DEREF=1
 if [ -z "$BLOQUEO" ] && printf '%s' "$cmd" | grep -qE -- "$READ_MANY"; then
   if printf '%s' "$cmd" | grep -qE "$EXT_HINT"; then
     BLOQUEO="volumen"
@@ -486,7 +538,8 @@ NO hay variable de override. Las salidas legítimas, que no dependen de tu volun
   · el índice (arriba), que es el camino esperado;
   · un archivo concreto ya identificado, sin recursión ni comodines;
   · texto que no sea código: logs, JSON, YAML, configs, salida de CLIs
-    (también acotando con --include='*.md').
+    (también acotando con --include='*.md');
+  · lo que el índice no cubre: ${DIRS_FUERA_DEL_INDICE// /, } (sin seguir enlaces).
 Si ninguna cubre tu caso, pedíselo al dueño: un agente no se auto-autoriza.
 MSG
     ;;

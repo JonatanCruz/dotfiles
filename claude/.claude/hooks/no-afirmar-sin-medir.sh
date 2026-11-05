@@ -114,7 +114,7 @@ fi
 
 # (6) VOLUMEN. El síntoma agregado: un archivo mayormente prosa.
 if [ "$n_com" -gt 60 ]; then
-  hallazgos="${hallazgos}· VOLUMEN: ${n_com} líneas de comentario en un solo cambio. Los hooks de este\n  sistema llegaron a 72% de prosa. Si el lector tiene que atravesar la\n  historia para llegar al código, la historia está en el lugar equivocado.\n"
+  hallazgos="${hallazgos}· VOLUMEN: ${n_com} líneas de comentario en un solo cambio. Si el lector\n  tiene que atravesar la historia para llegar al código, la historia está en el lugar equivocado.\n"
 fi
 
 # (7) HOOK NUEVO: el autor no es buen auditor de su propio diseño.
