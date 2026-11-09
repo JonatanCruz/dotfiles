@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# PreToolUse hook (matcher: Bash). BLOQUEA (exit 2) crear o mover un worktree
-# fuera de <repo>/.claude/worktrees/ en los repos que ya usan esa carpeta.
+# PreToolUse hook (matcher: Bash). AVISA (exit 0, sin bloquear) al crear o
+# mover un worktree fuera de <repo>/.claude/worktrees/ en los repos que ya usan
+# esa carpeta.
 #
 # Indicación del dueño: los worktrees no se crean junto al repo
 # (p.ej. ../<repo>-algo). Fuera del repo cada comando pide aprobación y ensucia
@@ -16,7 +17,7 @@
 # Falla ABIERTO (exit 0) sin jq, con JSON ilegible o fuera de un repo de git: es
 # una convención de orden, no un control de seguridad.
 #
-# Contrato Claude Code: stdin JSON { tool_input: { command }, cwd }; exit 2 bloquea.
+# Contrato Claude Code: stdin JSON { tool_input: { command }, cwd }; siempre exit 0.
 
 set -uo pipefail
 set -f
@@ -115,11 +116,18 @@ case "$ultima/" in
   "$destino"*) exit 0 ;;
 esac
 
-cat >&2 <<EOF
-BLOQUEADO (worktree-dentro-del-repo): en este repo los worktrees van en
+# En PreToolUse el texto plano con exit 0 no llega al modelo: el aviso va como
+# additionalContext (JSON con jq). Sin jq, por stderr.
+avisar() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -n --arg ctx "$1" '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}'
+  else
+    printf '%s\n' "$1" >&2
+  fi
+  exit 0
+}
+avisar "⚠️ AVISO (worktree-dentro-del-repo): en este repo los worktrees van en
   $destino<nombre>
 nunca junto al repo ni en otra carpeta. Ruta pedida: $ultima
 
-Ejemplo: git worktree add $destino<nombre> -b <rama> origin/main
-EOF
-exit 2
+Ejemplo: git worktree add $destino<nombre> -b <rama> origin/main"

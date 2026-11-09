@@ -174,15 +174,6 @@
             "statusMessage": "Consultando memorias de Engram…"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/indicacion-del-duenio.sh prompt",
-            "timeout": 5
-          }
-        ]
       }
     ],
     "SessionStart": [
@@ -230,29 +221,6 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/cbm-subagent-reminder"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/indicacion-del-duenio.sh guardado",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/indicacion-del-duenio.sh stop",
-            "timeout": 5
           }
         ]
       }

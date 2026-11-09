@@ -510,9 +510,9 @@ pudo medir si contiene código (git ls-files tardó más de 2 s o falló, o la r
 depende de una variable que el hook no puede resolver).
 
 Un gate que no puede medir no abre. Salidas:
-  · nombrá un directorio o archivo concreto, sin variables;
-  · acotá la búsqueda a lo que no es código (--include='*.md', -g '*.log');
-  · si es código, usá el índice (search_code / search_graph / trace_path).
+  · nombra un directorio o archivo concreto, sin variables;
+  · acota la búsqueda a lo que no es código (--include='*.md', -g '*.log');
+  · si es código, usa el índice (search_code / search_graph / trace_path).
 MSG
     ;;
   *)
@@ -520,7 +520,7 @@ MSG
 🛑 BLOQUEADO (redirect-code-search-to-mcp): buscar en CÓDIGO con grep/sed vía Bash
 («${BLOQUEO_RUTA}» contiene código).
 
-Usá el índice de código. Responde en una llamada y ve lo que grep no puede:
+Usa el índice de código. Responde en una llamada y ve lo que grep no puede:
 
   ¿quién llama a X? ¿qué rompe si lo cambio?  → trace_path
   ¿dónde está definido X? ¿qué símbolos hay?  → search_graph / find_symbol
@@ -540,7 +540,7 @@ NO hay variable de override. Las salidas legítimas, que no dependen de tu volun
   · texto que no sea código: logs, JSON, YAML, configs, salida de CLIs
     (también acotando con --include='*.md');
   · lo que el índice no cubre: ${DIRS_FUERA_DEL_INDICE// /, } (sin seguir enlaces).
-Si ninguna cubre tu caso, pedíselo al dueño: un agente no se auto-autoriza.
+Si ninguna cubre tu caso, pídeselo al dueño: un agente no se auto-autoriza.
 MSG
     ;;
 esac

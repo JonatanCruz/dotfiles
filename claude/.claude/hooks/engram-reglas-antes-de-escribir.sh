@@ -85,7 +85,7 @@ if ! command -v jq >/dev/null 2>&1; then
 
 Sin jq no se puede leer qué se está escribiendo, y por lo tanto no se puede
 saber si cruza una regla ya dictada. No poder verificar es motivo para frenar,
-no para seguir. Instalá jq y reintentá.
+no para seguir. Instala jq y reintenta.
 EOF
   exit 2
 fi
@@ -180,8 +180,8 @@ fi
   echo
   cat <<'EOF'
 DOS SALIDAS, las dos baratas:
-  · Corregí el cambio para que respete la regla.
-  · Si la regla ya no aplica, actualizá la memoria en Engram y volvé.
+  · Corrige el cambio para que respete la regla.
+  · Si la regla ya no aplica, actualiza la memoria en Engram y vuelve.
 
 Reintentar el mismo texto vuelve a chocar: no hay override ni marca de "ya la
 leí". Lo que abre el paso es cambiar el código o cambiar la regla.
