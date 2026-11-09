@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreToolUse (matcher: Agent|Task). BLOQUEA un encargo que manda a construir
+# PreToolUse (matcher: Agent|Task). AVISA de un encargo que manda a construir
 # sobre un hecho del sistema que nadie midió, o sin enumerar los desenlaces.
 #
 # LAS DOS COSAS QUE VIGILA, y por qué son la misma
@@ -21,14 +21,9 @@
 #   · Un identificador verificable: commit, PR, issue, ruta concreta.
 #   · Decirlo como lo que es: "no medí", "supongo", "verificalo".
 #
-# POR QUÉ BLOQUEA Y NO AVISA
-# Un control que avisa se ignora: está medido en este repo, el que pide usar el
-# índice de código avisó y se ignoró cada vez. El costo de un bloqueo es
-# reescribir dos líneas del encargo; el de un aviso ignorado es el trabajo que
-# se construye sobre el supuesto.
-#
-# NO hay override. Si hace falta afirmar sin medir, se escribe "no lo medí" —
-# que es la verdad, y el agente delegado puede entonces medirlo él.
+# AVISA, NO BLOQUEA: sale con 0 y el aviso llega al modelo como contexto.
+# Si hace falta afirmar sin medir, se escribe "no lo medí" — que es la verdad,
+# y el agente delegado puede entonces medirlo él.
 
 set -uo pipefail
 
@@ -79,8 +74,17 @@ fi
 
 [ -z "$hallazgos" ] && exit 0
 
-cat >&2 <<EOF
-🛑 BLOQUEADO (no-delegar-sobre-supuestos): el encargo manda a construir sobre
+# En PreToolUse el texto plano con exit 0 no llega al modelo: el aviso va como
+# additionalContext (JSON con jq). Sin jq, por stderr.
+avisar() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -n --arg ctx "$1" '{hookSpecificOutput: {hookEventName: "PreToolUse", additionalContext: $ctx}}'
+  else
+    printf '%s\n' "$1" >&2
+  fi
+  exit 0
+}
+avisar "⚠️ AVISO (no-delegar-sobre-supuestos): el encargo manda a construir sobre
 algo que no se verificó.
 
 $(printf '%b' "$hallazgos")
@@ -88,7 +92,5 @@ El daño no es la frase: es el trabajo que se levanta encima. Un supuesto falso
 en un briefing se convierte en código, en tests que lo confirman, y en horas de
 corrección cuando alguien lo mide.
 
-NO hay variable de override. Si no lo mediste, escribilo — "no lo medí" es una
-frase honesta y deja que quien reciba el encargo lo mida.
-EOF
-exit 2
+Si no lo mediste, escribilo — \"no lo medí\" es una frase honesta y deja que
+quien reciba el encargo lo mida."
