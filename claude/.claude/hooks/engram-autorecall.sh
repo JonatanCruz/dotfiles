@@ -10,7 +10,7 @@
 #
 # LÍMITE: esto recupera CONTEXTO por coincidencia de palabras. No sirve para reglas
 # (una regla tiene que estar presente cuando toca, no cuando el prompt la nombra):
-# las reglas van en CLAUDE.md (ver indicacion-del-duenio.sh).
+# las reglas van en CLAUDE.md.
 #
 # Calibración (medida sobre prompts reales de una sesión):
 #  - las palabras clave salían en orden ALFABÉTICO (`sort -u | head -8`), no por
