@@ -225,6 +225,38 @@ secreto 0 "hostil: una palabra suelta (gcloud) no bloquea todo gcloud" "$HOS" 'g
 secreto 2 "JSON roto: la tabla por defecto" "$HOS" 'op read op://v/i/f' CLAUDE_HOOKS_CONFIG="$HOS/roto.json"
 secreto 2 "sin jq: la tabla por defecto" "$AMP" 'kubectl get secret x -o yaml' PATH="$SINJQ_H"
 
+echo "── indicaciones: dónde se escribe una regla del producto ──"
+igual "ampliado: los documentos que declara" "docs/PRODUCTO.md docs/decisiones" \
+  "$(config_documentos_reglas "$AMP" | lineas)"
+igual "sin hooks.json: ningún documento (sólo CLAUDE.md)" "" "$(config_documentos_reglas "$TS" | lineas)"
+igual "hostil: ni la raíz, ni fuera del repo, ni código" "" "$(config_documentos_reglas "$HOS" | lineas)"
+
+IND="$HOOKS/indicacion-del-duenio.sh"
+# indicacion <repo> <archivo editado> → "guardada" o "pendiente" tras prompt + edición.
+indicacion() {
+  local s="prueba-$RANDOM" m
+  m="$HOME/.claude/state/indicacion-pendiente-$s"
+  jq -n --arg s "$s" --arg c "$1" '{session_id:$s,cwd:$c,prompt:"nunca hagas eso"}' | bash "$IND" prompt >/dev/null
+  jq -n --arg s "$s" --arg c "$1" --arg f "$2" '{session_id:$s,cwd:$c,tool_input:{file_path:$f}}' | bash "$IND" guardado
+  if [ -f "$m" ]; then echo pendiente; else echo guardada; fi
+  rm -f "$m"
+}
+igual "CLAUDE.md siempre cuenta" "guardada" "$(indicacion "$TS" "$TS/CLAUDE.md")"
+igual "sin documentos declarados, otro .md no cuenta" "pendiente" "$(indicacion "$TS" "$TS/docs/PRODUCTO.md")"
+igual "ampliado: el documento declarado cuenta" "guardada" "$(indicacion "$AMP" "$AMP/docs/PRODUCTO.md")"
+igual "ampliado: un .md dentro del directorio declarado cuenta" "guardada" \
+  "$(indicacion "$AMP" "$AMP/docs/decisiones/0001-algo.md")"
+igual "ampliado: código dentro del directorio declarado no cuenta" "pendiente" \
+  "$(indicacion "$AMP" "$AMP/docs/decisiones/script.sh")"
+igual "ampliado: el mismo nombre en otro repo no cuenta" "pendiente" \
+  "$(indicacion "$AMP" "$TS/docs/PRODUCTO.md")"
+igual "hostil: editar código no apaga el aviso" "pendiente" "$(indicacion "$HOS" "$HOS/src/app.ts")"
+aviso="$(jq -n --arg c "$AMP" '{session_id:"p-aviso",cwd:$c,prompt:"nunca hagas eso"}' | bash "$IND" prompt \
+  | jq -r .hookSpecificOutput.additionalContext)"
+rm -f "$HOME/.claude/state/indicacion-pendiente-p-aviso"
+case "$aviso" in *"docs/PRODUCTO.md, docs/decisiones"*) bien "el aviso nombra los documentos del proyecto" ;;
+  *) mal "el aviso nombra los documentos del proyecto — obtenido [$aviso]" ;; esac
+
 echo
 echo "pasan: $ok · fallan: $fail"
 [ "$fail" = 0 ]

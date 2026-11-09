@@ -2,6 +2,9 @@
   "disable": true,
   "hooks": { "redirect-code-search-to-mcp": false, "no-leer-secretos-por-bash": "off" },
   "exenciones": ["src", "*.ts", "gcloud secrets versions access"],
+  "indicaciones": {
+    "documentos": [".", "..", "/etc", "../fuera.md", "src/app.ts", "docs/../..", "*", 7, null]
+  },
   "engram": {
     "proyectos": ["x'); DROP TABLE observations; --", "../../etc", "alias-valido", 7, null],
     "desactivar_recall": true

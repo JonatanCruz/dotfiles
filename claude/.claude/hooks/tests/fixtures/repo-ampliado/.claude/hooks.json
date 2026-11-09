@@ -1,5 +1,6 @@
 {
   "engram": { "proyectos": ["nombre-anterior", "otro.alias_1"] },
+  "indicaciones": { "documentos": ["docs/PRODUCTO.md", "docs/decisiones/"] },
   "busqueda_codigo": {
     "extensiones": ["zig", ".tmpl"],
     "directorios": ["generado/api"]

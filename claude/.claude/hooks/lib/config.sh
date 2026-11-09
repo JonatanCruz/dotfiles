@@ -14,7 +14,8 @@
 #         "exige": "Listar las columnas que se usan." }
 #     ],
 #     "busqueda_codigo": { "extensiones": ["svelte", "zig"], "directorios": ["generated/api"] },
-#     "secretos":        { "clis": ["mycli secret reveal", "pass show"] }
+#     "secretos":        { "clis": ["mycli secret reveal", "pass show"] },
+#     "indicaciones":    { "documentos": ["docs/PRODUCTO.md", "docs/decisiones"] }
 #   }
 #
 # PRECEDENCIA: $CLAUDE_HOOKS_CONFIG (ruta a un JSON; para pruebas) > el archivo
@@ -39,6 +40,7 @@
 #                   cuantificadores anidados, compiladas y probadas con
 #                   `timeout 1 grep -E` antes de usarlas
 #       CLIs        de 2 a 8 palabras [a-z0-9._-]
+#       documentos  como directorios, y si es archivo, `.md`; nunca la raíz
 #   · JSON ilegible, ausente, enorme o sin jq: sólo los valores por defecto. La
 #     configuración nunca hace que un hook de seguridad falle ABIERTO.
 #   · NUNCA se hace `source` de nada que venga del repo: sólo se lee con jq.
@@ -114,6 +116,18 @@ config_directorios() {
   _config_strings '.busqueda_codigo.directorios' "${1:-}" | sed 's#/*$##' \
     | grep -E '^[A-Za-z0-9._-]{1,64}(/[A-Za-z0-9._-]{1,64}){0,7}$' \
     | grep -vE '(^|/)\.{1,2}(/|$)' || true
+}
+
+# config_documentos_reglas [dir] → documentos del proyecto (relativos a la raíz)
+# donde se escribe una regla del PRODUCTO, además de CLAUDE.md, que es para cómo
+# trabaja el agente. Un archivo `.md` o un directorio de `.md`. Sin `/` inicial,
+# sin `.` ni `..`: escribir ahí apaga el aviso de indicaciones, así que un repo no
+# puede declarar un destino tan amplio que cualquier edición cuente.
+config_documentos_reglas() {
+  _config_strings '.indicaciones.documentos' "${1:-}" | sed 's#/*$##' \
+    | grep -E '^[A-Za-z0-9._-]{1,64}(/[A-Za-z0-9._-]{1,64}){0,7}$' \
+    | grep -vE '(^|/)\.{1,2}(/|$)' \
+    | grep -E '(\.md|(^|/)[A-Za-z0-9_-]+)$' || true
 }
 
 # config_secretos_clis [dir] → una entrada por línea, palabras separadas por un
