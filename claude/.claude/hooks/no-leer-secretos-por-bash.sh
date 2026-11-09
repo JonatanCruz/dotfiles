@@ -131,9 +131,9 @@ bloquear() {
 BLOQUEADO (no-leer-secretos-por-bash): $1
 Los secretos no se vuelcan al contexto del modelo.
 
-Si necesitás saber si existe o sus permisos: un único \`ls -l <ruta>\` o
-\`stat <ruta>\`, sin pipes ni redirecciones. Si necesitás un valor concreto,
-pedíselo al dueño; no lo leas.
+Si necesitas saber si existe o sus permisos: un único \`ls -l <ruta>\` o
+\`stat <ruta>\`, sin pipes ni redirecciones. Si necesitas un valor concreto,
+pídeselo al dueño; no lo leas.
 EOF
   exit 2
 }
@@ -246,7 +246,7 @@ vetar_clis() {
         case " ${todas[*]} " in *" $o "* | *" $o="*) ;; *) opciones_ok=0 ;; esac
       done
       [ "$opciones_ok" = 1 ] || continue
-      bloquear "\`$entrada\` devuelve el valor de un secreto. Para metadatos usá el subcomando de listar o describir."
+      bloquear "\`$entrada\` devuelve el valor de un secreto. Para metadatos usa el subcomando de listar o describir."
     done <<<"$SECRETOS_CLIS"
     # kubectl, en cualquier orden: (a) kubectl + get + secret(s) en el tramo;
     # (b) una salida que muestra los datos, en cualquier parte del comando.

@@ -56,7 +56,7 @@ MIDE='archivo:línea|[a-zA-Z0-9_./-]+\.[A-Za-z0-9]{1,8}:[0-9]+|`[^`]*(grep|rg |g
 
 if printf '%s' "$PROMPT" | grep -qiE "$AFIRMA"; then
   if ! printf '%s' "$PROMPT" | grep -qiE "$MIDE"; then
-    hallazgos="${hallazgos}· Afirma un HECHO del sistema (que algo no existe, no corre, está limpio,\n  o cuánto hay) SIN la medición que lo produjo. Quien reciba este encargo no\n  puede distinguir un dato de un supuesto: va a construir sobre él.\n\n  Pegá la salida del comando, citá \`archivo:línea\`, o escribí \"no lo medí\".\n"
+    hallazgos="${hallazgos}· Afirma un HECHO del sistema (que algo no existe, no corre, está limpio,\n  o cuánto hay) SIN la medición que lo produjo. Quien reciba este encargo no\n  puede distinguir un dato de un supuesto: va a construir sobre él.\n\n  Pega la salida del comando, cita \`archivo:línea\`, o escribe \"no lo medí\".\n"
   fi
 fi
 
@@ -92,5 +92,5 @@ El daño no es la frase: es el trabajo que se levanta encima. Un supuesto falso
 en un briefing se convierte en código, en tests que lo confirman, y en horas de
 corrección cuando alguien lo mide.
 
-Si no lo mediste, escribilo — \"no lo medí\" es una frase honesta y deja que
+Si no lo mediste, escríbelo — \"no lo medí\" es una frase honesta y deja que
 quien reciba el encargo lo mida."

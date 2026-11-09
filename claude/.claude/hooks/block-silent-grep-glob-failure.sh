@@ -131,16 +131,16 @@ búsqueda que nunca ocurrió.
 
 QUÉ HACER:
 
-  1. Si buscás CÓDIGO → usá el índice, no grep:
+  1. Si buscas CÓDIGO → usa el índice, no grep:
        mcp__codebase-memory-mcp__search_code    (texto, enriquecido con el grafo)
        mcp__codebase-memory-mcp__search_graph   (símbolos: funciones, clases, rutas)
        mcp__codebase-memory-mcp__trace_path     (quién llama a qué)
      Si el repo no está indexado: index_repository. Si el índice está viejo,
-     reindexá — no vuelvas a grep.
+     reindexa — no vuelvas a grep.
 
-  2. Si de verdad necesitás grep (logs, JSON, YAML, salida de CLIs):
-       poné comillas →  grep -rn "patrón" . --include="*.ts"
-       o usá ripgrep →  rg -t ts "patrón"
+  2. Si de verdad necesitas grep (logs, JSON, YAML, salida de CLIs):
+       pon comillas →  grep -rn "patrón" . --include="*.ts"
+       o usa ripgrep →  rg -t ts "patrón"
 MSG
   exit 2
 fi

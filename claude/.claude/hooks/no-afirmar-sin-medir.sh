@@ -89,7 +89,7 @@ fi
 # (2) FECHAS. Una fecha en un comentario es casi siempre crónica: el archivo no
 #     necesita saber cuándo se escribió — git lo sabe con precisión de segundo.
 if printf '%s' "$comentarios" | grep -qE '20[0-9]{2}-[0-9]{2}-[0-9]{2}'; then
-  hallazgos="${hallazgos}· una FECHA. git ya registra cuándo cambió cada línea, con más precisión y\n  sin desincronizarse. Si la fecha importa para el invariante, dejá el hecho\n  (\"la API externa cambió el formato\"), no la crónica.\n"
+  hallazgos="${hallazgos}· una FECHA. git ya registra cuándo cambió cada línea, con más precisión y\n  sin desincronizarse. Si la fecha importa para el invariante, deja el hecho\n  (\"la API externa cambió el formato\"), no la crónica.\n"
 fi
 
 # (3) CIFRA DE CASOS/TESTS. Se desincroniza sola: el "33 casos" de este mismo
@@ -97,19 +97,19 @@ fi
 #     `cardinalidad fija 3` es la misma trampa: agregar un cuarto valor deja el
 #     número viejo y nada falla. Lo que importa es que la lista sea CERRADA.
 if printf '%s' "$comentarios" | grep -qiE '[0-9]+[[:space:]]*(casos?|tests?|pruebas?)\b|[0-9]+/[0-9]+[[:space:]]*(pasan|verde|ok)|\b[0-9]+[[:space:]]*(pasan|fallan)\b|cardinalidad[[:space:]]+(fija|acotada)[[:space:]]+[0-9]+'; then
-  hallazgos="${hallazgos}· una CIFRA de casos/tests. Se desincroniza sola —agregás casos y el número\n  queda viejo—. Referí al comando (\`bash tests/correr.sh\`), no al resultado.\n"
+  hallazgos="${hallazgos}· una CIFRA de casos/tests. Se desincroniza sola —agregas casos y el número\n  queda viejo—. Refiere al comando (\`bash tests/correr.sh\`), no al resultado.\n"
 fi
 
 # (4) COMANDO O MEDICIÓN citados como prueba.
 if printf '%s' "$comentarios" | grep -qE '(bash|sh|\./|npm|pnpm|node|python)[^[:space:]]*\.(sh|ts|js|py)\b[^#]*(→|->|=>)' \
    || printf '%s' "$comentarios" | grep -qiE '(medido|verificado|comprobado)[^#]*(exit|→|->)[[:space:]]*[0-9]'; then
-  hallazgos="${hallazgos}· una MEDICIÓN o un COMANDO citados como prueba. Ejecutalo ahora y pegá su\n  salida real — o quitalo: si nadie lo reproduce, en un mes es folclore.\n"
+  hallazgos="${hallazgos}· una MEDICIÓN o un COMANDO citados como prueba. Ejecútalo ahora y pega su\n  salida real — o quítalo: si nadie lo reproduce, en un mes es folclore.\n"
 fi
 
 # (5) GARANTÍA ABSOLUTA sobre el propio código. Es la que justifica no volver
 #     a probar, y por eso la que más caro sale cuando es falsa.
 if printf '%s' "$comentarios" | grep -qiE '(estructuralmente|por construcci[oó]n)[[:space:]]+(imposible|seguro)|imposible[[:space:]]+(de|por)[[:space:]]+(evadir|saltar|violar)|no[[:space:]]+puede[[:space:]]+(fallar|evadirse)|cubre[[:space:]]+(todos|todas)[[:space:]]+(los|las)'; then
-  hallazgos="${hallazgos}· una GARANTÍA ABSOLUTA. Justifica no volver a probar, y ese es el costo\n  cuando es falsa. Acotala a lo que medís hoy.\n"
+  hallazgos="${hallazgos}· una GARANTÍA ABSOLUTA. Justifica no volver a probar, y ese es el costo\n  cuando es falsa. Acótala a lo que mides hoy.\n"
 fi
 
 # (6) VOLUMEN. El síntoma agregado: un archivo mayormente prosa.
@@ -136,24 +136,24 @@ case "$ruta" in
 esac
 
 if [ "$es_hook_nuevo" = "1" ]; then
-  jq -nc --arg m "🔨 HOOK NUEVO — atacalo ANTES de darlo por bueno.
+  jq -nc --arg m "🔨 HOOK NUEVO — atácalo ANTES de darlo por bueno.
 
 Cada gate de este sistema pasó sus propios casos y una auditoría independiente
 le encontró evasiones después. El que escribe el gate prueba lo que imaginó;
 las evasiones viven en lo que no imaginó.
 
 Antes de registrarlo:
-  1. DECOY — agregá un token inocente al comando (\`cat .env README.md\`).
+  1. DECOY — agrega un token inocente al comando (\`cat .env README.md\`).
      ¿Lo desarma? Las exenciones se evalúan por TOKEN, no por comando.
   2. INDIRECCIÓN — \$(…), backticks, variable, glob, comillas parciales,
      ruta absoluta, ../, symlink, heredoc, pipe hacia otro proceso.
-  3. VERBO NO PREVISTO — el que falte en tu lista. Si enumerás lo que hay que
-     bloquear, la lista es ABIERTA: enumerá lo permitido y bloqueá el resto.
-  4. FALSO POSITIVO — corrélo contra tu propio historial de comandos reales.
+  3. VERBO NO PREVISTO — el que falte en tu lista. Si enumeras lo que hay que
+     bloquear, la lista es ABIERTA: enumera lo permitido y bloquea el resto.
+  4. FALSO POSITIVO — córrelo contra tu propio historial de comandos reales.
      Un gate que muerde trabajo legítimo se rodea y deja de existir.
   5. Y recién entonces: casos versionados + auditor independiente.
 
-Los 1-4 los podés hacer vos en dos minutos. El paso 5 encuentra lo que quede." \
+Los 1-4 los puedes hacer tú en dos minutos. El paso 5 encuentra lo que quede." \
     '{systemMessage: $m}'
   exit 0
 fi
@@ -171,8 +171,8 @@ El criterio, en una línea:
 Un INVARIANTE ("la lista es cerrada: lo que falte queda bloqueado") se queda:
 sin él, el próximo lo rompe. La CRÓNICA de cómo se llegó ahí, no.
 
-Reescribí el comentario y reintentá. Si el hecho importa para el invariante,
-dejá el HECHO ("la API externa cambió el formato"), no la crónica de cuándo se
+Reescribe el comentario y reintenta. Si el hecho importa para el invariante,
+deja el HECHO ("la API externa cambió el formato"), no la crónica de cuándo se
 descubrió. NO hay variable de override: un gate que se rodea deja de existir.
 Los ADRs y los tests están exentos — ahí la historia es legítima.
 EOF

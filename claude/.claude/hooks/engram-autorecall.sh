@@ -202,7 +202,7 @@ RESULTS="$(printf '%s\n' "$CANDIDATOS" | awk -F'|' -v sel="$(printf '%s' "$ELEGI
 echo "📚 ENGRAM — MEDICIONES PREVIAS que matchean este prompt. NO son ruido de fondo:"
 echo "   · Cada una fue MEDIDA en su fecha. Si contradice lo que estás por afirmar, MEDÍ ANTES de afirmar."
 echo "   · Si REFUTA una hipótesis, esa hipótesis ya se descartó una vez: no la repitas sin evidencia nueva."
-echo "   · Pueden estar desactualizadas: verificá contra la fuente primaria antes de ACTUAR sobre ellas."
+echo "   · Pueden estar desactualizadas: verifica contra la fuente primaria antes de ACTUAR sobre ellas."
 echo "   · Son contexto por coincidencia de palabras, NO reglas: las reglas del dueño están en CLAUDE.md."
 printf '%s\n' "$RESULTS" | while IFS='|' read -r TYPE TITLE EXCERPT DATE; do
   echo "- [$DATE·$TYPE] $TITLE — $EXCERPT…"

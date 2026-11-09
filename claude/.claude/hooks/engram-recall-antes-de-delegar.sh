@@ -120,7 +120,7 @@ done)"
 MENSAJE="🧠 ANTES DE DELEGAR — decisiones ya tomadas que matchean este encargo:
 $LINEAS
 
-Si alguna CONTRADICE el encargo que estás por lanzar, corregí el encargo ANTES de mandarlo:
+Si alguna CONTRADICE el encargo que vas a lanzar, corrige el encargo ANTES de mandarlo:
 el agente trabaja con lo que le diste, no con lo que el dueño decidió en otra sesión."
 
 jq -n --arg ctx "$MENSAJE" \

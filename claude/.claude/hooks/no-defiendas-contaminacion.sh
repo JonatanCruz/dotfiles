@@ -62,14 +62,14 @@ ESCAPES="$(printf '%s' "$PROMPT" | grep -oiE \
 [ -n "$ESCAPES" ] || exit 0
 
 CITAS="$(printf '%s\n' "$ESCAPES" | sed 's/^/   → "/;s/$/"/')"
-MENSAJE="🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescribila antes de mandarlo:
+MENSAJE="🛑 CLÁUSULA DE ESCAPE en un encargo de borrado — reescríbela antes de mandarlo:
 $CITAS
 
 La regla del dueño, repetida: «se elimina, no se renombra, no se traduce, se va y punto»
 · «aunque lo validara se va, NO importa si se usa» · «primero rompe y luego repara».
 
 Un uso vivo NO es razón para conservar: es el trabajo a reparar después de borrar.
-Medí para saber QUÉ REPARAR, no para decidir SI borrás.
+Mide para saber QUÉ REPARAR, no para decidir SI borras.
 
 El ÚNICO límite legítimo no es «se usa» sino «el negocio se cae» (p.ej. perder
 datos que la operación en producción necesita). Romper código ≠ romper el negocio."
