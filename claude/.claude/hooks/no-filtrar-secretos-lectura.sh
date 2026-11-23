@@ -16,15 +16,29 @@ set -uo pipefail
 payload="$(cat 2>/dev/null || true)"
 [ -n "${payload//[[:space:]]/}" ] || exit 0
 
-if command -v jq >/dev/null 2>&1; then
-  rutas="$(printf '%s' "$payload" | jq -r '.tool_input | [.file_path, .path, .notebook_path, .glob] | map(select(. != null)) | .[]' 2>/dev/null || true)"
-else
-  # Sin jq se evalúa el payload crudo: falla cerrado si nombra un secreto.
-  rutas="$payload"
+SECRETO='(^|/)\.env[^/]*$|(^|/)\.ssh(/|$)|\.aws/credentials$|(^|/)\.gnupg(/|$)|secrets\.zsh$|\.credentials\.json$'
+NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$'
+
+if ! command -v jq >/dev/null 2>&1; then
+  # Sin jq no se puede saber qué ruta se lee: falla cerrado si el payload nombra
+  # algo parecido a un secreto, sin anclar al final de la cadena.
+  if printf '%s' "$payload" | grep -qE '\.env|\.ssh|\.aws/credentials|\.gnupg|secrets\.zsh|\.credentials\.json'; then
+    echo "BLOQUEADO (no-filtrar-secretos-lectura): sin jq y el payload nombra un secreto." >&2
+    exit 2
+  fi
+  exit 0
 fi
 
-SECRETO='(^|/)\.env(\.[A-Za-z0-9_-]+)*$|\.ssh/id_[^/]*$|\.aws/credentials$|\.gnupg/|secrets\.zsh$|\.credentials\.json$'
-NO_SECRETO='\.pub$|\.env\.(example|sample|template|dist)$'
+rutas="$(printf '%s' "$payload" | jq -r '.tool_input | [.file_path, .path, .notebook_path] | map(select(. != null)) | .[]' 2>/dev/null || true)"
+
+# Grep busca dentro de un directorio: un `glob` que alcance un secreto lo leería
+# aunque la ruta sea inocente. Se bloquea si el glob nombra uno o es tan abierto
+# que incluye archivos ocultos.
+glob="$(printf '%s' "$payload" | jq -r '.tool_input.glob // empty' 2>/dev/null || true)"
+if [ -n "$glob" ] && printf '%s' "$glob" | grep -qiE 'env|ssh|gnupg|aws|secret|credential|^\.\*|/\.\*|^\*\*?$'; then
+  echo "BLOQUEADO (no-filtrar-secretos-lectura): el glob \`$glob\` puede alcanzar un archivo con secretos." >&2
+  exit 2
+fi
 
 while IFS= read -r ruta; do
   [ -n "$ruta" ] || continue

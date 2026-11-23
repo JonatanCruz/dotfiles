@@ -180,6 +180,9 @@ ofuscado() {
 # Cada proyecto puede AÑADIR entradas (secretos.clis en .claude/hooks.json),
 # nunca quitarlas: la tabla de abajo siempre aplica.
 SECRETOS_CLIS='gcloud secrets versions access
+gcloud auth print-access-token
+gcloud auth print-identity-token
+gcloud auth application-default print-access-token
 aws secretsmanager get-secret-value
 aws secretsmanager batch-get-secret-value
 aws ssm get-parameter --with-decryption
