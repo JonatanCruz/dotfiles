@@ -35,9 +35,16 @@ rutas="$(printf '%s' "$payload" | jq -r '.tool_input | [.file_path, .path, .note
 # aunque la ruta sea inocente. Se bloquea si el glob nombra uno o es tan abierto
 # que incluye archivos ocultos.
 glob="$(printf '%s' "$payload" | jq -r '.tool_input.glob // empty' 2>/dev/null || true)"
-if [ -n "$glob" ] && printf '%s' "$glob" | grep -qiE 'env|ssh|gnupg|aws|secret|credential|^\*\*?$|(^|/|,)\.|[][{}]'; then
-  echo "BLOQUEADO (no-filtrar-secretos-lectura): el glob \`$glob\` puede alcanzar un archivo con secretos." >&2
-  exit 2
+# No se adivina si un glob es seguro mirando su texto: se expande igual que lo haría
+# la búsqueda (incluidos ocultos e ignorados) y cada archivo resultante pasa por la
+# misma comprobación de ruta.
+if [ -n "$glob" ]; then
+  raiz="$(printf '%s' "$payload" | jq -r '.tool_input.path // "."' 2>/dev/null || echo .)"
+  if ! command -v rg >/dev/null 2>&1; then
+    echo "BLOQUEADO (no-filtrar-secretos-lectura): sin rg no se puede expandir el glob \`$glob\`." >&2
+    exit 2
+  fi
+  rutas="$rutas"$'\n'"$(rg --files --hidden --no-ignore -g "$glob" -- "$raiz" 2>/dev/null | head -20000)"
 fi
 
 while IFS= read -r ruta; do
