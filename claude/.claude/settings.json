@@ -33,7 +33,21 @@
       "mcp__plugin_serena_serena__get_symbols_overview",
       "mcp__plugin_serena_serena__search_for_pattern",
       "Bash(REYVA_DELEGATED=1 set -a; . ./.env.legacy:*)",
-      "Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ./.env.legacy)"
+      "Bash(grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ./.env.legacy)",
+      "Bash(gcloud logging read:*)",
+      "Bash(gcloud run services describe:*)",
+      "Bash(gcloud run jobs describe:*)",
+      "Bash(gcloud run services list:*)",
+      "Bash(gcloud run jobs list:*)",
+      "Bash(gcloud auth print-access-token:*)",
+      "Bash(gcloud billing projects describe:*)",
+      "Bash(REYVA_DELEGATED=1 gcloud run jobs execute db-query:*)",
+      "Bash(/tmp/claude-1000/xl/dbq.sh:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [
       "Read(./secrets/**)",
