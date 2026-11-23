@@ -304,6 +304,38 @@ for _p in $GCLOUD_PROYECTOS_LEGIBLES; do
   fi
 done
 
+# ── Exención: USAR las credenciales de un .env sin mostrar sus valores ──────
+# El dueño: "solo valida que no se filtre la contraseña, pero que si puedas
+# usarlas … que el hook sirva para eso, no que bloquee el uso de ellas".
+# Lo que se vigila es el VALOR, no el archivo. Dos formas permitidas:
+#   1. Ver qué variables trae, sin valores:
+#        grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ./.env.<nombre>
+#   2. Cargarlo en el shell y usarlo:
+#        [REYVA_DELEGATED=1 ]set -a; . ./.env.<nombre>; set +a; <comando>
+#      donde una variable sólo puede ir como valor de una opción de conexión
+#      (-h -P -u -p -D --host= --port= --user= --password= --database=). Si
+#      queda un `$` en cualquier otro lugar —dentro de una consulta, un echo—
+#      el valor podría imprimirse, y se bloquea.
+# También se bloquea lo que volcaría el entorno o sacaría la salida a otro lado.
+if [[ "$original" =~ ^grep\ -oE\ \'\^\[A-Za-z_\]\[A-Za-z0-9_\]\*=\'\ \./\.env\.[A-Za-z0-9_-]+$ ]]; then
+  exit 0
+fi
+ENV_USO_RE='^(REYVA_DELEGATED=1 )?set -a; \. \./\.env\.[A-Za-z0-9_-]+; set \+a; (.+)$'
+if [[ "$original" =~ $ENV_USO_RE ]] && [[ "$original" != *$'\n'* ]]; then
+  resto="${BASH_REMATCH[2]}"
+  sin_conexion="$(printf '%s' "$resto" | sed -E 's/(-h|-P|-u|-D|-p|--host=|--port=|--user=|--password=|--database=) ?"\$[A-Za-z_][A-Za-z0-9_]*"//g')"
+  # Las palabras y separadores se miran FUERA de comillas: una consulta SQL entre
+  # comillas lleva `;`, `<` o `>` sin ser un segundo comando ni una redirección.
+  # El `$` y el backtick se miran en todo el texto, porque bash los expande
+  # también dentro de comillas dobles.
+  fuera="$(sin_comillas "$sin_conexion")"
+  FUGA='(^|[^A-Za-z0-9_.-])(echo|printf|printenv|env|declare|typeset|export|compgen|cat|less|more|head|tail|tee|xxd|od|strings|base64|curl|wget|nc|ncat|python[0-9.]*|node|perl|ruby|bash|sh|zsh|eval|source|ps)([^A-Za-z0-9_-]|$)|/proc/|\.env|[<>;|&]'
+  if [[ "$sin_conexion" != *'$'* ]] && [[ "$sin_conexion" != *'`'* ]] && ! [[ "$fuera" =~ $FUGA ]]; then
+    exit 0
+  fi
+  bloquear "uso de un .env: una variable fuera de las opciones de conexión, o un comando que podría imprimir los valores."
+fi
+
 # ── Heredoc que ESCRIBE texto: documentación, no lectura ───────────────────
 # `cat > notas.md <<'EOF'` o `git commit -F - <<'EOF'` con un cuerpo que NOMBRA
 # .env o ~/.ssh no abre nada: lo escribe. Se permite sólo si es eso y nada más:

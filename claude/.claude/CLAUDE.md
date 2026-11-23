@@ -5,6 +5,21 @@ proyecto, no aquí.
 
 ---
 
+## 🔑 Credenciales: se usan, no se muestran
+
+> El dueño: _"solo valida que no se filtre la contraseña, pero que si puedas usarlas …
+> que puedas trabajar sin filtrarlas, que el hook sirva para eso, no que bloquee el uso
+> de ellas"_.
+
+- Las credenciales de un `.env` (también las de prod) **se usan** cargándolas en el shell y
+  pasándolas como opción de conexión: `set -a; . ./.env.<x>; set +a; <comando>`.
+- Su **valor** nunca aparece en pantalla, en un log, en un commit ni en un mensaje. Eso es
+  lo que vigila `no-leer-secretos-por-bash.sh`, no el uso.
+- Usar la credencial no autoriza la acción: mutar prod sigue pidiendo la autorización del
+  dueño.
+
+---
+
 ## 🧠 Memoria: Engram es el único sistema
 
 - **Hechos entre sesiones** (decisiones, bugs, descubrimientos, preferencias) → Engram.
