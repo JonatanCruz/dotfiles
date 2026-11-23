@@ -59,14 +59,14 @@ if [ -n "$glob" ]; then
   esac
   [ -e "$raiz" ] || bloquear_glob "apunta a un directorio que no existe."
   # Sin tope: se revisa cada archivo. Un error de rg (código > 1) bloquea.
-  rg --files --hidden --no-ignore -g "$glob" -- "$raiz" >"${TMPDIR:-/tmp}/nfsl.$$" 2>/dev/null
+  expandidos="$(rg --files --hidden --no-ignore -g "$glob" -- "$raiz" 2>/dev/null)"
   rc=$?
-  if [ "$rc" -gt 1 ]; then rm -f "${TMPDIR:-/tmp}/nfsl.$$"; bloquear_glob "no se pudo expandir (rg salió con $rc)."; fi
-  if grep -qE "$SECRETO" "${TMPDIR:-/tmp}/nfsl.$$" 2>/dev/null && grep -E "$SECRETO" "${TMPDIR:-/tmp}/nfsl.$$" | grep -qvE "$NO_SECRETO"; then
-    rm -f "${TMPDIR:-/tmp}/nfsl.$$"
-    bloquear_glob "alcanza un archivo con secretos."
-  fi
-  rm -f "${TMPDIR:-/tmp}/nfsl.$$"
+  [ "$rc" -le 1 ] || bloquear_glob "no se pudo expandir (rg salió con $rc)."
+  while IFS= read -r ruta; do
+    [ -n "$ruta" ] || continue
+    [[ "$ruta" =~ $NO_SECRETO ]] && continue
+    [[ "$ruta" =~ $SECRETO ]] && bloquear_glob "alcanza un archivo con secretos."
+  done <<<"$expandidos"
 fi
 
 while IFS= read -r ruta; do
