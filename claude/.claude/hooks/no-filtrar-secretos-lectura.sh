@@ -35,7 +35,7 @@ rutas="$(printf '%s' "$payload" | jq -r '.tool_input | [.file_path, .path, .note
 # aunque la ruta sea inocente. Se bloquea si el glob nombra uno o es tan abierto
 # que incluye archivos ocultos.
 glob="$(printf '%s' "$payload" | jq -r '.tool_input.glob // empty' 2>/dev/null || true)"
-if [ -n "$glob" ] && printf '%s' "$glob" | grep -qiE 'env|ssh|gnupg|aws|secret|credential|^\.\*|/\.\*|^\*\*?$'; then
+if [ -n "$glob" ] && printf '%s' "$glob" | grep -qiE 'env|ssh|gnupg|aws|secret|credential|^\*\*?$|(^|/|,)\.|[][{}]'; then
   echo "BLOQUEADO (no-filtrar-secretos-lectura): el glob \`$glob\` puede alcanzar un archivo con secretos." >&2
   exit 2
 fi
