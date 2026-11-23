@@ -1,0 +1,11 @@
+# Casos de indicacion-del-duenio.sh (UserPromptSubmit).
+# Formato:  <1 = avisa | 0 = calla> <TAB> <descripción> <TAB> <payload JSON>
+# Nunca bloquea: sólo recuerda clasificar cuando la frase fija una regla.
+
+1	regla explícita	{"prompt":"de ahora en adelante los reportes van por correo"}
+1	la regla es	{"prompt":"la regla es que el monto sale del inventario"}
+1	no quiero que	{"prompt":"no quiero que vuelvas a crear ramas en main"}
+0	siempre en lenguaje cotidiano	{"prompt":"siempre que puedas revisa el log"}
+0	nunca en una pregunta	{"prompt":"¿nunca se aplicó esa recarga?"}
+0	prioridad suelta	{"prompt":"lo de la línea es prioridad"}
+0	aviso del sistema	{"prompt":"<task-notification> de ahora en adelante </task-notification>"}

@@ -1,0 +1,9 @@
+# Casos de guardia-claude-md.sh (Write, Edit, MultiEdit sobre CLAUDE.md / AGENTS.md).
+# Formato:  <exit esperado> <TAB> <descripción> <TAB> <payload JSON>
+
+0	edición normal	{"tool_name":"Edit","tool_input":{"file_path":"/x/CLAUDE.md","old_string":"a","new_string":"b"}}
+2	trae una fecha	{"tool_name":"Edit","tool_input":{"file_path":"/x/CLAUDE.md","old_string":"a","new_string":"medido el 2026-11-23"}}
+2	trae una cita del dueño	{"tool_name":"Write","tool_input":{"file_path":"/x/CLAUDE.md","content":"> El dueño: hola"}}
+2	sección vacía en AGENTS.md	{"tool_name":"Edit","tool_input":{"file_path":"/x/AGENTS.md","old_string":"a","new_string":"## Regla 2 MUDADA"}}
+0	otro archivo con fecha	{"tool_name":"Edit","tool_input":{"file_path":"/x/README.md","old_string":"a","new_string":"2026-11-23"}}
+2	MultiEdit con fecha	{"tool_name":"MultiEdit","tool_input":{"file_path":"/x/CLAUDE.md","edits":[{"old_string":"a","new_string":"2026-01-01"}]}}
