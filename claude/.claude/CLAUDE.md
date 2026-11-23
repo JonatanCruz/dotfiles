@@ -5,16 +5,17 @@ proyecto, no aquí.
 
 ---
 
-## 🔑 Credenciales: se usan, no se muestran
+## 🔑 Credenciales: se usan, no se filtran
 
 > El dueño: _"solo valida que no se filtre la contraseña, pero que si puedas usarlas …
-> que puedas trabajar sin filtrarlas, que el hook sirva para eso, no que bloquee el uso
-> de ellas"_.
+> que el hook sirva para eso, no que bloquee el uso de ellas"_ · _"no es que salga a
+> pantalla, es que no salga a ningún log o registro, solo se use y ya"_.
 
 - Las credenciales de un `.env` (también las de prod) **se usan** cargándolas en el shell y
   pasándolas como opción de conexión: `set -a; . ./.env.<x>; set +a; <comando>`.
-- Su **valor** nunca aparece en pantalla, en un log, en un commit ni en un mensaje. Eso es
-  lo que vigila `no-leer-secretos-por-bash.sh`, no el uso.
+- Su **valor** no queda en **ningún log ni registro**: ni en la salida, ni en un archivo, ni
+  en un commit, ni en un mensaje. Sólo se usa. Eso es lo que vigila `no-filtrar-secretos.sh`,
+  no el uso.
 - Usar la credencial no autoriza la acción: mutar prod sigue pidiendo la autorización del
   dueño.
 

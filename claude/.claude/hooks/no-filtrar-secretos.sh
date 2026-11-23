@@ -128,7 +128,7 @@ globs_sospechosos() {
 
 bloquear() {
   cat >&2 <<EOF
-BLOQUEADO (no-leer-secretos-por-bash): $1
+BLOQUEADO (no-filtrar-secretos): $1
 Los secretos no se vuelcan al contexto del modelo.
 
 Si necesitás saber si existe o sus permisos: un único \`ls -l <ruta>\` o
@@ -310,30 +310,28 @@ done
 # Lo que se vigila es el VALOR, no el archivo. Dos formas permitidas:
 #   1. Ver qué variables trae, sin valores:
 #        grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ./.env.<nombre>
-#   2. Cargarlo en el shell y usarlo:
-#        [REYVA_DELEGATED=1 ]set -a; . ./.env.<nombre>; set +a; <comando>
-#      donde una variable sólo puede ir como valor de una opción de conexión
-#      (-h -P -u -p -D --host= --port= --user= --password= --database=). Si
-#      queda un `$` en cualquier otro lugar —dentro de una consulta, un echo—
-#      el valor podría imprimirse, y se bloquea.
-# También se bloquea lo que volcaría el entorno o sacaría la salida a otro lado.
+#   2. Cargarlo en el shell y pasarlo a un cliente de base de datos:
+#        [REYVA_DELEGATED=1 ]set -a; . ./.env.<nombre>; set +a; mysql <opciones> -e "<consulta>"
+#      Es una lista de lo PERMITIDO, no de lo prohibido: el comando tiene que ser
+#      exactamente `mysql`/`mariadb`, cada variable sólo como valor de una opción
+#      de conexión, y una sola consulta entre comillas dobles sin `$`, backtick
+#      ni `\` (así el valor no puede expandirse dentro de la consulta). Se vetan
+#      además los comandos del propio cliente que ejecutan algo fuera de la base
+#      (`system`, `\!`, `source`, `pager`, `tee`…). Cualquier otra forma cae a las
+#      comprobaciones de siempre, que bloquean el `.env`.
 if [[ "$original" =~ ^grep\ -oE\ \'\^\[A-Za-z_\]\[A-Za-z0-9_\]\*=\'\ \./\.env\.[A-Za-z0-9_-]+$ ]]; then
   exit 0
 fi
-ENV_USO_RE='^(REYVA_DELEGATED=1 )?set -a; \. \./\.env\.[A-Za-z0-9_-]+; set \+a; (.+)$'
+VAR_RE='"\$[A-Za-z_][A-Za-z0-9_]*"'
+OPC_RE="(-h|-P|-u|-D) ${VAR_RE}|-p${VAR_RE}|--(host|port|user|password|database)=${VAR_RE}|-N|-B|-t|--table"
+CONSULTA_RE='-e "[^"$`\\]*"'
+ENV_USO_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env\.[A-Za-z0-9_-]+; set \+a; (mysql|mariadb)(( (${OPC_RE}))*) (${CONSULTA_RE})(( (${OPC_RE}))*)$"
+CLIENTE_EJECUTA='(^|[^A-Za-z0-9_])(system|source|pager|nopager|tee|notee|edit|connect|delimiter|charset)([^A-Za-z0-9_]|$)'
 if [[ "$original" =~ $ENV_USO_RE ]] && [[ "$original" != *$'\n'* ]]; then
-  resto="${BASH_REMATCH[2]}"
-  sin_conexion="$(printf '%s' "$resto" | sed -E 's/(-h|-P|-u|-D|-p|--host=|--port=|--user=|--password=|--database=) ?"\$[A-Za-z_][A-Za-z0-9_]*"//g')"
-  # Las palabras y separadores se miran FUERA de comillas: una consulta SQL entre
-  # comillas lleva `;`, `<` o `>` sin ser un segundo comando ni una redirección.
-  # El `$` y el backtick se miran en todo el texto, porque bash los expande
-  # también dentro de comillas dobles.
-  fuera="$(sin_comillas "$sin_conexion")"
-  FUGA='(^|[^A-Za-z0-9_.-])(echo|printf|printenv|env|declare|typeset|export|compgen|cat|less|more|head|tail|tee|xxd|od|strings|base64|curl|wget|nc|ncat|python[0-9.]*|node|perl|ruby|bash|sh|zsh|eval|source|ps)([^A-Za-z0-9_-]|$)|/proc/|\.env|[<>;|&]'
-  if [[ "$sin_conexion" != *'$'* ]] && [[ "$sin_conexion" != *'`'* ]] && ! [[ "$fuera" =~ $FUGA ]]; then
+  consulta="$(printf '%s' "$original" | grep -oE -- "$CONSULTA_RE" || true)"
+  if ! printf '%s' "$consulta" | grep -qiE "$CLIENTE_EJECUTA"; then
     exit 0
   fi
-  bloquear "uso de un .env: una variable fuera de las opciones de conexión, o un comando que podría imprimir los valores."
 fi
 
 # ── Heredoc que ESCRIBE texto: documentación, no lectura ───────────────────

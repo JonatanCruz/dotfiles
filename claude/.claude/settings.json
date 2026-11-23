@@ -93,7 +93,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/no-leer-secretos-por-bash.sh",
+            "command": "~/.claude/hooks/no-filtrar-secretos.sh",
             "timeout": 5
           },
           {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regresión de claude/.claude/hooks/no-leer-secretos-por-bash.sh.
+# Regresión de claude/.claude/hooks/no-filtrar-secretos.sh.
 #
 # Cada bypass que encontró una revisión de seguridad queda aquí como caso, para
 # que un cambio futuro del hook no lo reabra sin que nadie lo note. Las rutas
@@ -9,7 +9,7 @@
 set -uo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-HOOK="$RAIZ/claude/.claude/hooks/no-leer-secretos-por-bash.sh"
+HOOK="$RAIZ/claude/.claude/hooks/no-filtrar-secretos.sh"
 # Hermética: el .claude/hooks.json del proyecto desde el que se corre no cuenta.
 export CLAUDE_HOOKS_CONFIG="$RAIZ/.no-existe-hooks.json"
 ok=0
@@ -48,7 +48,7 @@ probar 0 'git tag -a v1 -m "rota ~/.aws/credentials"'
 probar 0 'rg secrets docs/'
 probar 0 'git status'
 probar 0 'cat .env.example'
-probar 0 "grep -n 'a\|b' claude/.claude/hooks/no-leer-secretos-por-bash.sh"
+probar 0 "grep -n 'a\|b' claude/.claude/hooks/no-filtrar-secretos.sh"
 probar 0 $'make \\\n  build'
 probar 0 $'ls -la \\\n  /tmp'
 probar_crudo 0 ''
@@ -133,7 +133,7 @@ probar 0 'cat pkg/auth/src/admin/reset-user-password.usecase.ts'
 probar 0 'grep -n password logs/app.log'
 probar 0 'wc -l .env'
 probar 0 'ls *.sh'
-probar 0 'grep -n x claude/.claude/hooks/tests/casos-no-leer-secretos-por-bash.txt'
+probar 0 'grep -n x claude/.claude/hooks/tests/casos-no-filtrar-secretos.txt'
 
 # ── CLIs que devuelven el valor de un secreto, en un comando de varias líneas ─
 probar 2 $'ls\naws secretsmanager get-secret-value --secret-id x'
