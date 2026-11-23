@@ -38,13 +38,35 @@ glob="$(printf '%s' "$payload" | jq -r '.tool_input.glob // empty' 2>/dev/null |
 # No se adivina si un glob es seguro mirando su texto: se expande igual que lo haría
 # la búsqueda (incluidos ocultos e ignorados) y cada archivo resultante pasa por la
 # misma comprobación de ruta.
+# Además, como respaldo, un glob que nombra un secreto, apunta a ocultos o trae
+# espacios/comas (varios patrones) se bloquea sin expandir. Todo falla cerrado.
+bloquear_glob() {
+  echo "BLOQUEADO (no-filtrar-secretos-lectura): el glob \`$glob\` $1" >&2
+  exit 2
+}
 if [ -n "$glob" ]; then
-  raiz="$(printf '%s' "$payload" | jq -r '.tool_input.path // "."' 2>/dev/null || echo .)"
-  if ! command -v rg >/dev/null 2>&1; then
-    echo "BLOQUEADO (no-filtrar-secretos-lectura): sin rg no se puede expandir el glob \`$glob\`." >&2
-    exit 2
+  if printf '%s' "$glob" | grep -qiE 'env|ssh|gnupg|aws|secret|credential|(^|/)\.|[][{}]|[[:space:],]'; then
+    bloquear_glob "puede alcanzar un archivo con secretos."
   fi
-  rutas="$rutas"$'\n'"$(rg --files --hidden --no-ignore -g "$glob" -- "$raiz" 2>/dev/null | head -20000)"
+  command -v rg >/dev/null 2>&1 || bloquear_glob "no se puede expandir: falta rg."
+  base="$(printf '%s' "$payload" | jq -r '.cwd // empty' 2>/dev/null || true)"
+  raiz="$(printf '%s' "$payload" | jq -r '.tool_input.path // empty' 2>/dev/null || true)"
+  [ -n "$raiz" ] || raiz="${base:-}"
+  case "$raiz" in
+    /*) ;;
+    "~"*) raiz="$HOME${raiz#\~}" ;;
+    *) [ -n "$base" ] || bloquear_glob "no se pudo resolver el directorio base."; raiz="$base/$raiz" ;;
+  esac
+  [ -e "$raiz" ] || bloquear_glob "apunta a un directorio que no existe."
+  # Sin tope: se revisa cada archivo. Un error de rg (código > 1) bloquea.
+  rg --files --hidden --no-ignore -g "$glob" -- "$raiz" >"${TMPDIR:-/tmp}/nfsl.$$" 2>/dev/null
+  rc=$?
+  if [ "$rc" -gt 1 ]; then rm -f "${TMPDIR:-/tmp}/nfsl.$$"; bloquear_glob "no se pudo expandir (rg salió con $rc)."; fi
+  if grep -qE "$SECRETO" "${TMPDIR:-/tmp}/nfsl.$$" 2>/dev/null && grep -E "$SECRETO" "${TMPDIR:-/tmp}/nfsl.$$" | grep -qvE "$NO_SECRETO"; then
+    rm -f "${TMPDIR:-/tmp}/nfsl.$$"
+    bloquear_glob "alcanza un archivo con secretos."
+  fi
+  rm -f "${TMPDIR:-/tmp}/nfsl.$$"
 fi
 
 while IFS= read -r ruta; do
