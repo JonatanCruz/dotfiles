@@ -19,6 +19,13 @@ proyecto, no aquí.
 - Usar la credencial no autoriza la acción: mutar prod sigue pidiendo la autorización del
   dueño.
 
+## 🛡️ Permisos: la política vive en los hooks
+
+- `settings.json` no enumera comandos de Bash: sólo fija el modo y registra los hooks. Una
+  lista de comandos permitidos acopla cada herramienta nueva a una regla.
+- Cada hook cubre un **tipo de riesgo** (filtrar un secreto, mutar prod, borrar), no una
+  herramienta. Una regla nueva va al hook de su riesgo.
+
 ---
 
 ## 🧠 Memoria: Engram es el único sistema
