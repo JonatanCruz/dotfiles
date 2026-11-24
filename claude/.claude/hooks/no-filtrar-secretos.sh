@@ -337,7 +337,7 @@ CLIENTE_EJECUTA='(^|[^A-Za-z0-9_])(system|source|pager|nopager|tee|notee|edit|co
 # excluyen --config, --reporter, --global-*, --ui y --debug, que cambian qué se carga.
 # Riesgo aceptado: una prueba del repo podría imprimir el entorno; las pruebas se
 # revisan por PR como cualquier código.
-PW_ARG='e2e/[A-Za-z0-9/_.-]+\.spec\.ts|--project=[A-Za-z0-9_-]+|--grep=[A-Za-z0-9_-]+|--workers=[0-9]+'
+PW_ARG='e2e/[A-Za-z0-9/_.-]+\.spec\.ts|--project=[A-Za-z0-9_-]+|--grep=[A-Za-z0-9_-]+|--workers=[0-9]+|--no-deps'
 PW_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env(\.[A-Za-z0-9_-]+)?; set \+a; pnpm (--filter [A-Za-z0-9@/._-]+ )?exec playwright test( (${PW_ARG}))*$"
 if [[ "$original" =~ $PW_RE ]]; then
   exit 0
