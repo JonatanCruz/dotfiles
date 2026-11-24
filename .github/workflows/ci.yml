@@ -335,6 +335,11 @@ jobs:
       - name: Regression tests for the secrets hook
         run: bash scripts/tests/hook-secretos.sh
 
+      # no-filtrar-secretos-lectura expande los globs de Grep con rg y bloquea si
+      # no lo encuentra; el runner no lo trae.
+      - name: Install ripgrep
+        run: sudo apt-get install -y --no-install-recommends ripgrep
+
       # Casos versionados de cada hook (tests/casos-*.txt y los runners propios
       # de los hooks de Write/Edit). CLAUDE_MEMORY_DIR necesita la forma
       # .../projects/<x>/memory: block-harness-memory sólo reconoce esa forma.
