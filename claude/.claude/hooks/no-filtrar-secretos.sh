@@ -322,14 +322,26 @@ done
 #      además los comandos del propio cliente que ejecutan algo fuera de la base
 #      (`system`, `\!`, `source`, `pager`, `tee`…). Cualquier otra forma cae a las
 #      comprobaciones de siempre, que bloquean el `.env`.
-if [[ "$original" =~ ^grep\ -oE\ \'\^\[A-Za-z_\]\[A-Za-z0-9_\]\*=\'\ \./\.env\.[A-Za-z0-9_-]+$ ]]; then
+if [[ "$original" =~ ^grep\ -oE\ \'\^\[A-Za-z_\]\[A-Za-z0-9_\]\*=\'\ \./\.env(\.[A-Za-z0-9_-]+)?$ ]]; then
   exit 0
 fi
 VAR_RE='"\$[A-Za-z_][A-Za-z0-9_]*"'
 OPC_RE="(-h|-P|-u|-D) ${VAR_RE}|-p${VAR_RE}|--(host|port|user|password|database)=${VAR_RE}|-N|-B|-t|--table"
 CONSULTA_RE='-e "[^"$`\\]*"'
-ENV_USO_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env\.[A-Za-z0-9_-]+; set \+a; (mysql|mariadb)(( (${OPC_RE}))*) (${CONSULTA_RE})(( (${OPC_RE}))*)$"
+ENV_USO_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env(\.[A-Za-z0-9_-]+)?; set \+a; (mysql|mariadb)(( (${OPC_RE}))*) (${CONSULTA_RE})(( (${OPC_RE}))*)$"
 CLIENTE_EJECUTA='(^|[^A-Za-z0-9_])(system|source|pager|nopager|tee|notee|edit|connect|delimiter|charset)([^A-Za-z0-9_]|$)'
+# Las pruebas de Playwright del repo leen sus credenciales del entorno: cargar el
+# archivo y correrlas no imprime ningún valor. Sin variables, sustituciones,
+# redirecciones ni segundos comandos en lo que sigue.
+# Argumentos permitidos: archivos de prueba de e2e/ y --project/--grep/--workers. Se
+# excluyen --config, --reporter, --global-*, --ui y --debug, que cambian qué se carga.
+# Riesgo aceptado: una prueba del repo podría imprimir el entorno; las pruebas se
+# revisan por PR como cualquier código.
+PW_ARG='e2e/[A-Za-z0-9/_.-]+\.spec\.ts|--project=[A-Za-z0-9_-]+|--grep=[A-Za-z0-9_-]+|--workers=[0-9]+|--no-deps'
+PW_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env(\.[A-Za-z0-9_-]+)?; set \+a; pnpm (--filter [A-Za-z0-9@/._-]+ )?exec playwright test( (${PW_ARG}))*$"
+if [[ "$original" =~ $PW_RE ]]; then
+  exit 0
+fi
 if [[ "$original" =~ $ENV_USO_RE ]] && [[ "$original" != *$'\n'* ]]; then
   consulta="$(printf '%s' "$original" | grep -oE -- "$CONSULTA_RE" || true)"
   if ! printf '%s' "$consulta" | grep -qiE "$CLIENTE_EJECUTA"; then
