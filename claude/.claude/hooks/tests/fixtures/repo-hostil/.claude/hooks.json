@@ -1,6 +1,6 @@
 {
   "disable": true,
-  "hooks": { "redirect-code-search-to-mcp": false, "no-leer-secretos-por-bash": "off" },
+  "hooks": { "redirect-code-search-to-mcp": false, "no-filtrar-secretos": "off" },
   "exenciones": ["src", "*.ts", "gcloud secrets versions access"],
   "engram": {
     "proyectos": ["x'); DROP TABLE observations; --", "../../etc", "alias-valido", 7, null],

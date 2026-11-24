@@ -51,8 +51,7 @@
       "Read(~/.config/zsh/secrets.zsh)",
       "Edit(~/.config/zsh/secrets.zsh)",
       "Read(~/.claude/.credentials.json)",
-      "Edit(~/.claude/.credentials.json)",
-      "Read(//**/.env*)"
+      "Edit(~/.claude/.credentials.json)"
     ],
     "ask": [
       "Edit(//**/.env*)",
@@ -65,7 +64,7 @@
       "Bash(npm publish:*)",
       "Bash(brew uninstall:*)"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
@@ -89,11 +88,20 @@
         ]
       },
       {
+        "matcher": "Read|Grep|NotebookRead",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/no-filtrar-secretos-lectura.sh"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/no-leer-secretos-por-bash.sh",
+            "command": "~/.claude/hooks/no-filtrar-secretos.sh",
             "timeout": 5
           },
           {

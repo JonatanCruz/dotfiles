@@ -207,7 +207,7 @@ echo "── secretos: la tabla por defecto aplica en todos; el proyecto sólo s
 secreto() { # secreto <esperado> <desc> <repo> <comando> [VAR=valor…]
   local esp="$1" desc="$2" d="$3" c="$4"; shift 4
   jq -nc --arg c "$c" --arg d "$d" '{tool_input:{command:$c},cwd:$d}' \
-    | env "$@" CLAUDE_PROJECT_DIR="$d" bash "$HOOKS/no-leer-secretos-por-bash.sh" >/dev/null 2>&1
+    | env "$@" CLAUDE_PROJECT_DIR="$d" bash "$HOOKS/no-filtrar-secretos.sh" >/dev/null 2>&1
   igual "$desc" "$esp" "$?"
 }
 for d in "$TS" "$PY" "$GO"; do

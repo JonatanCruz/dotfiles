@@ -128,7 +128,7 @@ globs_sospechosos() {
 
 bloquear() {
   cat >&2 <<EOF
-BLOQUEADO (no-leer-secretos-por-bash): $1
+BLOQUEADO (no-filtrar-secretos): $1
 Los secretos no se vuelcan al contexto del modelo.
 
 Si necesitás saber si existe o sus permisos: un único \`ls -l <ruta>\` o
@@ -180,6 +180,9 @@ ofuscado() {
 # Cada proyecto puede AÑADIR entradas (secretos.clis en .claude/hooks.json),
 # nunca quitarlas: la tabla de abajo siempre aplica.
 SECRETOS_CLIS='gcloud secrets versions access
+gcloud auth print-access-token
+gcloud auth print-identity-token
+gcloud auth application-default print-access-token
 aws secretsmanager get-secret-value
 aws secretsmanager batch-get-secret-value
 aws ssm get-parameter --with-decryption
@@ -303,6 +306,36 @@ for _p in $GCLOUD_PROYECTOS_LEGIBLES; do
     exit 0
   fi
 done
+
+# ── Exención: USAR las credenciales de un .env sin mostrar sus valores ──────
+# El dueño: "solo valida que no se filtre la contraseña, pero que si puedas
+# usarlas … que el hook sirva para eso, no que bloquee el uso de ellas".
+# Lo que se vigila es el VALOR, no el archivo. Dos formas permitidas:
+#   1. Ver qué variables trae, sin valores:
+#        grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' ./.env.<nombre>
+#   2. Cargarlo en el shell y pasarlo a un cliente de base de datos:
+#        [REYVA_DELEGATED=1 ]set -a; . ./.env.<nombre>; set +a; mysql <opciones> -e "<consulta>"
+#      Es una lista de lo PERMITIDO, no de lo prohibido: el comando tiene que ser
+#      exactamente `mysql`/`mariadb`, cada variable sólo como valor de una opción
+#      de conexión, y una sola consulta entre comillas dobles sin `$`, backtick
+#      ni `\` (así el valor no puede expandirse dentro de la consulta). Se vetan
+#      además los comandos del propio cliente que ejecutan algo fuera de la base
+#      (`system`, `\!`, `source`, `pager`, `tee`…). Cualquier otra forma cae a las
+#      comprobaciones de siempre, que bloquean el `.env`.
+if [[ "$original" =~ ^grep\ -oE\ \'\^\[A-Za-z_\]\[A-Za-z0-9_\]\*=\'\ \./\.env\.[A-Za-z0-9_-]+$ ]]; then
+  exit 0
+fi
+VAR_RE='"\$[A-Za-z_][A-Za-z0-9_]*"'
+OPC_RE="(-h|-P|-u|-D) ${VAR_RE}|-p${VAR_RE}|--(host|port|user|password|database)=${VAR_RE}|-N|-B|-t|--table"
+CONSULTA_RE='-e "[^"$`\\]*"'
+ENV_USO_RE="^(REYVA_DELEGATED=1 )?set -a; \. \./\.env\.[A-Za-z0-9_-]+; set \+a; (mysql|mariadb)(( (${OPC_RE}))*) (${CONSULTA_RE})(( (${OPC_RE}))*)$"
+CLIENTE_EJECUTA='(^|[^A-Za-z0-9_])(system|source|pager|nopager|tee|notee|edit|connect|delimiter|charset)([^A-Za-z0-9_]|$)'
+if [[ "$original" =~ $ENV_USO_RE ]] && [[ "$original" != *$'\n'* ]]; then
+  consulta="$(printf '%s' "$original" | grep -oE -- "$CONSULTA_RE" || true)"
+  if ! printf '%s' "$consulta" | grep -qiE "$CLIENTE_EJECUTA"; then
+    exit 0
+  fi
+fi
 
 # ── Heredoc que ESCRIBE texto: documentación, no lectura ───────────────────
 # `cat > notas.md <<'EOF'` o `git commit -F - <<'EOF'` con un cuerpo que NOMBRA

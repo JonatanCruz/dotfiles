@@ -7,7 +7,7 @@
 # ── POR QUÉ EXISTE ─────────────────────────────────────────────────────────
 #
 # Un gate que evalúa el TEXTO del comando bloquea por NOMBRAR, no por HACER.
-# El caso testigo: `grep -c "no-leer-secretos-por-bash" x.jsonl` quedaría
+# El caso testigo: `grep -c "no-filtrar-secretos" x.jsonl` quedaría
 # bloqueado POR CONTENER EL NOMBRE del hook, mientras CUENTA sus bloqueos.
 #
 # El costo no es sólo fricción: un gate que muerde el trabajo de medir deja un
